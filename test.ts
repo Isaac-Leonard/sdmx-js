@@ -1,65 +1,90 @@
-interface StructureType{
+class StructureType implements Registry {
+	public struct:any;
+	constructor(struct:any){
+		this.struct = struct;
+	}
+	// Registry
+	listDataflows(): DataflowType[]{
+
+	}
+	clear():void{
+
+	}
+	load(struct:StructureType):void{
+
+	}
+	unload(struct:StructureType):void{
+
+	}
+	findDataStructure(ref:Reference): DataStructureType{
+		return null;
+	}
+	findDataflow(ref:DataflowReference): DataflowType{
+        return null;
+	}
+	findCode(ref:CodeReference):CodeType{
+		return null;
+	}
+	findCodelist(ref:CodelistReference): CodelistType{
+        return null;
+	}
+	findItemType(item:ItemReference): ItemType{
+        return null;
+	}
+	findConcept(ref:ConceptReference): ConceptType{
+        return null;
+	}
+	findConcepScheme(ref:ConceptSchemeReference):ConceptSchemeType{
+        return null;
+	}
+	save(): any{
+
+	}
 
 }
-interface ItemType{
+class ItemType{
 
 }
-interface CodeType extends ItemType {
+class CodeType extends ItemType {
 
 }
-interface ConceptType extends ItemType {
+class ConceptType extends ItemType {
 
 }
-interface ItemSchemeType {
+class ItemSchemeType {
 
 }
-interface CodelistType extends ItemSchemeType {
+class CodelistType extends ItemSchemeType {
 
 
 }
 
-interface ConceptSchemeType extends ItemSchemeType {
+class ConceptSchemeType extends ItemSchemeType {
 
 }
-interface DataflowType{
+class DataflowType{
     
 
 
 }
-interface DataStructureType{
+class DataStructureType{
 
 }
 
-interface Reference{
+class Reference{
     
 }
-interface Ref{
-
-}
-interface DataStructureReference extends Reference{
-
-}
-interface DataflowReference extends Reference{
-
-}
-interface CodeReference extends Reference{
-
-}
-interface CodelistReference extends Reference{
-
-}
-interface ItemReference extends Reference{
-
-}
-interface ConceptReference extends Reference{
-
-}
-interface ConceptSchemeReference extends Reference{
+class Ref{
 
 }
 
-interface DataQuery{}
-interface DataMessageType{}
+
+class DataQuery{
+
+}
+class DataMessageType{
+
+}
 
 interface Queryable {
 	getRegistry():Registry;
@@ -70,13 +95,13 @@ interface Registry {
 	clear():void;
 	load(struct:StructureType):void;
 	unload(struct:StructureType):void;
-	find(ref:DataStructureReference): DataStructureType;
-	find(ref:DataflowReference): DataflowType;
-	find(ref:CodeReference):CodeType;
-	find(ref:CodelistReference): CodelistType;
-	find(item:ItemReference): ItemType;
-	find(ref:ConceptReference): ConceptType;
-	find(ref:ConceptSchemeReference):ConceptSchemeType;
+	findDataStructure(ref:Reference): DataStructureType;
+	findDataflow(ref:Reference): DataflowType;
+	findCode(ref:Reference):CodeType;
+	findCodelist(ref:Reference): CodelistType;
+	findItemType(item:Reference): ItemType;
+	findConcept(ref:Reference): ConceptType;
+	findConceptScheme(ref:Reference):ConceptSchemeType;
 	save(): any;
 }
 
