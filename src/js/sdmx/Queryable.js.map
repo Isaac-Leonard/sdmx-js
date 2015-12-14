@@ -1,0 +1,1 @@
+{"version":3,"sources":["sdmx/Queryable.ts"],"names":[],"mappings":"AAKC","file":"sdmx/Queryable.js","sourcesContent":["module sdmx {\n    interface Queryable {\n        getRegistry(): Registry;\n        getRepository(): Repository;\n    }\n}"],"sourceRoot":"/source/"}
