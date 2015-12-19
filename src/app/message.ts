@@ -1,7 +1,8 @@
+/// <amd-module name='message'/>
 import sdmx = require("sdmx");
 import structure = require("structure");
 import commonreferences = require("commonreferences");
-export class DataMessageType {
+export class DataMessage {
 
 }
 

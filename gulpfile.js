@@ -47,18 +47,10 @@ gulp.task('compile-ts', function () {
     var tsResult = gulp.src(sourceTsFiles)
             .pipe(sourcemaps.init())
             .pipe(tsc(tsProject));
-
     tsResult.dts.pipe(gulp.dest(config.tsOutputPath));
     return tsResult.js
             .pipe(sourcemaps.write('.'))
             .pipe(gulp.dest(config.tsOutputPath));
-    var concat = require('gulp-concat');
-
-    gulp.task('scripts', function () {
-        return gulp.src('./lib/*.js')
-                .pipe(concat('all.js'))
-                .pipe(gulp.dest('./dist/'));
-    });
 });
 
 /**
@@ -70,15 +62,12 @@ gulp.task('clean-ts', function (cb) {
         config.tsOutputPath + '/**/*.js.map', // path to all sourcemap files auto gen'd by editor
         '!' + config.tsOutputPath + '/lib'
     ];
-
     // delete the files
     del(typeScriptGenFiles, cb);
 });
-
 gulp.task('watch', function () {
     gulp.watch([config.allTypeScript], ['ts-lint', 'compile-ts']);
 });
-
 gulp.task('serve', ['compile-ts', 'watch'], function () {
     process.stdout.write('Starting browserSync and superstatic...\n');
     browserSync({
@@ -97,9 +86,8 @@ gulp.task('serve', ['compile-ts', 'watch'], function () {
     });
 });
 var concat = require('gulp-concat');
-
 gulp.task('scripts1', function () {
-    return gulp.src(['./lib/*.js','./src/js/*.js','./src/js/*/*.js','./src/js/*/*/*.js','./src/js/*/*/*/*.js'])
+    return gulp.src(['./lib/*.js', './src/js/*.js', './src/js/*/*.js', './src/js/*/*/*.js', './src/js/*/*/*/*.js'])
             .pipe(concat('all.js'))
             .pipe(gulp.dest('./dist/'));
 });

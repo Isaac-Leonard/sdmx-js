@@ -1,3 +1,4 @@
+/// <amd-module name='structure'/>
 import common = require("common");
 import commonreferences = require("commonreferences");
 import xml = require("xml");

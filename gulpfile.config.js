@@ -1,4 +1,3 @@
-
 'use strict';
 var GulpConfig = (function () {
     function gulpConfig() {

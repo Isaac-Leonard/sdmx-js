@@ -1,3 +1,4 @@
+/// <amd-module name='xml'/>
 import moment = require('moment');
 export class DateTime {
     public static DF: string = "yyyy-MM-dd'T'HH:mm:ssXXX";

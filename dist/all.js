@@ -7269,20 +7269,762 @@ var collections;
 
 //# sourceMappingURL=collections.js.map
 
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+define(["require", "exports"], function (require, exports) {
+    var TextType = (function () {
+        function TextType(lang, text) {
+            this.lang = "";
+            this.text = "";
+            this.lang = lang;
+            this.text = text;
+        }
+        TextType.prototype.getLang = function () {
+            return this.lang;
+        };
+        TextType.prototype.getText = function () {
+            return this.text;
+        };
+        TextType.prototype.setText = function (s) {
+            this.text = s;
+        };
+        TextType.prototype.setLang = function (s) {
+            this.lang = s;
+        };
+        return TextType;
+    })();
+    exports.TextType = TextType;
+    var Annotation = (function () {
+        function Annotation() {
+            this.annotationTitle = "";
+            this.annotationType = "";
+            this.annotationUrl = "";
+        }
+        return Annotation;
+    })();
+    exports.Annotation = Annotation;
+    var Annotations = (function () {
+        function Annotations() {
+            this.annotations = null;
+        }
+        Annotations.prototype.getAnnotations = function () {
+            return this.annotations;
+        };
+        Annotations.prototype.setAnnotations = function (a) {
+            this.annotations = a;
+        };
+        return Annotations;
+    })();
+    exports.Annotations = Annotations;
+    var AnnotableType = (function () {
+        function AnnotableType(an) {
+            this.annotations = an;
+        }
+        return AnnotableType;
+    })();
+    exports.AnnotableType = AnnotableType;
+    var Description = (function (_super) {
+        __extends(Description, _super);
+        function Description() {
+            _super.apply(this, arguments);
+        }
+        return Description;
+    })(TextType);
+    exports.Description = Description;
+    var Name = (function (_super) {
+        __extends(Name, _super);
+        function Name() {
+            _super.apply(this, arguments);
+        }
+        return Name;
+    })(TextType);
+    exports.Name = Name;
+});
 
+//# sourceMappingURL=common.js.map
 
-//# sourceMappingURL=Queryable.js.map
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+define(["require", "exports", "xml"], function (require, exports, xml) {
+    var NestedID = (function (_super) {
+        __extends(NestedID, _super);
+        function NestedID(s) {
+            _super.call(this, s);
+        }
+        NestedID.prototype.getPatternArray = function () {
+            return [NestedID.PATTERN];
+        };
+        NestedID.prototype.equalsNestedID = function (id) {
+            if (_super.prototype.getString.call(this) == null)
+                return false;
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        NestedID.prototype.equalsString = function (id) {
+            return _super.prototype.equalsString.call(this, id);
+        };
+        NestedID.prototype.equalsID = function (id) {
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        NestedID.prototype.asID = function () {
+            return new IDType(_super.prototype.getString.call(this));
+        };
+        NestedID.PATTERN = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";
+        return NestedID;
+    })(xml.RegexXMLString);
+    exports.NestedID = NestedID;
+    var IDType = (function (_super) {
+        __extends(IDType, _super);
+        function IDType(s) {
+            _super.call(this, s);
+            if (s == null) {
+                throw new Error("null IDType string");
+            }
+        }
+        IDType.prototype.equalsID = function (id) {
+            return false;
+        };
+        IDType.prototype.equalsString = function (id) {
+            return false;
+        };
+        IDType.prototype.getPatternArray = function () {
+            return [IDType.PATTERN];
+        };
+        IDType.PATTERN = "[A-z0-9_@$\\-]+";
+        return IDType;
+    })(NestedID);
+    exports.IDType = IDType;
+    var NestedNCNameID = (function (_super) {
+        __extends(NestedNCNameID, _super);
+        function NestedNCNameID(s) {
+            _super.call(this, s);
+        }
+        NestedNCNameID.prototype.getPatternArray = function () {
+            return [NestedNCNameID.PATTERN];
+        };
+        NestedNCNameID.prototype.equalsNestedNCNameID = function (id) {
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        NestedNCNameID.PATTERN = "[A-z][A-z0-9_\\-]*(\\.[A-z][A-z0-9_\\-]*)*";
+        return NestedNCNameID;
+    })(NestedID);
+    exports.NestedNCNameID = NestedNCNameID;
+    var Ref = (function () {
+        function Ref(agencyId, id, vers, maintParent, mainVers, containId, loc, ob, pack) {
+            this.agencyId = null;
+            this.id = null;
+            this.version = null;
+            this.maintainedParentId = null;
+            this.maintainedParentVersion = null;
+            this.local = null;
+            this.object = null;
+            this.package = null;
+            this.agencyId = agencyId;
+            this.id = id;
+            this.version = vers;
+            this.maintainedParentId = maintParent;
+            this.maintainedParentVersion = mainVers;
+            this.local = loc;
+            this.object = ob;
+            this.package = pack;
+        }
+        Ref.prototype.getAgencyId = function () {
+            return this.agencyId;
+        };
+        Ref.prototype.getId = function () {
+            return this.id;
+        };
+        Ref.prototype.getVersion = function () {
+            return this.version;
+        };
+        Ref.prototype.getMaintainableParentId = function () {
+            return this.maintainedParentId;
+        };
+        Ref.prototype.getMaintainableParentVersion = function () {
+            return this.maintainedParentVersion;
+        };
+        Ref.prototype.getRefClass = function () {
+            return this.object;
+        };
+        Ref.prototype.getPack = function () {
+            return this.package;
+        };
+        Ref.prototype.setAgencyId = function (a) {
+            this.agencyId = a;
+        };
+        Ref.prototype.setId = function (id) {
+            this.id = id;
+        };
+        Ref.prototype.setVersion = function (v) {
+            this.version = v;
+        };
+        Ref.prototype.setMaintainableParentId = function (id) {
+            this.maintainedParentId = id;
+        };
+        Ref.prototype.setMaintainableParentVersion = function (v) {
+            this.maintainedParentVersion = v;
+        };
+        Ref.prototype.setRefClass = function (ob) {
+            this.object = ob;
+        };
+        Ref.prototype.setPackage = function (p) {
+            this.package = p;
+        };
+        return Ref;
+    })();
+    exports.Ref = Ref;
+    var Reference = (function () {
+        function Reference(ref, urn) {
+            this.pack = null;
+            this.clazz = null;
+            this.agency = null;
+            this.maintainedParentId = null;
+            this.maintainedParentVersion = null;
+            this.version = null;
+            this.containedIds = null;
+            this.objectId = null;
+            this.ref = ref;
+            this.urn = urn;
+            if (this.ref != null) {
+                //try {
+                this.pack = ref.getPack();
+                this.clazz = ref.getRefClass();
+                this.agency = ref.getAgencyId();
+                this.objectId = ref.getId();
+                this.maintainedParentId = ref.getMaintainableParentId();
+                this.maintainedParentVersion = ref.getMaintainableParentVersion();
+                this.version = ref.getVersion();
+            }
+            else {
+                this.parse();
+            }
+            if (this.urn == null) {
+                try {
+                    //if (this.getAgencyId() != null) {
+                    this.produce();
+                }
+                catch (Error) {
+                }
+            }
+        }
+        /**
+         * @return the ref
+         */
+        Reference.prototype.getRef = function () {
+            return this.ref;
+        };
+        /**
+         * @param ref the ref to set
+         */
+        Reference.prototype.setRef = function (ref) {
+            this.ref = ref;
+        };
+        /**
+         * @return the urn
+         */
+        Reference.prototype.getUrn = function () {
+            return this.urn;
+        };
+        /**
+         * @param urn the urn to set
+         */
+        Reference.prototype.setUrn = function (urn) {
+            this.urn = urn;
+        };
+        /**
+         * @return the pack
+         */
+        Reference.prototype.getPack = function () {
+            return this.pack;
+        };
+        /**
+         * @return the clazz
+         */
+        Reference.prototype.getRefClass = function () {
+            return this.clazz;
+        };
+        /**
+         * @return the clazz
+         */
+        Reference.prototype.getClazz = function () {
+            return this.clazz;
+        };
+        /**
+         * @return the agency
+         */
+        Reference.prototype.getAgencyId = function () {
+            return this.agency;
+        };
+        /**
+         * @return the maintainedObjectId
+         */
+        Reference.prototype.getMaintainableParentId = function () {
+            return this.maintainedParentId;
+        };
+        /**
+         * @return the maintainedObjectVersion
+         */
+        Reference.prototype.getVersion = function () {
+            return this.version;
+        };
+        /**
+         * @return the objectId
+         */
+        Reference.prototype.getId = function () {
+            return this.objectId;
+        };
+        Reference.prototype.getContainedObjectIds = function () {
+            return this.containedIds;
+        };
+        /**
+         * @return the maintainedParentVersion
+         */
+        Reference.prototype.getMaintainedParentVersion = function () {
+            return this.maintainedParentVersion;
+        };
+        //public IDType getMainID() {
+        //    if( this.maintainedParentId==null ) return objectId!=null?objectId.asID():null;
+        //    else return maintainedParentId;
+        //}
+        Reference.prototype.dump = function () {
+        };
+        Reference.prototype.toString = function () {
+            var s = "";
+            return s;
+        };
+        Reference.prototype.parse = function () {
+        };
+        Reference.prototype.produce = function () {
+        };
+        return Reference;
+    })();
+    exports.Reference = Reference;
+    var Version = (function (_super) {
+        __extends(Version, _super);
+        function Version(s) {
+            _super.call(this, s);
+        }
+        Version.prototype.getPatternArray = function () {
+            return [Version.PATTERN];
+        };
+        Version.prototype.equalsVersion = function (id) {
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        Version.prototype.equals = function (id) {
+            return _super.prototype.getString.call(this) == id;
+        };
+        Version.prototype.compareTo = function (o) {
+            if (!(o instanceof Version))
+                return -1;
+            var a1 = parseFloat(o.toString());
+            var a2 = parseFloat(toString());
+            return a1 > a2 ? 1 : a1 < a2 ? -1 : 0;
+        };
+        Version.PATTERN = "[0-9]+(\\.[0-9]+)*";
+        Version.ONE = new Version("1.0");
+        return Version;
+    })(xml.RegexXMLString);
+    exports.Version = Version;
+    var ObjectTypeCodelistType = (function () {
+        function ObjectTypeCodelistType(s) {
+            // Instance
+            this.target = null;
+            this.index = -1;
+            var contains = false;
+            for (var i = 0; i < ObjectTypeCodelistType.STRING_ENUM.length; i++) {
+                if (ObjectTypeCodelistType.STRING_ENUM[i] == s) {
+                    contains = true;
+                }
+            }
+            if (!contains)
+                throw new Error(s + " is not a valid CodeTypeCodelistType");
+            this.target = s;
+            this.index = ObjectTypeCodelistType.STRING_ENUM.indexOf(s);
+        }
+        // Utility
+        ObjectTypeCodelistType.add = function (s) {
+            var b = new ObjectTypeCodelistType(s);
+            ObjectTypeCodelistType.ENUM.push(b);
+            return b;
+        };
+        ObjectTypeCodelistType.addString = function (s) {
+            ObjectTypeCodelistType.STRING_ENUM.push(s);
+            return s;
+        };
+        ObjectTypeCodelistType.fromString = function (s) {
+            for (var i = 0; i < ObjectTypeCodelistType.ENUM.length; i++) {
+                if (ObjectTypeCodelistType.ENUM[i].target == s)
+                    return ObjectTypeCodelistType.ENUM[i];
+            }
+            return null;
+        };
+        ObjectTypeCodelistType.fromStringWithException = function (s) {
+            for (var i = 0; i < ObjectTypeCodelistType.ENUM.length; i++) {
+                if (ObjectTypeCodelistType.ENUM[i].target == s)
+                    return ObjectTypeCodelistType.ENUM[i];
+            }
+            throw new Error("Value:" + s + " not found in enumeration! - ObjectypeCodelistType");
+        };
+        ObjectTypeCodelistType.prototype.toString = function () { return this.target; };
+        ObjectTypeCodelistType.prototype.toInt = function () {
+            return this.index;
+        };
+        ObjectTypeCodelistType.ENUM = new Array();
+        ObjectTypeCodelistType.STRING_ENUM = new Array();
+        ObjectTypeCodelistType.TARGET_ANY = ObjectTypeCodelistType.addString("Any");
+        ObjectTypeCodelistType.TARGET_AGENCY = ObjectTypeCodelistType.addString("Agency");
+        ObjectTypeCodelistType.TARGET_AGENCYSCHEME = ObjectTypeCodelistType.addString("AgencyScheme");
+        ObjectTypeCodelistType.TARGET_ATTACHMENTCONSTRAINT = ObjectTypeCodelistType.addString("AttachmentConstraint");
+        ObjectTypeCodelistType.TARGET_ATTRIBUTE = ObjectTypeCodelistType.addString("Attribute");
+        ObjectTypeCodelistType.TARGET_ATTRIBUTEDESCRIPTOR = ObjectTypeCodelistType.addString("AttributeDescriptor");
+        ObjectTypeCodelistType.TARGET_CATEGORISATION = ObjectTypeCodelistType.addString("Categorisation");
+        ObjectTypeCodelistType.TARGET_CATEGORY = ObjectTypeCodelistType.addString("Category");
+        ObjectTypeCodelistType.TARGET_CATEGORYSCHEMEMAP = ObjectTypeCodelistType.addString("CategorySchemeMap");
+        ObjectTypeCodelistType.TARGET_CATEGORYSCHEME = ObjectTypeCodelistType.addString("CategoryScheme");
+        ObjectTypeCodelistType.TARGET_CODE = ObjectTypeCodelistType.addString("Code");
+        ObjectTypeCodelistType.TARGET_CODEMAP = ObjectTypeCodelistType.addString("CodeMap");
+        ObjectTypeCodelistType.TARGET_CODELIST = ObjectTypeCodelistType.addString("Codelist");
+        ObjectTypeCodelistType.TARGET_CODELISTMAP = ObjectTypeCodelistType.addString("CodelistMap");
+        ObjectTypeCodelistType.TARGET_COMPONENTMAP = ObjectTypeCodelistType.addString("ComponentMap");
+        ObjectTypeCodelistType.TARGET_CONCEPT = ObjectTypeCodelistType.addString("Concept");
+        ObjectTypeCodelistType.TARGET_CONCEPTMAP = ObjectTypeCodelistType.addString("ConceptMap");
+        ObjectTypeCodelistType.TARGET_CONCEPTSCHEME = ObjectTypeCodelistType.addString("ConceptScheme");
+        ObjectTypeCodelistType.TARGET_CONCEPTSCHEMEMAP = ObjectTypeCodelistType.addString("ConceptSchemeMap");
+        ObjectTypeCodelistType.TARGET_CONSTRAINT = ObjectTypeCodelistType.addString("Constraint");
+        ObjectTypeCodelistType.TARGET_CONSTRAINTARGET = ObjectTypeCodelistType.addString("ConstraintTarget");
+        ObjectTypeCodelistType.TARGET_CONTENTCONSTRAINT = ObjectTypeCodelistType.addString("ContentConstraint");
+        ObjectTypeCodelistType.TARGET_DATAFLOW = ObjectTypeCodelistType.addString("Dataflow");
+        ObjectTypeCodelistType.TARGET_DATACONSUMER = ObjectTypeCodelistType.addString("DataConsumer");
+        ObjectTypeCodelistType.TARGET_DATACONSUMERSCHEME = ObjectTypeCodelistType.addString("DataConsumerScheme");
+        ObjectTypeCodelistType.TARGET_DATAPROVIDER = ObjectTypeCodelistType.addString("DataProvider");
+        ObjectTypeCodelistType.TARGET_DATAPROVIDERSCHEME = ObjectTypeCodelistType.addString("DataProviderScheme");
+        ObjectTypeCodelistType.TARGET_DATASETTARGET = ObjectTypeCodelistType.addString("DataSetTarget");
+        ObjectTypeCodelistType.TARGET_DATASTRUCTURE = ObjectTypeCodelistType.addString("DataStructure");
+        ObjectTypeCodelistType.TARGET_DIMENSION = ObjectTypeCodelistType.addString("Dimension");
+        ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTOR = ObjectTypeCodelistType.addString("DimensionDescriptor");
+        ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTORVALUESTARGET = ObjectTypeCodelistType.addString("DimensionDescriptorValuesTarget");
+        ObjectTypeCodelistType.TARGET_GROUPDIMENSIONDESCRIPTOR = ObjectTypeCodelistType.addString("GroupDimensionDescriptor");
+        ObjectTypeCodelistType.TARGET_HIERARCHICALCODE = ObjectTypeCodelistType.addString("HierarchicalCode");
+        ObjectTypeCodelistType.TARGET_HIERARCHICALCODELIST = ObjectTypeCodelistType.addString("HierarchicalCodelist");
+        ObjectTypeCodelistType.TARGET_HIERARCHY = ObjectTypeCodelistType.addString("Hierarchy");
+        ObjectTypeCodelistType.TARGET_HYBRIDCODELISTMAP = ObjectTypeCodelistType.addString("HybridCodelistMap");
+        ObjectTypeCodelistType.TARGET_HYBRIDCODEMAP = ObjectTypeCodelistType.addString("HybridCodeMap");
+        ObjectTypeCodelistType.TARGET_IDENTIFIABLEOBJECTTARGET = ObjectTypeCodelistType.addString("IdentifiableObjectTarget");
+        ObjectTypeCodelistType.TARGET_LEVEL = ObjectTypeCodelistType.addString("Level");
+        ObjectTypeCodelistType.TARGET_MEASUREDESCRIPTOR = ObjectTypeCodelistType.addString("MeasureDescriptor");
+        ObjectTypeCodelistType.TARGET_MEASUREDIMENSION = ObjectTypeCodelistType.addString("MeasureDimension");
+        ObjectTypeCodelistType.TARGET_METADATAFLOW = ObjectTypeCodelistType.addString("Metadataflow");
+        ObjectTypeCodelistType.TARGET_METADATAATTRIBUTE = ObjectTypeCodelistType.addString("MetadataAttribute");
+        ObjectTypeCodelistType.TARGET_METADATASET = ObjectTypeCodelistType.addString("MetadataSet");
+        ObjectTypeCodelistType.TARGET_METADATASTRUCTURE = ObjectTypeCodelistType.addString("MetadataStructure");
+        ObjectTypeCodelistType.TARGET_METADATATARGET = ObjectTypeCodelistType.addString("MetadataTarget");
+        ObjectTypeCodelistType.TARGET_ORGANISATION = ObjectTypeCodelistType.addString("Organisation");
+        ObjectTypeCodelistType.TARGET_ORGANISATIONMAP = ObjectTypeCodelistType.addString("OrganisationMap");
+        ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEME = ObjectTypeCodelistType.addString("OrganisationScheme");
+        ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEMEMAP = ObjectTypeCodelistType.addString("OrganisationSchemeMap");
+        ObjectTypeCodelistType.TARGET_ORGANISATIONUNIT = ObjectTypeCodelistType.addString("OrganisationUnit");
+        ObjectTypeCodelistType.TARGET_ORGANISATIONUNITSCHEME = ObjectTypeCodelistType.addString("OrganisationUnitScheme");
+        ObjectTypeCodelistType.TARGET_PRIMARYMEASURE = ObjectTypeCodelistType.addString("PrimaryMeasure");
+        ObjectTypeCodelistType.TARGET_PROCESS = ObjectTypeCodelistType.addString("Process");
+        ObjectTypeCodelistType.TARGET_PROCESSSTEP = ObjectTypeCodelistType.addString("ProcessStep");
+        ObjectTypeCodelistType.TARGET_PROVISIONAGREEMENT = ObjectTypeCodelistType.addString("ProvisionAgreement");
+        ObjectTypeCodelistType.TARGET_REPORTINGCATEGORY = ObjectTypeCodelistType.addString("ReportingCategory");
+        ObjectTypeCodelistType.TARGET_REPORTINGCATEGORYMAP = ObjectTypeCodelistType.addString("ReportingCategoryMap");
+        ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMY = ObjectTypeCodelistType.addString("ReportingTaxonomy");
+        ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMYMAP = ObjectTypeCodelistType.addString("ReportingTaxonomyMap");
+        ObjectTypeCodelistType.TARGET_REPORTINGYEARSTARTDAY = ObjectTypeCodelistType.addString("ReportingYearStartDay");
+        ObjectTypeCodelistType.TARGET_REPORTPERIODTARGET = ObjectTypeCodelistType.addString("ReportPeriodTarget");
+        ObjectTypeCodelistType.TARGET_REPORTSTRUCTURE = ObjectTypeCodelistType.addString("ReportStructure");
+        ObjectTypeCodelistType.TARGET_STRUCTUREMAP = ObjectTypeCodelistType.addString("StructureMap");
+        ObjectTypeCodelistType.TARGET_STRUCTURESET = ObjectTypeCodelistType.addString("StructureSet");
+        ObjectTypeCodelistType.TARGET_TIMEDIMENSION = ObjectTypeCodelistType.addString("TimeDimension");
+        ObjectTypeCodelistType.TARGET_TRANSITION = ObjectTypeCodelistType.addString("Transition");
+        ObjectTypeCodelistType.ANY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ANY);
+        ObjectTypeCodelistType.AGENCY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_AGENCY);
+        ObjectTypeCodelistType.AGENCYSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_AGENCYSCHEME);
+        ObjectTypeCodelistType.ATTACHMENTCONSTRAINT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ATTACHMENTCONSTRAINT);
+        ObjectTypeCodelistType.ATTRIBUTE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ATTRIBUTE);
+        ObjectTypeCodelistType.ATTRIBUTEDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ATTRIBUTEDESCRIPTOR);
+        ObjectTypeCodelistType.CATEGORISATION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORISATION);
+        ObjectTypeCodelistType.CATEGORY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORY);
+        ObjectTypeCodelistType.CATEGORYSCHEMEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORYSCHEMEMAP);
+        ObjectTypeCodelistType.CATEGORYSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORYSCHEME);
+        ObjectTypeCodelistType.CODE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODE);
+        ObjectTypeCodelistType.CODEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODE);
+        ObjectTypeCodelistType.CODELIST = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODELIST);
+        ObjectTypeCodelistType.CODELISTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODELISTMAP);
+        ObjectTypeCodelistType.COMPONENTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_COMPONENTMAP);
+        ObjectTypeCodelistType.CONCEPT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPT);
+        ObjectTypeCodelistType.CONCEPTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPTMAP);
+        ObjectTypeCodelistType.CONCEPTSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPTSCHEME);
+        ObjectTypeCodelistType.CONCEPTSCHEMEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPTSCHEMEMAP);
+        ObjectTypeCodelistType.CONSTRAINT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONSTRAINT);
+        ObjectTypeCodelistType.CONSTRAINTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONSTRAINTARGET);
+        ObjectTypeCodelistType.CONTENTCONSTRAINT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONTENTCONSTRAINT);
+        ObjectTypeCodelistType.DATAFLOW = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATAFLOW);
+        ObjectTypeCodelistType.DATACONSUMER = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATACONSUMER);
+        ObjectTypeCodelistType.DATACONSUMERSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATACONSUMERSCHEME);
+        ObjectTypeCodelistType.DATAPROVIDER = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATAPROVIDER);
+        ObjectTypeCodelistType.DATAPROVIDERSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATAPROVIDERSCHEME);
+        ObjectTypeCodelistType.DATASETTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATASETTARGET);
+        ObjectTypeCodelistType.DATASTRUCTURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATASTRUCTURE);
+        ObjectTypeCodelistType.DIMENSION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DIMENSION);
+        ObjectTypeCodelistType.DIMENSIONDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTOR);
+        ObjectTypeCodelistType.DIMENSIONDESCRIPTORVALUESTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTORVALUESTARGET);
+        ObjectTypeCodelistType.GROUPDIMENSIONDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_GROUPDIMENSIONDESCRIPTOR);
+        ObjectTypeCodelistType.HIERARCHICALCODE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HIERARCHICALCODE);
+        ObjectTypeCodelistType.HIERARCHICALCODELIST = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HIERARCHICALCODELIST);
+        ObjectTypeCodelistType.HIERARCHY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HIERARCHY);
+        ObjectTypeCodelistType.HYBRIDCODELISTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HYBRIDCODELISTMAP);
+        ObjectTypeCodelistType.HYBRIDCODEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HYBRIDCODEMAP);
+        ObjectTypeCodelistType.IDENTIFIABLEOBJECTTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_IDENTIFIABLEOBJECTTARGET);
+        ObjectTypeCodelistType.LEVEL = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_LEVEL);
+        ObjectTypeCodelistType.MEASUREDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_MEASUREDESCRIPTOR);
+        ObjectTypeCodelistType.MEASUREDIMENSION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_MEASUREDIMENSION);
+        ObjectTypeCodelistType.METADATAFLOW = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATAFLOW);
+        ObjectTypeCodelistType.METADATAATTRIBUTE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATAATTRIBUTE);
+        ObjectTypeCodelistType.METADATASET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATASET);
+        ObjectTypeCodelistType.METADATASTRUCTURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATASTRUCTURE);
+        ObjectTypeCodelistType.METADATATARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATATARGET);
+        ObjectTypeCodelistType.ORGANISATION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATION);
+        ObjectTypeCodelistType.ORGANISATIONMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONMAP);
+        ObjectTypeCodelistType.ORGANISATIONSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEME);
+        ObjectTypeCodelistType.ORGANISATIONSCHEMEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEMEMAP);
+        ObjectTypeCodelistType.ORGANISATIONUNIT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONUNIT);
+        ObjectTypeCodelistType.ORGANISATIONUNITSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONUNITSCHEME);
+        ObjectTypeCodelistType.PRIMARYMEASURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PRIMARYMEASURE);
+        ObjectTypeCodelistType.PROCESS = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PROCESS);
+        ObjectTypeCodelistType.PROCESSSTEP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PROCESSSTEP);
+        ObjectTypeCodelistType.PROVISIONAGREEMENT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PROVISIONAGREEMENT);
+        ObjectTypeCodelistType.REPORTINGCATEGORY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGCATEGORY);
+        ObjectTypeCodelistType.REPORTINGCATEGORYMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGCATEGORYMAP);
+        ObjectTypeCodelistType.REPORTINGTAXONOMY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMY);
+        ObjectTypeCodelistType.REPORTINGTAXONOMYMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMYMAP);
+        ObjectTypeCodelistType.REPORTINGYEARSTARTDAY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGYEARSTARTDAY);
+        ObjectTypeCodelistType.REPORTPERIODTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTPERIODTARGET);
+        ObjectTypeCodelistType.REPORTSTRUCTURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTSTRUCTURE);
+        ObjectTypeCodelistType.STRUCTUREMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_STRUCTUREMAP);
+        ObjectTypeCodelistType.STRUCTURESET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_STRUCTURESET);
+        ObjectTypeCodelistType.TIMEDIMENSION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_TIMEDIMENSION);
+        ObjectTypeCodelistType.TRANSITION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_TRANSITION);
+        ObjectTypeCodelistType.INT_ANY = 0;
+        ObjectTypeCodelistType.INT_AGENCY = 1;
+        ObjectTypeCodelistType.INT_AGENCYSCHEME = 2;
+        ObjectTypeCodelistType.INT_ATTACHMENTCONSTRAINT = 3;
+        ObjectTypeCodelistType.INT_ATTRIBUTE = 4;
+        ObjectTypeCodelistType.INT_ATTRIBUTEDESCRIPTOR = 5;
+        ObjectTypeCodelistType.INT_CATEGORISATION = 6;
+        ObjectTypeCodelistType.INT_CATEGORY = 7;
+        ObjectTypeCodelistType.INT_CATEGORYSCHEMEMAP = 8;
+        ObjectTypeCodelistType.INT_CATEGORYSCHEME = 9;
+        ObjectTypeCodelistType.INT_CODE = 10;
+        ObjectTypeCodelistType.INT_CODEMAP = 11;
+        ObjectTypeCodelistType.INT_CODELIST = 12;
+        ObjectTypeCodelistType.INT_CODELISTMAP = 13;
+        ObjectTypeCodelistType.INT_COMPONENTMAP = 14;
+        ObjectTypeCodelistType.INT_CONCEPT = 15;
+        ObjectTypeCodelistType.INT_CONCEPTMAP = 16;
+        ObjectTypeCodelistType.INT_CONCEPTSCHEME = 17;
+        ObjectTypeCodelistType.INT_CONCEPTSCHEMEMAP = 18;
+        ObjectTypeCodelistType.INT_CONSTRAINT = 19;
+        ObjectTypeCodelistType.INT_CONSTRAINTARGET = 20;
+        ObjectTypeCodelistType.INT_CONTENTCONSTRAINT = 21;
+        ObjectTypeCodelistType.INT_DATAFLOW = 22;
+        ObjectTypeCodelistType.INT_DATACONSUMER = 23;
+        ObjectTypeCodelistType.INT_DATACONSUMERSCHEME = 24;
+        ObjectTypeCodelistType.INT_DATAPROVIDER = 25;
+        ObjectTypeCodelistType.INT_DATAPROVIDERSCHEME = 26;
+        ObjectTypeCodelistType.INT_DATASETTARGET = 27;
+        ObjectTypeCodelistType.INT_DATASTRUCTURE = 28;
+        ObjectTypeCodelistType.INT_DIMENSION = 29;
+        ObjectTypeCodelistType.INT_DIMENSIONDESCRIPTOR = 30;
+        ObjectTypeCodelistType.INT_DIMENSIONDESCRIPTORVALUESTARGET = 31;
+        ObjectTypeCodelistType.INT_GROUPDIMENSIONDESCRIPTOR = 32;
+        ObjectTypeCodelistType.INT_HIERARCHICALCODE = 33;
+        ObjectTypeCodelistType.INT_HIERARCHICALCODELIST = 34;
+        ObjectTypeCodelistType.INT_HIERARCHY = 35;
+        ObjectTypeCodelistType.INT_HYBRIDCODELISTMAP = 36;
+        ObjectTypeCodelistType.INT_HYBRIDCODEMAP = 37;
+        ObjectTypeCodelistType.INT_IDENTIFIABLEOBJECTTARGET = 38;
+        ObjectTypeCodelistType.INT_LEVEL = 39;
+        ObjectTypeCodelistType.INT_MEASUREDESCRIPTOR = 40;
+        ObjectTypeCodelistType.INT_MEASUREDIMENSION = 41;
+        ObjectTypeCodelistType.INT_METADATAFLOW = 42;
+        ObjectTypeCodelistType.INT_METADATAATTRIBUTE = 43;
+        ObjectTypeCodelistType.INT_METADATASET = 44;
+        ObjectTypeCodelistType.INT_METADATASTRUCTURE = 45;
+        ObjectTypeCodelistType.INT_METADATATARGET = 46;
+        ObjectTypeCodelistType.INT_ORGANISATION = 47;
+        ObjectTypeCodelistType.INT_ORGANISATIONMAP = 48;
+        ObjectTypeCodelistType.INT_ORGANISATIONSCHEME = 49;
+        ObjectTypeCodelistType.INT_ORGANISATIONSCHEMEMAP = 50;
+        ObjectTypeCodelistType.INT_ORGANISATIONUNIT = 51;
+        ObjectTypeCodelistType.INT_ORGANISATIONUNITSCHEME = 52;
+        ObjectTypeCodelistType.INT_PRIMARYMEASURE = 53;
+        ObjectTypeCodelistType.INT_PROCESS = 54;
+        ObjectTypeCodelistType.INT_PROCESSSTEP = 55;
+        ObjectTypeCodelistType.INT_PROVISIONAGREEMENT = 56;
+        ObjectTypeCodelistType.INT_REPORTINGCATEGORY = 57;
+        ObjectTypeCodelistType.INT_REPORTINGCATEGORYMAP = 58;
+        ObjectTypeCodelistType.INT_REPORTINGTAXONOMY = 59;
+        ObjectTypeCodelistType.INT_REPORTINGTAXONOMYMAP = 60;
+        ObjectTypeCodelistType.INT_REPORTINGYEARSTARTDAY = 61;
+        ObjectTypeCodelistType.INT_REPORTPERIODTARGET = 62;
+        ObjectTypeCodelistType.INT_REPORTSTRUCTURE = 63;
+        ObjectTypeCodelistType.INT_STRUCTUREMAP = 64;
+        ObjectTypeCodelistType.INT_STRUCTURESET = 65;
+        ObjectTypeCodelistType.INT_TIMEDIMENSION = 66;
+        ObjectTypeCodelistType.INT_TRANSITION = 67;
+        return ObjectTypeCodelistType;
+    })();
+    exports.ObjectTypeCodelistType = ObjectTypeCodelistType;
+    var PackageTypeCodelistType = (function () {
+        function PackageTypeCodelistType(s) {
+            // Instance
+            this.target = null;
+            var contains = false;
+            for (var i = 0; i < PackageTypeCodelistType.STRING_ENUM.length; i++) {
+                if (PackageTypeCodelistType.STRING_ENUM[i] == s) {
+                    contains = true;
+                }
+            }
+            if (!contains)
+                throw new Error(s + " is not a valid CodeTypeCodelistType");
+            this.target = s;
+        }
+        // Utility
+        PackageTypeCodelistType.add = function (s) {
+            var b = new PackageTypeCodelistType(s);
+            PackageTypeCodelistType.ENUM.push(b);
+            return b;
+        };
+        PackageTypeCodelistType.addString = function (s) {
+            PackageTypeCodelistType.STRING_ENUM.push(s);
+            return s;
+        };
+        PackageTypeCodelistType.fromString = function (s) {
+            for (var i = 0; i < PackageTypeCodelistType.ENUM.length; i++) {
+                if (PackageTypeCodelistType.ENUM[i].target == s)
+                    return PackageTypeCodelistType.ENUM[i];
+            }
+            return null;
+        };
+        PackageTypeCodelistType.fromStringWithException = function (s) {
+            for (var i = 0; i < PackageTypeCodelistType.ENUM.length; i++) {
+                if (PackageTypeCodelistType.ENUM[i].target == s)
+                    return PackageTypeCodelistType.ENUM[i];
+            }
+            throw new Error("Value:" + s + " not found in PackageTypeCodelistType enumeration!");
+        };
+        PackageTypeCodelistType.prototype.toString = function () { return this.target; };
+        PackageTypeCodelistType.ENUM = new Array();
+        PackageTypeCodelistType.STRING_ENUM = new Array();
+        PackageTypeCodelistType.TARGET_BASE = PackageTypeCodelistType.addString("base");
+        PackageTypeCodelistType.TARGET_DATASTRUCTURE = PackageTypeCodelistType.addString("datastructure");
+        PackageTypeCodelistType.TARGET_METADATASTRUCTURE = PackageTypeCodelistType.addString("metadatastructure");
+        PackageTypeCodelistType.TARGET_PROCESS = PackageTypeCodelistType.addString("process");
+        PackageTypeCodelistType.TARGET_REGISTRY = PackageTypeCodelistType.addString("registry");
+        PackageTypeCodelistType.TARGET_MAPPING = PackageTypeCodelistType.addString("mapping");
+        PackageTypeCodelistType.TARGET_CODELIST = PackageTypeCodelistType.addString("codelist");
+        PackageTypeCodelistType.TARGET_CATEGORYSCHEME = PackageTypeCodelistType.addString("categoryscheme");
+        PackageTypeCodelistType.TARGET_CONCEPTSCHEME = PackageTypeCodelistType.addString("conceptscheme");
+        PackageTypeCodelistType.BASE = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_BASE);
+        PackageTypeCodelistType.DATASTRUCTURE = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_DATASTRUCTURE);
+        PackageTypeCodelistType.METADATASTRUCTURE = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_METADATASTRUCTURE);
+        PackageTypeCodelistType.PROCESS = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_PROCESS);
+        PackageTypeCodelistType.REGISTRY = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_REGISTRY);
+        PackageTypeCodelistType.MAPPING = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_MAPPING);
+        PackageTypeCodelistType.CODELIST = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CODELIST);
+        PackageTypeCodelistType.CATEGORYSCHEME = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CATEGORYSCHEME);
+        PackageTypeCodelistType.CONCEPTSCHEME = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CONCEPTSCHEME);
+        return PackageTypeCodelistType;
+    })();
+    exports.PackageTypeCodelistType = PackageTypeCodelistType;
+});
 
+//# sourceMappingURL=commonreferences.js.map
 
+define(["require", "exports"], function (require, exports) {
+    var DataMessageType = (function () {
+        function DataMessageType() {
+        }
+        return DataMessageType;
+    })();
+    exports.DataMessageType = DataMessageType;
+    var DataQuery = (function () {
+        function DataQuery() {
+        }
+        return DataQuery;
+    })();
+    exports.DataQuery = DataQuery;
+    var StructureType = (function () {
+        function StructureType(struct) {
+            this.struct = struct;
+        }
+        // Registry
+        StructureType.prototype.listDataflows = function () {
+            return null;
+        };
+        StructureType.prototype.clear = function () {
+        };
+        StructureType.prototype.load = function (struct) {
+        };
+        StructureType.prototype.unload = function (struct) {
+        };
+        StructureType.prototype.findDataStructure = function (ref) {
+            return null;
+        };
+        StructureType.prototype.findDataflow = function (ref) {
+            return null;
+        };
+        StructureType.prototype.findCode = function (ref) {
+            return null;
+        };
+        StructureType.prototype.findCodelist = function (ref) {
+            return null;
+        };
+        StructureType.prototype.findItemType = function (item) {
+            return null;
+        };
+        StructureType.prototype.findConcept = function (ref) {
+            return null;
+        };
+        StructureType.prototype.findConceptScheme = function (ref) {
+            return null;
+        };
+        StructureType.prototype.searchDataStructure = function (ref) {
+            return new Array();
+        };
+        StructureType.prototype.searchDataflow = function (ref) {
+            return new Array();
+        };
+        StructureType.prototype.searchCodelist = function (ref) {
+            return new Array();
+        };
+        StructureType.prototype.searchItemType = function (item) {
+            return new Array();
+        };
+        StructureType.prototype.searchConcept = function (ref) {
+            return new Array();
+        };
+        StructureType.prototype.searchConceptScheme = function (ref) {
+            return new Array();
+        };
+        StructureType.prototype.save = function () {
+        };
+        return StructureType;
+    })();
+    exports.StructureType = StructureType;
+});
 
-//# sourceMappingURL=Registry.js.map
+//# sourceMappingURL=message.js.map
 
-
-
-//# sourceMappingURL=Repository.js.map
-
-var sdmx;
-(function (sdmx) {
+define(["require", "exports"], function (require, exports) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -7292,35 +8034,453 @@ var sdmx;
         SdmxIO.isSanitiseNames = function () {
             return SdmxIO.SANITISE_NAMES;
         };
+        SdmxIO.parseStructure = function (s) {
+            return null;
+        };
         SdmxIO.LOCALE = "en";
         SdmxIO.SANITISE_NAMES = false;
         return SdmxIO;
     })();
-    sdmx.SdmxIO = SdmxIO;
-})(sdmx || (sdmx = {}));
+    exports.SdmxIO = SdmxIO;
+});
 
-//# sourceMappingURL=SdmxIO.js.map
+//# sourceMappingURL=sdmx.js.map
 
-var xml;
-(function (xml) {
-    var anyURI = (function () {
-        function anyURI(s) {
-            this.s = null;
-            this.s = s;
+define(["require", "exports", "sax"], function (require, exports, sax) {
+    var Sdmx20StructureParser = (function () {
+        function Sdmx20StructureParser() {
         }
-        anyURI.prototype.getString = function () { return this.s; };
-        anyURI.prototype.toString = function () { return this.s; };
-        return anyURI;
+        Sdmx20StructureParser.parse = function (s) {
+            var opts = {};
+            var parser = sax.parser(/*strict=*/ true, /*SaxOptions*/ opts);
+            parser.onerror = function (e) {
+                // an error happened.
+            };
+            parser.ontext = function (t) {
+                // got some text.  t is the string of text.
+            };
+            parser.onopentag = function (node) {
+                // opened a tag.  node has "name" and "attributes"
+            };
+            parser.onattribute = function (attr) {
+                // an attribute.  attr has "name" and "value"
+            };
+            parser.onend = function () {
+                // parser stream is done, and ready to have more stuff written to it.
+            };
+            parser.write('<xml>Hello, <who name="world">world</who>!</xml>').close();
+            return null;
+        };
+        return Sdmx20StructureParser;
     })();
-    xml.anyURI = anyURI;
-})(xml || (xml = {}));
+    exports.Sdmx20StructureParser = Sdmx20StructureParser;
+});
 
-//# sourceMappingURL=anyURI.js.map
+//# sourceMappingURL=sdmx20.js.map
 
-/// <reference path="../moment.d.ts" />
-var xml;
-(function (xml) {
-    var moment = require('moment');
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+define(["require", "exports", "common", "commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
+    var IdentifiableType = (function (_super) {
+        __extends(IdentifiableType, _super);
+        function IdentifiableType(an, id, urn, uri) {
+            _super.call(this, an);
+            this.id = id;
+            this.urn = urn;
+            this.uri = uri;
+        }
+        IdentifiableType.prototype.getId = function () { return this.id; };
+        IdentifiableType.prototype.getURN = function () { return this.urn; };
+        IdentifiableType.prototype.getURI = function () { return this.uri; };
+        IdentifiableType.prototype.setId = function (id) {
+            this.id = id;
+        };
+        IdentifiableType.prototype.setURN = function (urn) {
+            this.urn = urn;
+        };
+        IdentifiableType.prototype.setURI = function (uri) {
+            this.uri = uri;
+        };
+        IdentifiableType.prototype.identifiesMeId = function (oid) {
+            if (this.id.equalsID(oid))
+                return true;
+            else
+                return false;
+        };
+        IdentifiableType.prototype.identifiesMeString = function (oid) {
+            if (this.id.equalsString(oid))
+                return true;
+            else
+                return false;
+        };
+        IdentifiableType.prototype.identifiesMeNestedId = function (oid) {
+            if (oid.equalsString(this.id.getString()))
+                return true;
+            else
+                return false;
+        };
+        return IdentifiableType;
+    })(common.AnnotableType);
+    exports.IdentifiableType = IdentifiableType;
+    var NameableType = (function (_super) {
+        __extends(NameableType, _super);
+        function NameableType() {
+            _super.apply(this, arguments);
+            this.names = null;
+            this.descriptions = null;
+        }
+        /**
+         * @return the names
+         */
+        NameableType.prototype.getNames = function () {
+            return this.names;
+        };
+        /**
+         * @param names the names to set
+         */
+        NameableType.prototype.setNames = function (names1) {
+            this.names = names1;
+        };
+        /**
+         * @return the descriptions
+         */
+        NameableType.prototype.getDescriptions = function () {
+            return this.descriptions;
+        };
+        /**
+         * @param descriptions the descriptions to set
+         */
+        NameableType.prototype.setDescriptions = function (descriptions) {
+            this.descriptions = descriptions;
+        };
+        NameableType.prototype.findName = function (lang) {
+            if (this.names == null) {
+                return null;
+            }
+            var def = null;
+            for (var i = 0; i < this.names.length; i++) {
+                if (lang != null && lang == this.names[i].getLang()) {
+                    return this.names[i];
+                }
+                if (this.names[i].getLang() == null) {
+                    def = this.names[i];
+                }
+            }
+            if (def == null && "en" != lang) {
+                def = this.findName("en");
+            }
+            return def;
+        };
+        NameableType.prototype.findDescription = function (lang) {
+            if (this.descriptions == null) {
+                return null;
+            }
+            var def = null;
+            for (var i = 0; i < this.descriptions.length; i++) {
+                if (lang != null && lang == this.descriptions[i].getLang()) {
+                    return this.descriptions[i];
+                }
+                if (this.descriptions[i].getLang() == null) {
+                    def = this.descriptions[i];
+                }
+            }
+            if (def == null && "en" != lang) {
+                def = this.findDescription("en");
+            }
+            return def;
+        };
+        NameableType.prototype.toString = function () {
+            var loc = sdmx.SdmxIO.getLocale();
+            var name = this.findName(loc);
+            if (name != null) {
+                return name.toString();
+            }
+            var desc = this.findDescription(loc);
+            if (desc != null) {
+                return desc.getText();
+            }
+            return "NameableType";
+        };
+        NameableType.prototype.getName = function () {
+            if (sdmx.SdmxIO.isSanitiseNames()) {
+                return NameableType.sanitise(NameableType.toString(this));
+            }
+            else {
+                return NameableType.toString(this);
+            }
+        };
+        NameableType.toString = function (named) {
+            var loc = sdmx.SdmxIO.getLocale();
+            if (named == null) {
+                return "";
+            }
+            var desc = named.findDescription(loc);
+            if (desc == null) {
+                var name = named.findName(loc);
+                if (name == null) {
+                    return named.getId().toString();
+                }
+                return name.getText();
+            }
+            return desc.getText();
+        };
+        NameableType.toStringWithLocale = function (named, loc) {
+            //if (concept.equals("FREQ")) {
+            //    ItemType code2 = getCode();
+            //    System.out.println("FREQ Code=" + code2);
+            //}
+            if (named == null) {
+                return "";
+            }
+            var name = named.findName(loc);
+            if (name == null) {
+                var desc = named.findDescription(loc);
+                if (desc == null) {
+                    return named.getId().toString();
+                }
+                return desc.getText();
+            }
+            return name.getText();
+        };
+        NameableType.toIDString = function (named) {
+            return named.getId().toString();
+        };
+        NameableType.sanitise = function (s) {
+            if (s.indexOf("'") != -1) {
+                s = s.replace("'", "&apos;");
+            }
+            if (s.indexOf("\"") != -1) {
+                s = s.replace("\"", "&quot;");
+            }
+            return s;
+        };
+        return NameableType;
+    })(IdentifiableType);
+    exports.NameableType = NameableType;
+    var ItemType = (function (_super) {
+        __extends(ItemType, _super);
+        function ItemType() {
+            _super.apply(this, arguments);
+            this.parent = null;
+            this.items = new collections.LinkedList();
+        }
+        /**
+         * @return the parent
+         */
+        ItemType.prototype.getParent = function () {
+            return this.parent;
+        };
+        /**
+         * @param parent the parent to set
+         */
+        ItemType.prototype.setParent = function (parent) {
+            this.parent = parent;
+        };
+        /**
+         * @return the items
+         */
+        ItemType.prototype.getItems = function () {
+            return this.items;
+        };
+        /**
+         * @param items the items to set
+         */
+        ItemType.prototype.setItems = function (items) {
+            this.items = items;
+        };
+        ItemType.prototype.getItem = function (i) {
+            return this.items[i];
+        };
+        ItemType.prototype.setItem = function (i, it) {
+            this.items[i] = it;
+        };
+        ItemType.prototype.removeItem = function (it) {
+            this.items.remove(it);
+        };
+        ItemType.prototype.addItem = function (it) {
+            this.items.add(it);
+        };
+        ItemType.prototype.size = function () {
+            return this.items.size();
+        };
+        ItemType.prototype.findItemString = function (s) {
+            for (var i = 0; i < this.items.size(); i++) {
+                if (this.items.elementAtIndex(i).identifiesMeString(s))
+                    return this.items.elementAtIndex(i);
+            }
+            return null;
+        };
+        ItemType.prototype.findItem = function (id) {
+            for (var i = 0; i < this.items.size(); i++) {
+                if (this.items.elementAtIndex(i).identifiesMeId(id))
+                    return this.items.elementAtIndex(i);
+            }
+            return null;
+        };
+        return ItemType;
+    })(NameableType);
+    exports.ItemType = ItemType;
+    var ItemSchemeType = (function () {
+        function ItemSchemeType() {
+            this.items = new Array();
+            this.partial = false;
+        }
+        /**
+         * @return the items
+         */
+        ItemSchemeType.prototype.getItems = function () {
+            return this.items;
+        };
+        /**
+         * @param items the items to set
+         */
+        ItemSchemeType.prototype.setItems = function (itms) {
+            this.items = itms;
+        };
+        /**
+         * @return the partial
+         */
+        ItemSchemeType.prototype.isPartial = function () {
+            return this.partial;
+        };
+        /**
+         * @param partial the partial to set
+         */
+        ItemSchemeType.prototype.setPartial = function (partial) {
+            this.partial = partial;
+        };
+        ItemSchemeType.prototype.getItem = function (i) {
+            return this.items[i];
+        };
+        ItemSchemeType.prototype.setItem = function (i, it) {
+            this.items[i] = it;
+        };
+        ItemSchemeType.prototype.removeItem = function (it) {
+            this.items.splice(this.items.indexOf(it), 1);
+        };
+        ItemSchemeType.prototype.addItem = function (it) {
+            this.items.push(it);
+        };
+        ItemSchemeType.prototype.size = function () {
+            return this.items.length;
+        };
+        ItemSchemeType.prototype.findItemString = function (s) {
+            for (var i = 0; i < this.items.length; i++) {
+                if (this.items[i].identifiesMeString(s))
+                    return this.items[i];
+            }
+            return null;
+        };
+        ItemSchemeType.prototype.findItemId = function (s) {
+            for (var i = 0; i < this.items.length; i++) {
+                if (this.items[i].identifiesMeId(s))
+                    return this.items[i];
+            }
+            return null;
+        };
+        ItemSchemeType.prototype.findItemNestedId = function (s) {
+            for (var i = 0; i < this.items.length; i++) {
+                if (this.items[i].identifiesMeNestedId(s))
+                    return this.items[i];
+            }
+            return null;
+        };
+        ItemSchemeType.prototype.findSubItemsString = function (s) {
+            return this.findSubItemsId(new commonreferences.IDType(s));
+        };
+        ItemSchemeType.prototype.findSubItemsId = function (id) {
+            var result = new Array();
+            if (id == null) {
+                for (var i = 0; i < this.items.length; i++) {
+                    var item = this.items[i];
+                    if (item.getParent() == null) {
+                        result.push(item);
+                    }
+                }
+                return result;
+            }
+            else {
+                for (var i = 0; i < this.items.length; i++) {
+                    var item = this.items[i];
+                    if (item.getParent().getId().equalsID(id)) {
+                        result.push(item);
+                    }
+                }
+                return result;
+            }
+        };
+        return ItemSchemeType;
+    })();
+    exports.ItemSchemeType = ItemSchemeType;
+    var VersionableType = (function (_super) {
+        __extends(VersionableType, _super);
+        function VersionableType() {
+            _super.apply(this, arguments);
+            this.version = commonreferences.Version.ONE;
+            this.validFrom = null;
+            this.validTo = null;
+        }
+        ;
+        return VersionableType;
+    })(NameableType);
+    exports.VersionableType = VersionableType;
+    var CodeType = (function (_super) {
+        __extends(CodeType, _super);
+        function CodeType() {
+            _super.apply(this, arguments);
+        }
+        return CodeType;
+    })(ItemType);
+    exports.CodeType = CodeType;
+    var CodelistType = (function (_super) {
+        __extends(CodelistType, _super);
+        function CodelistType() {
+            _super.apply(this, arguments);
+        }
+        return CodelistType;
+    })(ItemSchemeType);
+    exports.CodelistType = CodelistType;
+    var ConceptSchemeType = (function (_super) {
+        __extends(ConceptSchemeType, _super);
+        function ConceptSchemeType() {
+            _super.apply(this, arguments);
+        }
+        return ConceptSchemeType;
+    })(ItemSchemeType);
+    exports.ConceptSchemeType = ConceptSchemeType;
+    var ConceptType = (function (_super) {
+        __extends(ConceptType, _super);
+        function ConceptType() {
+            _super.apply(this, arguments);
+        }
+        return ConceptType;
+    })(ItemType);
+    exports.ConceptType = ConceptType;
+    var Dataflow = (function () {
+        function Dataflow() {
+        }
+        return Dataflow;
+    })();
+    exports.Dataflow = Dataflow;
+    var DataStructure = (function () {
+        function DataStructure() {
+        }
+        return DataStructure;
+    })();
+    exports.DataStructure = DataStructure;
+});
+
+//# sourceMappingURL=structure.js.map
+
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+define(["require", "exports", 'moment'], function (require, exports, moment) {
     var DateTime = (function () {
         function DateTime(d) {
             this.baseString = null;
@@ -7334,7 +8494,7 @@ var xml;
             if (s == null || s == "") {
                 return null;
             }
-            var m = new moment(s, [DateTime.DF, DateTime.DF2]);
+            var m = moment(s, [DateTime.DF, DateTime.DF2]);
             var dt = new DateTime(m.toDate());
             dt.setBaseString(s);
             return dt;
@@ -7342,10 +8502,10 @@ var xml;
         DateTime.prototype.toString = function () {
             if (this.baseString != null)
                 return this.baseString;
-            return new moment(this.date).format(DateTime.DF);
+            return moment(this.date).format(DateTime.DF);
         };
         DateTime.now = function () {
-            return new DateTime(new moment().toDate());
+            return new DateTime(moment().toDate());
         };
         DateTime.prototype.setBaseString = function (s) {
             this.baseString = s;
@@ -7357,18 +8517,7 @@ var xml;
         DateTime.DF2 = "yyyy-MM-dd'T'HH:mm:ss";
         return DateTime;
     })();
-    xml.DateTime = DateTime;
-})(xml || (xml = {}));
-
-//# sourceMappingURL=DateTime.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var xml;
-(function (xml) {
+    exports.DateTime = DateTime;
     var RegexXMLString = (function (_super) {
         __extends(RegexXMLString, _super);
         function RegexXMLString(s) {
@@ -7379,14 +8528,8 @@ var xml;
             return [];
         };
         return RegexXMLString;
-    })(xml.XMLString);
-    xml.RegexXMLString = RegexXMLString;
-})(xml || (xml = {}));
-
-//# sourceMappingURL=RegexXMLString.js.map
-
-var xml;
-(function (xml) {
+    })(XMLString);
+    exports.RegexXMLString = RegexXMLString;
     var XMLString = (function () {
         function XMLString(s) {
             this.value = null;
@@ -7401,1601 +8544,17 @@ var xml;
         };
         return XMLString;
     })();
-    xml.XMLString = XMLString;
-})(xml || (xml = {}));
+    exports.XMLString = XMLString;
+    var anyURI = (function () {
+        function anyURI(s) {
+            this.s = null;
+            this.s = s;
+        }
+        anyURI.prototype.getString = function () { return this.s; };
+        anyURI.prototype.toString = function () { return this.s; };
+        return anyURI;
+    })();
+    exports.anyURI = anyURI;
+});
 
-//# sourceMappingURL=XMLString.js.map
-
-var sdmx;
-(function (sdmx) {
-    var common;
-    (function (common) {
-        var AnnotableType = (function () {
-            function AnnotableType(an) {
-                this.annotations = an;
-            }
-            return AnnotableType;
-        })();
-        common.AnnotableType = AnnotableType;
-    })(common = sdmx.common || (sdmx.common = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=AnnotableType.js.map
-
-var sdmx;
-(function (sdmx) {
-    var common;
-    (function (common) {
-        var Annotation = (function () {
-            function Annotation() {
-                this.annotationTitle = "";
-                this.annotationType = "";
-                this.annotationUrl = "";
-            }
-            return Annotation;
-        })();
-        common.Annotation = Annotation;
-    })(common = sdmx.common || (sdmx.common = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Annotation.js.map
-
-var sdmx;
-(function (sdmx) {
-    var common;
-    (function (common) {
-        var Annotations = (function () {
-            function Annotations() {
-                this.annotations = null;
-            }
-            Annotations.prototype.getAnnotations = function () {
-                return this.annotations;
-            };
-            Annotations.prototype.setAnnotations = function (a) {
-                this.annotations = a;
-            };
-            return Annotations;
-        })();
-        common.Annotations = Annotations;
-    })(common = sdmx.common || (sdmx.common = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Annotations.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var sdmx;
-(function (sdmx) {
-    var common;
-    (function (common) {
-        var Description = (function (_super) {
-            __extends(Description, _super);
-            function Description() {
-                _super.apply(this, arguments);
-            }
-            return Description;
-        })(common.TextType);
-        common.Description = Description;
-    })(common = sdmx.common || (sdmx.common = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Description.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var sdmx;
-(function (sdmx) {
-    var common;
-    (function (common) {
-        var Name = (function (_super) {
-            __extends(Name, _super);
-            function Name() {
-                _super.apply(this, arguments);
-            }
-            return Name;
-        })(common.TextType);
-        common.Name = Name;
-    })(common = sdmx.common || (sdmx.common = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Name.js.map
-
-var sdmx;
-(function (sdmx) {
-    var common;
-    (function (common) {
-        var TextType = (function () {
-            function TextType(lang, text) {
-                this.text = "";
-                this.lang = lang;
-                this.text = text;
-            }
-            TextType.prototype.getLang = function () {
-                return this.lang;
-            };
-            TextType.prototype.getText = function () {
-                return this.text;
-            };
-            TextType.prototype.setText = function (s) {
-                this.text = s;
-            };
-            TextType.prototype.setLang = function (s) {
-                this.lang = s;
-            };
-            return TextType;
-        })();
-        common.TextType = TextType;
-    })(common = sdmx.common || (sdmx.common = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=TextType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="NestedID.ts" />
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var IDType = (function (_super) {
-            __extends(IDType, _super);
-            function IDType(s) {
-                _super.call(this, s);
-                if (s == null) {
-                    throw new Error("null IDType string");
-                }
-            }
-            IDType.prototype.equalsID = function (id) {
-                return false;
-            };
-            IDType.prototype.equalsString = function (id) {
-                return false;
-            };
-            IDType.prototype.getPatternArray = function () {
-                return [IDType.PATTERN];
-            };
-            IDType.PATTERN = "[A-z0-9_@$\\-]+";
-            return IDType;
-        })(commonreferences.NestedID);
-        commonreferences.IDType = IDType;
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=IDType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../xml/RegexXMLString.ts" />
-/// <reference path="../commonreferences/IDType.ts" />
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var NestedID = (function (_super) {
-            __extends(NestedID, _super);
-            function NestedID(s) {
-                _super.call(this, s);
-            }
-            NestedID.prototype.getPatternArray = function () {
-                return [NestedID.PATTERN];
-            };
-            NestedID.prototype.equalsNestedID = function (id) {
-                if (_super.prototype.getString.call(this) == null)
-                    return false;
-                return _super.prototype.getString.call(this) == id.getString();
-            };
-            NestedID.prototype.equalsString = function (id) {
-                return _super.prototype.equalsString.call(this, id);
-            };
-            NestedID.prototype.equalsID = function (id) {
-                return _super.prototype.getString.call(this) == id.getString();
-            };
-            NestedID.prototype.asID = function () {
-                return new commonreferences.IDType(_super.prototype.getString.call(this));
-            };
-            NestedID.PATTERN = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";
-            return NestedID;
-        })(xml.RegexXMLString);
-        commonreferences.NestedID = NestedID;
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=NestedID.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var NestedNCNameID = (function (_super) {
-            __extends(NestedNCNameID, _super);
-            function NestedNCNameID(s) {
-                _super.call(this, s);
-            }
-            NestedNCNameID.prototype.getPatternArray = function () {
-                return [NestedNCNameID.PATTERN];
-            };
-            NestedNCNameID.prototype.equalsNestedNCNameID = function (id) {
-                return _super.prototype.getString.call(this) == id.getString();
-            };
-            NestedNCNameID.PATTERN = "[A-z][A-z0-9_\\-]*(\\.[A-z][A-z0-9_\\-]*)*";
-            return NestedNCNameID;
-        })(commonreferences.NestedID);
-        commonreferences.NestedNCNameID = NestedNCNameID;
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=NestedNCNameID.js.map
-
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var Ref = (function () {
-            function Ref(agencyId, id, vers, maintParent, mainVers, containId, loc, ob, pack) {
-                this.agencyId = null;
-                this.id = null;
-                this.version = null;
-                this.maintainedParentId = null;
-                this.maintainedParentVersion = null;
-                this.local = null;
-                this.object = null;
-                this.package = null;
-                this.agencyId = agencyId;
-                this.id = id;
-                this.version = vers;
-                this.maintainedParentId = maintParent;
-                this.maintainedParentVersion = mainVers;
-                this.local = loc;
-                this.object = ob;
-                this.package = pack;
-            }
-            Ref.prototype.getAgencyId = function () {
-                return this.agencyId;
-            };
-            Ref.prototype.getId = function () {
-                return this.id;
-            };
-            Ref.prototype.getVersion = function () {
-                return this.version;
-            };
-            Ref.prototype.getMaintainableParentId = function () {
-                return this.maintainedParentId;
-            };
-            Ref.prototype.getMaintainableParentVersion = function () {
-                return this.maintainedParentVersion;
-            };
-            Ref.prototype.getRefClass = function () {
-                return this.object;
-            };
-            Ref.prototype.getPack = function () {
-                return this.package;
-            };
-            Ref.prototype.setAgencyId = function (a) {
-                this.agencyId = a;
-            };
-            Ref.prototype.setId = function (id) {
-                this.id = id;
-            };
-            Ref.prototype.setVersion = function (v) {
-                this.version = v;
-            };
-            Ref.prototype.setMaintainableParentId = function (id) {
-                this.maintainedParentId = id;
-            };
-            Ref.prototype.setMaintainableParentVersion = function (v) {
-                this.maintainedParentVersion = v;
-            };
-            Ref.prototype.setRefClass = function (ob) {
-                this.object = ob;
-            };
-            Ref.prototype.setPackage = function (p) {
-                this.package = p;
-            };
-            return Ref;
-        })();
-        commonreferences.Ref = Ref;
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Ref.js.map
-
-/// <reference path="../../xml/anyURI.ts" />
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var Reference = (function () {
-            function Reference(ref, urn) {
-                this.pack = null;
-                this.clazz = null;
-                this.agency = null;
-                this.maintainedParentId = null;
-                this.maintainedParentVersion = null;
-                this.version = null;
-                this.containedIds = null;
-                this.objectId = null;
-                this.ref = ref;
-                this.urn = urn;
-                if (this.ref != null) {
-                    //try {
-                    this.pack = ref.getPack();
-                    this.clazz = ref.getRefClass();
-                    this.agency = ref.getAgencyId();
-                    this.objectId = ref.getId();
-                    this.maintainedParentId = ref.getMaintainableParentId();
-                    this.maintainedParentVersion = ref.getMaintainableParentVersion();
-                    this.version = ref.getVersion();
-                }
-                else {
-                    this.parse();
-                }
-                if (this.urn == null) {
-                    try {
-                        //if (this.getAgencyId() != null) {
-                        this.produce();
-                    }
-                    catch (Error) {
-                    }
-                }
-            }
-            /**
-             * @return the ref
-             */
-            Reference.prototype.getRef = function () {
-                return this.ref;
-            };
-            /**
-             * @param ref the ref to set
-             */
-            Reference.prototype.setRef = function (ref) {
-                this.ref = ref;
-            };
-            /**
-             * @return the urn
-             */
-            Reference.prototype.getUrn = function () {
-                return this.urn;
-            };
-            /**
-             * @param urn the urn to set
-             */
-            Reference.prototype.setUrn = function (urn) {
-                this.urn = urn;
-            };
-            /**
-             * @return the pack
-             */
-            Reference.prototype.getPack = function () {
-                return this.pack;
-            };
-            /**
-             * @return the clazz
-             */
-            Reference.prototype.getRefClass = function () {
-                return this.clazz;
-            };
-            /**
-             * @return the clazz
-             */
-            Reference.prototype.getClazz = function () {
-                return this.clazz;
-            };
-            /**
-             * @return the agency
-             */
-            Reference.prototype.getAgencyId = function () {
-                return this.agency;
-            };
-            /**
-             * @return the maintainedObjectId
-             */
-            Reference.prototype.getMaintainableParentId = function () {
-                return this.maintainedParentId;
-            };
-            /**
-             * @return the maintainedObjectVersion
-             */
-            Reference.prototype.getVersion = function () {
-                return this.version;
-            };
-            /**
-             * @return the objectId
-             */
-            Reference.prototype.getId = function () {
-                return this.objectId;
-            };
-            Reference.prototype.getContainedObjectIds = function () {
-                return this.containedIds;
-            };
-            /**
-             * @return the maintainedParentVersion
-             */
-            Reference.prototype.getMaintainedParentVersion = function () {
-                return this.maintainedParentVersion;
-            };
-            //public IDType getMainID() {
-            //    if( this.maintainedParentId==null ) return objectId!=null?objectId.asID():null;
-            //    else return maintainedParentId;
-            //}
-            Reference.prototype.dump = function () {
-            };
-            Reference.prototype.toString = function () {
-                var s = "";
-                return s;
-            };
-            Reference.prototype.parse = function () {
-            };
-            Reference.prototype.produce = function () {
-            };
-            return Reference;
-        })();
-        commonreferences.Reference = Reference;
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Reference.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../xml/RegexXMLString.ts" />
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var Version = (function (_super) {
-            __extends(Version, _super);
-            function Version(s) {
-                _super.call(this, s);
-            }
-            Version.prototype.getPatternArray = function () {
-                return [Version.PATTERN];
-            };
-            Version.prototype.equalsVersion = function (id) {
-                return _super.prototype.getString.call(this) == id.getString();
-            };
-            Version.prototype.equals = function (id) {
-                return _super.prototype.getString.call(this) == id;
-            };
-            Version.prototype.compareTo = function (o) {
-                if (!(o instanceof Version))
-                    return -1;
-                var a1 = parseFloat(o.toString());
-                var a2 = parseFloat(toString());
-                return a1 > a2 ? 1 : a1 < a2 ? -1 : 0;
-            };
-            Version.PATTERN = "[0-9]+(\\.[0-9]+)*";
-            Version.ONE = new Version("1.0");
-            return Version;
-        })(xml.RegexXMLString);
-        commonreferences.Version = Version;
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Version.js.map
-
-var sdmx;
-(function (sdmx) {
-    var message;
-    (function (message) {
-        var DataMessageType = (function () {
-            function DataMessageType() {
-            }
-            return DataMessageType;
-        })();
-        message.DataMessageType = DataMessageType;
-    })(message = sdmx.message || (sdmx.message = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=DataMessage.js.map
-
-var sdmx;
-(function (sdmx) {
-    var message;
-    (function (message) {
-        var DataQuery = (function () {
-            function DataQuery() {
-            }
-            return DataQuery;
-        })();
-        message.DataQuery = DataQuery;
-    })(message = sdmx.message || (sdmx.message = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=DataQuery.js.map
-
-var sdmx;
-(function (sdmx) {
-    var message;
-    (function (message) {
-        var StructureType = (function () {
-            function StructureType(struct) {
-                this.struct = struct;
-            }
-            // Registry
-            StructureType.prototype.listDataflows = function () {
-                return null;
-            };
-            StructureType.prototype.clear = function () {
-            };
-            StructureType.prototype.load = function (struct) {
-            };
-            StructureType.prototype.unload = function (struct) {
-            };
-            StructureType.prototype.findDataStructure = function (ref) {
-                return null;
-            };
-            StructureType.prototype.findDataflow = function (ref) {
-                return null;
-            };
-            StructureType.prototype.findCode = function (ref) {
-                return null;
-            };
-            StructureType.prototype.findCodelist = function (ref) {
-                return null;
-            };
-            StructureType.prototype.findItemType = function (item) {
-                return null;
-            };
-            StructureType.prototype.findConcept = function (ref) {
-                return null;
-            };
-            StructureType.prototype.findConceptScheme = function (ref) {
-                return null;
-            };
-            StructureType.prototype.searchDataStructure = function (ref) {
-                return new Array();
-            };
-            StructureType.prototype.searchDataflow = function (ref) {
-                return new Array();
-            };
-            StructureType.prototype.searchCodelist = function (ref) {
-                return new Array();
-            };
-            StructureType.prototype.searchItemType = function (item) {
-                return new Array();
-            };
-            StructureType.prototype.searchConcept = function (ref) {
-                return new Array();
-            };
-            StructureType.prototype.searchConceptScheme = function (ref) {
-                return new Array();
-            };
-            StructureType.prototype.save = function () {
-            };
-            return StructureType;
-        })();
-        message.StructureType = StructureType;
-    })(message = sdmx.message || (sdmx.message = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=StructureType.js.map
-
-/**
- *	<xs:simpleType name="ObjectTypeCodelistType">
-*		<xs:annotation>
-*			<xs:documentation>ObjectTypeCodelistType provides an enumeration of all objects outside of the base infomration model class. This includes some abstract object types such as Organsiation and Constraint.</xs:documentation>
-*		</xs:annotation>
-*		<xs:restriction base="xs:string">
-*			<xs:enumeration value="Any"/>
-*			<xs:enumeration value="Agency"/>
-*			<xs:enumeration value="AgencyScheme"/>
-*			<xs:enumeration value="AttachmentConstraint"/>
-*			<xs:enumeration value="Attribute"/>
-*			<xs:enumeration value="AttributeDescriptor"/>
-*			<xs:enumeration value="Categorisation"/>
-*			<xs:enumeration value="Category"/>
-*			<xs:enumeration value="CategorySchemeMap"/>
-*			<xs:enumeration value="CategoryScheme"/>
-*			<xs:enumeration value="Code"/>
-*			<xs:enumeration value="CodeMap"/>
-*			<xs:enumeration value="Codelist"/>
-*			<xs:enumeration value="CodelistMap"/>
-*			<xs:enumeration value="ComponentMap"/>
-*			<xs:enumeration value="Concept"/>
-*			<xs:enumeration value="ConceptMap"/>
-*			<xs:enumeration value="ConceptScheme"/>
-*			<xs:enumeration value="ConceptSchemeMap"/>
-*			<xs:enumeration value="Constraint"/>
-*			<xs:enumeration value="ConstraintTarget"/>
-*			<xs:enumeration value="ContentConstraint"/>
-*			<xs:enumeration value="Dataflow"/>
-*			<xs:enumeration value="DataConsumer"/>
-*			<xs:enumeration value="DataConsumerScheme"/>
-*			<xs:enumeration value="DataProvider"/>
-*			<xs:enumeration value="DataProviderScheme"/>
-*			<xs:enumeration value="DataSetTarget"/>
-*			<xs:enumeration value="DataStructure"/>
-*			<xs:enumeration value="Dimension"/>
-*			<xs:enumeration value="DimensionDescriptor"/>
-*			<xs:enumeration value="DimensionDescriptorValuesTarget"/>
-*			<xs:enumeration value="GroupDimensionDescriptor"/>
-*			<xs:enumeration value="HierarchicalCode"/>
-*			<xs:enumeration value="HierarchicalCodelist"/>
-*			<xs:enumeration value="Hierarchy"/>
-*			<xs:enumeration value="HybridCodelistMap"/>
-*			<xs:enumeration value="HybridCodeMap"/>
-*			<xs:enumeration value="IdentifiableObjectTarget"/>
-*			<xs:enumeration value="Level"/>
-*			<xs:enumeration value="MeasureDescriptor"/>
-*			<xs:enumeration value="MeasureDimension"/>
-*			<xs:enumeration value="Metadataflow"/>
-*			<xs:enumeration value="MetadataAttribute"/>
-*			<xs:enumeration value="MetadataSet"/>
-*			<xs:enumeration value="MetadataStructure"/>
-*			<xs:enumeration value="MetadataTarget"/>
-*			<xs:enumeration value="Organisation"/>
-*			<xs:enumeration value="OrganisationMap"/>
-*			<xs:enumeration value="OrganisationScheme"/>
-*			<xs:enumeration value="OrganisationSchemeMap"/>
-*			<xs:enumeration value="OrganisationUnit"/>
-*			<xs:enumeration value="OrganisationUnitScheme"/>
-*			<xs:enumeration value="PrimaryMeasure"/>
-*			<xs:enumeration value="Process"/>
-*			<xs:enumeration value="ProcessStep"/>
-*			<xs:enumeration value="ProvisionAgreement"/>
-*			<xs:enumeration value="ReportingCategory"/>
-*			<xs:enumeration value="ReportingCategoryMap"/>
-*			<xs:enumeration value="ReportingTaxonomy"/>
-*			<xs:enumeration value="ReportingTaxonomyMap"/>
-*			<xs:enumeration value="ReportingYearStartDay"/>
-*			<xs:enumeration value="ReportPeriodTarget"/>
-*			<xs:enumeration value="ReportStructure"/>
-*			<xs:enumeration value="StructureMap"/>
-*			<xs:enumeration value="StructureSet"/>
-*			<xs:enumeration value="TimeDimension"/>
-*			<xs:enumeration value="Transition"/>
-*		</xs:restriction>
-*	</xs:simpleType>
-*
- * @author James
- */
-/**
- *  This file is part of SdmxSax.
- *
- *   SdmxSax is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- 
- *   SdmxSax is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with SdmxSax.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright James Gardner 2014
- */
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var type;
-        (function (type) {
-            var ObjectTypeCodelistType = (function () {
-                function ObjectTypeCodelistType(s) {
-                    // Instance
-                    this.target = null;
-                    this.index = -1;
-                    var contains = false;
-                    for (var i = 0; i < ObjectTypeCodelistType.STRING_ENUM.length; i++) {
-                        if (ObjectTypeCodelistType.STRING_ENUM[i] == s) {
-                            contains = true;
-                        }
-                    }
-                    if (!contains)
-                        throw new Error(s + " is not a valid CodeTypeCodelistType");
-                    this.target = s;
-                    this.index = ObjectTypeCodelistType.STRING_ENUM.indexOf(s);
-                }
-                // Utility
-                ObjectTypeCodelistType.add = function (s) {
-                    var b = new ObjectTypeCodelistType(s);
-                    ObjectTypeCodelistType.ENUM.push(b);
-                    return b;
-                };
-                ObjectTypeCodelistType.addString = function (s) {
-                    ObjectTypeCodelistType.STRING_ENUM.push(s);
-                    return s;
-                };
-                ObjectTypeCodelistType.fromString = function (s) {
-                    for (var i = 0; i < ObjectTypeCodelistType.ENUM.length; i++) {
-                        if (ObjectTypeCodelistType.ENUM[i].target == s)
-                            return ObjectTypeCodelistType.ENUM[i];
-                    }
-                    return null;
-                };
-                ObjectTypeCodelistType.fromStringWithException = function (s) {
-                    for (var i = 0; i < ObjectTypeCodelistType.ENUM.length; i++) {
-                        if (ObjectTypeCodelistType.ENUM[i].target == s)
-                            return ObjectTypeCodelistType.ENUM[i];
-                    }
-                    throw new Error("Value:" + s + " not found in enumeration! - ObjectypeCodelistType");
-                };
-                ObjectTypeCodelistType.prototype.toString = function () { return this.target; };
-                ObjectTypeCodelistType.prototype.toInt = function () {
-                    return this.index;
-                };
-                ObjectTypeCodelistType.ENUM = new Array();
-                ObjectTypeCodelistType.STRING_ENUM = new Array();
-                ObjectTypeCodelistType.TARGET_ANY = ObjectTypeCodelistType.addString("Any");
-                ObjectTypeCodelistType.TARGET_AGENCY = ObjectTypeCodelistType.addString("Agency");
-                ObjectTypeCodelistType.TARGET_AGENCYSCHEME = ObjectTypeCodelistType.addString("AgencyScheme");
-                ObjectTypeCodelistType.TARGET_ATTACHMENTCONSTRAINT = ObjectTypeCodelistType.addString("AttachmentConstraint");
-                ObjectTypeCodelistType.TARGET_ATTRIBUTE = ObjectTypeCodelistType.addString("Attribute");
-                ObjectTypeCodelistType.TARGET_ATTRIBUTEDESCRIPTOR = ObjectTypeCodelistType.addString("AttributeDescriptor");
-                ObjectTypeCodelistType.TARGET_CATEGORISATION = ObjectTypeCodelistType.addString("Categorisation");
-                ObjectTypeCodelistType.TARGET_CATEGORY = ObjectTypeCodelistType.addString("Category");
-                ObjectTypeCodelistType.TARGET_CATEGORYSCHEMEMAP = ObjectTypeCodelistType.addString("CategorySchemeMap");
-                ObjectTypeCodelistType.TARGET_CATEGORYSCHEME = ObjectTypeCodelistType.addString("CategoryScheme");
-                ObjectTypeCodelistType.TARGET_CODE = ObjectTypeCodelistType.addString("Code");
-                ObjectTypeCodelistType.TARGET_CODEMAP = ObjectTypeCodelistType.addString("CodeMap");
-                ObjectTypeCodelistType.TARGET_CODELIST = ObjectTypeCodelistType.addString("Codelist");
-                ObjectTypeCodelistType.TARGET_CODELISTMAP = ObjectTypeCodelistType.addString("CodelistMap");
-                ObjectTypeCodelistType.TARGET_COMPONENTMAP = ObjectTypeCodelistType.addString("ComponentMap");
-                ObjectTypeCodelistType.TARGET_CONCEPT = ObjectTypeCodelistType.addString("Concept");
-                ObjectTypeCodelistType.TARGET_CONCEPTMAP = ObjectTypeCodelistType.addString("ConceptMap");
-                ObjectTypeCodelistType.TARGET_CONCEPTSCHEME = ObjectTypeCodelistType.addString("ConceptScheme");
-                ObjectTypeCodelistType.TARGET_CONCEPTSCHEMEMAP = ObjectTypeCodelistType.addString("ConceptSchemeMap");
-                ObjectTypeCodelistType.TARGET_CONSTRAINT = ObjectTypeCodelistType.addString("Constraint");
-                ObjectTypeCodelistType.TARGET_CONSTRAINTARGET = ObjectTypeCodelistType.addString("ConstraintTarget");
-                ObjectTypeCodelistType.TARGET_CONTENTCONSTRAINT = ObjectTypeCodelistType.addString("ContentConstraint");
-                ObjectTypeCodelistType.TARGET_DATAFLOW = ObjectTypeCodelistType.addString("Dataflow");
-                ObjectTypeCodelistType.TARGET_DATACONSUMER = ObjectTypeCodelistType.addString("DataConsumer");
-                ObjectTypeCodelistType.TARGET_DATACONSUMERSCHEME = ObjectTypeCodelistType.addString("DataConsumerScheme");
-                ObjectTypeCodelistType.TARGET_DATAPROVIDER = ObjectTypeCodelistType.addString("DataProvider");
-                ObjectTypeCodelistType.TARGET_DATAPROVIDERSCHEME = ObjectTypeCodelistType.addString("DataProviderScheme");
-                ObjectTypeCodelistType.TARGET_DATASETTARGET = ObjectTypeCodelistType.addString("DataSetTarget");
-                ObjectTypeCodelistType.TARGET_DATASTRUCTURE = ObjectTypeCodelistType.addString("DataStructure");
-                ObjectTypeCodelistType.TARGET_DIMENSION = ObjectTypeCodelistType.addString("Dimension");
-                ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTOR = ObjectTypeCodelistType.addString("DimensionDescriptor");
-                ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTORVALUESTARGET = ObjectTypeCodelistType.addString("DimensionDescriptorValuesTarget");
-                ObjectTypeCodelistType.TARGET_GROUPDIMENSIONDESCRIPTOR = ObjectTypeCodelistType.addString("GroupDimensionDescriptor");
-                ObjectTypeCodelistType.TARGET_HIERARCHICALCODE = ObjectTypeCodelistType.addString("HierarchicalCode");
-                ObjectTypeCodelistType.TARGET_HIERARCHICALCODELIST = ObjectTypeCodelistType.addString("HierarchicalCodelist");
-                ObjectTypeCodelistType.TARGET_HIERARCHY = ObjectTypeCodelistType.addString("Hierarchy");
-                ObjectTypeCodelistType.TARGET_HYBRIDCODELISTMAP = ObjectTypeCodelistType.addString("HybridCodelistMap");
-                ObjectTypeCodelistType.TARGET_HYBRIDCODEMAP = ObjectTypeCodelistType.addString("HybridCodeMap");
-                ObjectTypeCodelistType.TARGET_IDENTIFIABLEOBJECTTARGET = ObjectTypeCodelistType.addString("IdentifiableObjectTarget");
-                ObjectTypeCodelistType.TARGET_LEVEL = ObjectTypeCodelistType.addString("Level");
-                ObjectTypeCodelistType.TARGET_MEASUREDESCRIPTOR = ObjectTypeCodelistType.addString("MeasureDescriptor");
-                ObjectTypeCodelistType.TARGET_MEASUREDIMENSION = ObjectTypeCodelistType.addString("MeasureDimension");
-                ObjectTypeCodelistType.TARGET_METADATAFLOW = ObjectTypeCodelistType.addString("Metadataflow");
-                ObjectTypeCodelistType.TARGET_METADATAATTRIBUTE = ObjectTypeCodelistType.addString("MetadataAttribute");
-                ObjectTypeCodelistType.TARGET_METADATASET = ObjectTypeCodelistType.addString("MetadataSet");
-                ObjectTypeCodelistType.TARGET_METADATASTRUCTURE = ObjectTypeCodelistType.addString("MetadataStructure");
-                ObjectTypeCodelistType.TARGET_METADATATARGET = ObjectTypeCodelistType.addString("MetadataTarget");
-                ObjectTypeCodelistType.TARGET_ORGANISATION = ObjectTypeCodelistType.addString("Organisation");
-                ObjectTypeCodelistType.TARGET_ORGANISATIONMAP = ObjectTypeCodelistType.addString("OrganisationMap");
-                ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEME = ObjectTypeCodelistType.addString("OrganisationScheme");
-                ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEMEMAP = ObjectTypeCodelistType.addString("OrganisationSchemeMap");
-                ObjectTypeCodelistType.TARGET_ORGANISATIONUNIT = ObjectTypeCodelistType.addString("OrganisationUnit");
-                ObjectTypeCodelistType.TARGET_ORGANISATIONUNITSCHEME = ObjectTypeCodelistType.addString("OrganisationUnitScheme");
-                ObjectTypeCodelistType.TARGET_PRIMARYMEASURE = ObjectTypeCodelistType.addString("PrimaryMeasure");
-                ObjectTypeCodelistType.TARGET_PROCESS = ObjectTypeCodelistType.addString("Process");
-                ObjectTypeCodelistType.TARGET_PROCESSSTEP = ObjectTypeCodelistType.addString("ProcessStep");
-                ObjectTypeCodelistType.TARGET_PROVISIONAGREEMENT = ObjectTypeCodelistType.addString("ProvisionAgreement");
-                ObjectTypeCodelistType.TARGET_REPORTINGCATEGORY = ObjectTypeCodelistType.addString("ReportingCategory");
-                ObjectTypeCodelistType.TARGET_REPORTINGCATEGORYMAP = ObjectTypeCodelistType.addString("ReportingCategoryMap");
-                ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMY = ObjectTypeCodelistType.addString("ReportingTaxonomy");
-                ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMYMAP = ObjectTypeCodelistType.addString("ReportingTaxonomyMap");
-                ObjectTypeCodelistType.TARGET_REPORTINGYEARSTARTDAY = ObjectTypeCodelistType.addString("ReportingYearStartDay");
-                ObjectTypeCodelistType.TARGET_REPORTPERIODTARGET = ObjectTypeCodelistType.addString("ReportPeriodTarget");
-                ObjectTypeCodelistType.TARGET_REPORTSTRUCTURE = ObjectTypeCodelistType.addString("ReportStructure");
-                ObjectTypeCodelistType.TARGET_STRUCTUREMAP = ObjectTypeCodelistType.addString("StructureMap");
-                ObjectTypeCodelistType.TARGET_STRUCTURESET = ObjectTypeCodelistType.addString("StructureSet");
-                ObjectTypeCodelistType.TARGET_TIMEDIMENSION = ObjectTypeCodelistType.addString("TimeDimension");
-                ObjectTypeCodelistType.TARGET_TRANSITION = ObjectTypeCodelistType.addString("Transition");
-                ObjectTypeCodelistType.ANY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ANY);
-                ObjectTypeCodelistType.AGENCY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_AGENCY);
-                ObjectTypeCodelistType.AGENCYSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_AGENCYSCHEME);
-                ObjectTypeCodelistType.ATTACHMENTCONSTRAINT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ATTACHMENTCONSTRAINT);
-                ObjectTypeCodelistType.ATTRIBUTE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ATTRIBUTE);
-                ObjectTypeCodelistType.ATTRIBUTEDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ATTRIBUTEDESCRIPTOR);
-                ObjectTypeCodelistType.CATEGORISATION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORISATION);
-                ObjectTypeCodelistType.CATEGORY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORY);
-                ObjectTypeCodelistType.CATEGORYSCHEMEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORYSCHEMEMAP);
-                ObjectTypeCodelistType.CATEGORYSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CATEGORYSCHEME);
-                ObjectTypeCodelistType.CODE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODE);
-                ObjectTypeCodelistType.CODEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODE);
-                ObjectTypeCodelistType.CODELIST = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODELIST);
-                ObjectTypeCodelistType.CODELISTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CODELISTMAP);
-                ObjectTypeCodelistType.COMPONENTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_COMPONENTMAP);
-                ObjectTypeCodelistType.CONCEPT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPT);
-                ObjectTypeCodelistType.CONCEPTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPTMAP);
-                ObjectTypeCodelistType.CONCEPTSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPTSCHEME);
-                ObjectTypeCodelistType.CONCEPTSCHEMEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONCEPTSCHEMEMAP);
-                ObjectTypeCodelistType.CONSTRAINT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONSTRAINT);
-                ObjectTypeCodelistType.CONSTRAINTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONSTRAINTARGET);
-                ObjectTypeCodelistType.CONTENTCONSTRAINT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_CONTENTCONSTRAINT);
-                ObjectTypeCodelistType.DATAFLOW = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATAFLOW);
-                ObjectTypeCodelistType.DATACONSUMER = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATACONSUMER);
-                ObjectTypeCodelistType.DATACONSUMERSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATACONSUMERSCHEME);
-                ObjectTypeCodelistType.DATAPROVIDER = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATAPROVIDER);
-                ObjectTypeCodelistType.DATAPROVIDERSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATAPROVIDERSCHEME);
-                ObjectTypeCodelistType.DATASETTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATASETTARGET);
-                ObjectTypeCodelistType.DATASTRUCTURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DATASTRUCTURE);
-                ObjectTypeCodelistType.DIMENSION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DIMENSION);
-                ObjectTypeCodelistType.DIMENSIONDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTOR);
-                ObjectTypeCodelistType.DIMENSIONDESCRIPTORVALUESTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_DIMENSIONDESCRIPTORVALUESTARGET);
-                ObjectTypeCodelistType.GROUPDIMENSIONDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_GROUPDIMENSIONDESCRIPTOR);
-                ObjectTypeCodelistType.HIERARCHICALCODE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HIERARCHICALCODE);
-                ObjectTypeCodelistType.HIERARCHICALCODELIST = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HIERARCHICALCODELIST);
-                ObjectTypeCodelistType.HIERARCHY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HIERARCHY);
-                ObjectTypeCodelistType.HYBRIDCODELISTMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HYBRIDCODELISTMAP);
-                ObjectTypeCodelistType.HYBRIDCODEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_HYBRIDCODEMAP);
-                ObjectTypeCodelistType.IDENTIFIABLEOBJECTTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_IDENTIFIABLEOBJECTTARGET);
-                ObjectTypeCodelistType.LEVEL = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_LEVEL);
-                ObjectTypeCodelistType.MEASUREDESCRIPTOR = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_MEASUREDESCRIPTOR);
-                ObjectTypeCodelistType.MEASUREDIMENSION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_MEASUREDIMENSION);
-                ObjectTypeCodelistType.METADATAFLOW = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATAFLOW);
-                ObjectTypeCodelistType.METADATAATTRIBUTE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATAATTRIBUTE);
-                ObjectTypeCodelistType.METADATASET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATASET);
-                ObjectTypeCodelistType.METADATASTRUCTURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATASTRUCTURE);
-                ObjectTypeCodelistType.METADATATARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_METADATATARGET);
-                ObjectTypeCodelistType.ORGANISATION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATION);
-                ObjectTypeCodelistType.ORGANISATIONMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONMAP);
-                ObjectTypeCodelistType.ORGANISATIONSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEME);
-                ObjectTypeCodelistType.ORGANISATIONSCHEMEMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONSCHEMEMAP);
-                ObjectTypeCodelistType.ORGANISATIONUNIT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONUNIT);
-                ObjectTypeCodelistType.ORGANISATIONUNITSCHEME = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_ORGANISATIONUNITSCHEME);
-                ObjectTypeCodelistType.PRIMARYMEASURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PRIMARYMEASURE);
-                ObjectTypeCodelistType.PROCESS = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PROCESS);
-                ObjectTypeCodelistType.PROCESSSTEP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PROCESSSTEP);
-                ObjectTypeCodelistType.PROVISIONAGREEMENT = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_PROVISIONAGREEMENT);
-                ObjectTypeCodelistType.REPORTINGCATEGORY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGCATEGORY);
-                ObjectTypeCodelistType.REPORTINGCATEGORYMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGCATEGORYMAP);
-                ObjectTypeCodelistType.REPORTINGTAXONOMY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMY);
-                ObjectTypeCodelistType.REPORTINGTAXONOMYMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGTAXONOMYMAP);
-                ObjectTypeCodelistType.REPORTINGYEARSTARTDAY = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTINGYEARSTARTDAY);
-                ObjectTypeCodelistType.REPORTPERIODTARGET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTPERIODTARGET);
-                ObjectTypeCodelistType.REPORTSTRUCTURE = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_REPORTSTRUCTURE);
-                ObjectTypeCodelistType.STRUCTUREMAP = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_STRUCTUREMAP);
-                ObjectTypeCodelistType.STRUCTURESET = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_STRUCTURESET);
-                ObjectTypeCodelistType.TIMEDIMENSION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_TIMEDIMENSION);
-                ObjectTypeCodelistType.TRANSITION = ObjectTypeCodelistType.add(ObjectTypeCodelistType.TARGET_TRANSITION);
-                ObjectTypeCodelistType.INT_ANY = 0;
-                ObjectTypeCodelistType.INT_AGENCY = 1;
-                ObjectTypeCodelistType.INT_AGENCYSCHEME = 2;
-                ObjectTypeCodelistType.INT_ATTACHMENTCONSTRAINT = 3;
-                ObjectTypeCodelistType.INT_ATTRIBUTE = 4;
-                ObjectTypeCodelistType.INT_ATTRIBUTEDESCRIPTOR = 5;
-                ObjectTypeCodelistType.INT_CATEGORISATION = 6;
-                ObjectTypeCodelistType.INT_CATEGORY = 7;
-                ObjectTypeCodelistType.INT_CATEGORYSCHEMEMAP = 8;
-                ObjectTypeCodelistType.INT_CATEGORYSCHEME = 9;
-                ObjectTypeCodelistType.INT_CODE = 10;
-                ObjectTypeCodelistType.INT_CODEMAP = 11;
-                ObjectTypeCodelistType.INT_CODELIST = 12;
-                ObjectTypeCodelistType.INT_CODELISTMAP = 13;
-                ObjectTypeCodelistType.INT_COMPONENTMAP = 14;
-                ObjectTypeCodelistType.INT_CONCEPT = 15;
-                ObjectTypeCodelistType.INT_CONCEPTMAP = 16;
-                ObjectTypeCodelistType.INT_CONCEPTSCHEME = 17;
-                ObjectTypeCodelistType.INT_CONCEPTSCHEMEMAP = 18;
-                ObjectTypeCodelistType.INT_CONSTRAINT = 19;
-                ObjectTypeCodelistType.INT_CONSTRAINTARGET = 20;
-                ObjectTypeCodelistType.INT_CONTENTCONSTRAINT = 21;
-                ObjectTypeCodelistType.INT_DATAFLOW = 22;
-                ObjectTypeCodelistType.INT_DATACONSUMER = 23;
-                ObjectTypeCodelistType.INT_DATACONSUMERSCHEME = 24;
-                ObjectTypeCodelistType.INT_DATAPROVIDER = 25;
-                ObjectTypeCodelistType.INT_DATAPROVIDERSCHEME = 26;
-                ObjectTypeCodelistType.INT_DATASETTARGET = 27;
-                ObjectTypeCodelistType.INT_DATASTRUCTURE = 28;
-                ObjectTypeCodelistType.INT_DIMENSION = 29;
-                ObjectTypeCodelistType.INT_DIMENSIONDESCRIPTOR = 30;
-                ObjectTypeCodelistType.INT_DIMENSIONDESCRIPTORVALUESTARGET = 31;
-                ObjectTypeCodelistType.INT_GROUPDIMENSIONDESCRIPTOR = 32;
-                ObjectTypeCodelistType.INT_HIERARCHICALCODE = 33;
-                ObjectTypeCodelistType.INT_HIERARCHICALCODELIST = 34;
-                ObjectTypeCodelistType.INT_HIERARCHY = 35;
-                ObjectTypeCodelistType.INT_HYBRIDCODELISTMAP = 36;
-                ObjectTypeCodelistType.INT_HYBRIDCODEMAP = 37;
-                ObjectTypeCodelistType.INT_IDENTIFIABLEOBJECTTARGET = 38;
-                ObjectTypeCodelistType.INT_LEVEL = 39;
-                ObjectTypeCodelistType.INT_MEASUREDESCRIPTOR = 40;
-                ObjectTypeCodelistType.INT_MEASUREDIMENSION = 41;
-                ObjectTypeCodelistType.INT_METADATAFLOW = 42;
-                ObjectTypeCodelistType.INT_METADATAATTRIBUTE = 43;
-                ObjectTypeCodelistType.INT_METADATASET = 44;
-                ObjectTypeCodelistType.INT_METADATASTRUCTURE = 45;
-                ObjectTypeCodelistType.INT_METADATATARGET = 46;
-                ObjectTypeCodelistType.INT_ORGANISATION = 47;
-                ObjectTypeCodelistType.INT_ORGANISATIONMAP = 48;
-                ObjectTypeCodelistType.INT_ORGANISATIONSCHEME = 49;
-                ObjectTypeCodelistType.INT_ORGANISATIONSCHEMEMAP = 50;
-                ObjectTypeCodelistType.INT_ORGANISATIONUNIT = 51;
-                ObjectTypeCodelistType.INT_ORGANISATIONUNITSCHEME = 52;
-                ObjectTypeCodelistType.INT_PRIMARYMEASURE = 53;
-                ObjectTypeCodelistType.INT_PROCESS = 54;
-                ObjectTypeCodelistType.INT_PROCESSSTEP = 55;
-                ObjectTypeCodelistType.INT_PROVISIONAGREEMENT = 56;
-                ObjectTypeCodelistType.INT_REPORTINGCATEGORY = 57;
-                ObjectTypeCodelistType.INT_REPORTINGCATEGORYMAP = 58;
-                ObjectTypeCodelistType.INT_REPORTINGTAXONOMY = 59;
-                ObjectTypeCodelistType.INT_REPORTINGTAXONOMYMAP = 60;
-                ObjectTypeCodelistType.INT_REPORTINGYEARSTARTDAY = 61;
-                ObjectTypeCodelistType.INT_REPORTPERIODTARGET = 62;
-                ObjectTypeCodelistType.INT_REPORTSTRUCTURE = 63;
-                ObjectTypeCodelistType.INT_STRUCTUREMAP = 64;
-                ObjectTypeCodelistType.INT_STRUCTURESET = 65;
-                ObjectTypeCodelistType.INT_TIMEDIMENSION = 66;
-                ObjectTypeCodelistType.INT_TRANSITION = 67;
-                return ObjectTypeCodelistType;
-            })();
-            type.ObjectTypeCodelistType = ObjectTypeCodelistType;
-        })(type = commonreferences.type || (commonreferences.type = {}));
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=ObjectTypeCodelistType.js.map
-
-var sdmx;
-(function (sdmx) {
-    var commonreferences;
-    (function (commonreferences) {
-        var type;
-        (function (type) {
-            var PackageTypeCodelistType = (function () {
-                function PackageTypeCodelistType(s) {
-                    // Instance
-                    this.target = null;
-                    var contains = false;
-                    for (var i = 0; i < PackageTypeCodelistType.STRING_ENUM.length; i++) {
-                        if (PackageTypeCodelistType.STRING_ENUM[i] == s) {
-                            contains = true;
-                        }
-                    }
-                    if (!contains)
-                        throw new Error(s + " is not a valid CodeTypeCodelistType");
-                    this.target = s;
-                }
-                // Utility
-                PackageTypeCodelistType.add = function (s) {
-                    var b = new PackageTypeCodelistType(s);
-                    PackageTypeCodelistType.ENUM.push(b);
-                    return b;
-                };
-                PackageTypeCodelistType.addString = function (s) {
-                    PackageTypeCodelistType.STRING_ENUM.push(s);
-                    return s;
-                };
-                PackageTypeCodelistType.fromString = function (s) {
-                    for (var i = 0; i < PackageTypeCodelistType.ENUM.length; i++) {
-                        if (PackageTypeCodelistType.ENUM[i].target == s)
-                            return PackageTypeCodelistType.ENUM[i];
-                    }
-                    return null;
-                };
-                PackageTypeCodelistType.fromStringWithException = function (s) {
-                    for (var i = 0; i < PackageTypeCodelistType.ENUM.length; i++) {
-                        if (PackageTypeCodelistType.ENUM[i].target == s)
-                            return PackageTypeCodelistType.ENUM[i];
-                    }
-                    throw new Error("Value:" + s + " not found in PackageTypeCodelistType enumeration!");
-                };
-                PackageTypeCodelistType.prototype.toString = function () { return this.target; };
-                PackageTypeCodelistType.ENUM = new Array();
-                PackageTypeCodelistType.STRING_ENUM = new Array();
-                PackageTypeCodelistType.TARGET_BASE = PackageTypeCodelistType.addString("base");
-                PackageTypeCodelistType.TARGET_DATASTRUCTURE = PackageTypeCodelistType.addString("datastructure");
-                PackageTypeCodelistType.TARGET_METADATASTRUCTURE = PackageTypeCodelistType.addString("metadatastructure");
-                PackageTypeCodelistType.TARGET_PROCESS = PackageTypeCodelistType.addString("process");
-                PackageTypeCodelistType.TARGET_REGISTRY = PackageTypeCodelistType.addString("registry");
-                PackageTypeCodelistType.TARGET_MAPPING = PackageTypeCodelistType.addString("mapping");
-                PackageTypeCodelistType.TARGET_CODELIST = PackageTypeCodelistType.addString("codelist");
-                PackageTypeCodelistType.TARGET_CATEGORYSCHEME = PackageTypeCodelistType.addString("categoryscheme");
-                PackageTypeCodelistType.TARGET_CONCEPTSCHEME = PackageTypeCodelistType.addString("conceptscheme");
-                PackageTypeCodelistType.BASE = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_BASE);
-                PackageTypeCodelistType.DATASTRUCTURE = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_DATASTRUCTURE);
-                PackageTypeCodelistType.METADATASTRUCTURE = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_METADATASTRUCTURE);
-                PackageTypeCodelistType.PROCESS = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_PROCESS);
-                PackageTypeCodelistType.REGISTRY = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_REGISTRY);
-                PackageTypeCodelistType.MAPPING = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_MAPPING);
-                PackageTypeCodelistType.CODELIST = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CODELIST);
-                PackageTypeCodelistType.CATEGORYSCHEME = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CATEGORYSCHEME);
-                PackageTypeCodelistType.CONCEPTSCHEME = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CONCEPTSCHEME);
-                return PackageTypeCodelistType;
-            })();
-            type.PackageTypeCodelistType = PackageTypeCodelistType;
-        })(type = commonreferences.type || (commonreferences.type = {}));
-    })(commonreferences = sdmx.commonreferences || (sdmx.commonreferences = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=PackageTypeCodelistType.js.map
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-//# sourceMappingURL=Sdmx20StructureParser.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../common/AnnotableType.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var base;
-        (function (base) {
-            var IdentifiableType = (function (_super) {
-                __extends(IdentifiableType, _super);
-                function IdentifiableType(an, id, urn, uri) {
-                    _super.call(this, an);
-                    this.id = id;
-                    this.urn = urn;
-                    this.uri = uri;
-                }
-                IdentifiableType.prototype.getId = function () { return this.id; };
-                IdentifiableType.prototype.getURN = function () { return this.urn; };
-                IdentifiableType.prototype.getURI = function () { return this.uri; };
-                IdentifiableType.prototype.setId = function (id) {
-                    this.id = id;
-                };
-                IdentifiableType.prototype.setURN = function (urn) {
-                    this.urn = urn;
-                };
-                IdentifiableType.prototype.setURI = function (uri) {
-                    this.uri = uri;
-                };
-                IdentifiableType.prototype.identifiesMeId = function (oid) {
-                    if (this.id.equalsID(oid))
-                        return true;
-                    else
-                        return false;
-                };
-                IdentifiableType.prototype.identifiesMeString = function (oid) {
-                    if (this.id.equalsString(oid))
-                        return true;
-                    else
-                        return false;
-                };
-                IdentifiableType.prototype.identifiesMeNestedId = function (oid) {
-                    if (oid.equalsString(this.id.getString()))
-                        return true;
-                    else
-                        return false;
-                };
-                return IdentifiableType;
-            })(sdmx.common.AnnotableType);
-            base.IdentifiableType = IdentifiableType;
-        })(base = structure.base || (structure.base = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=IdentifiableType.js.map
-
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var base;
-        (function (base) {
-            var ItemSchemeType = (function () {
-                function ItemSchemeType() {
-                    this.items = new Array();
-                    this.partial = false;
-                }
-                /**
-                 * @return the items
-                 */
-                ItemSchemeType.prototype.getItems = function () {
-                    return this.items;
-                };
-                /**
-                 * @param items the items to set
-                 */
-                ItemSchemeType.prototype.setItems = function (itms) {
-                    this.items = itms;
-                };
-                /**
-                 * @return the partial
-                 */
-                ItemSchemeType.prototype.isPartial = function () {
-                    return this.partial;
-                };
-                /**
-                 * @param partial the partial to set
-                 */
-                ItemSchemeType.prototype.setPartial = function (partial) {
-                    this.partial = partial;
-                };
-                ItemSchemeType.prototype.getItem = function (i) {
-                    return this.items[i];
-                };
-                ItemSchemeType.prototype.setItem = function (i, it) {
-                    this.items[i] = it;
-                };
-                ItemSchemeType.prototype.removeItem = function (it) {
-                    this.items.splice(this.items.indexOf(it), 1);
-                };
-                ItemSchemeType.prototype.addItem = function (it) {
-                    this.items.push(it);
-                };
-                ItemSchemeType.prototype.size = function () {
-                    return this.items.length;
-                };
-                ItemSchemeType.prototype.findItemString = function (s) {
-                    for (var i = 0; i < this.items.length; i++) {
-                        if (this.items[i].identifiesMeString(s))
-                            return this.items[i];
-                    }
-                    return null;
-                };
-                ItemSchemeType.prototype.findItemId = function (s) {
-                    for (var i = 0; i < this.items.length; i++) {
-                        if (this.items[i].identifiesMeId(s))
-                            return this.items[i];
-                    }
-                    return null;
-                };
-                ItemSchemeType.prototype.findItemNestedId = function (s) {
-                    for (var i = 0; i < this.items.length; i++) {
-                        if (this.items[i].identifiesMeNestedId(s))
-                            return this.items[i];
-                    }
-                    return null;
-                };
-                ItemSchemeType.prototype.findSubItemsString = function (s) {
-                    return this.findSubItemsId(new sdmx.commonreferences.IDType(s));
-                };
-                ItemSchemeType.prototype.findSubItemsId = function (id) {
-                    var result = new Array();
-                    if (id == null) {
-                        for (var i = 0; i < this.items.length; i++) {
-                            var item = this.items[i];
-                            if (item.getParent() == null) {
-                                result.push(item);
-                            }
-                        }
-                        return result;
-                    }
-                    else {
-                        for (var i = 0; i < this.items.length; i++) {
-                            var item = this.items[i];
-                            if (item.getParent().getId().equalsID(id)) {
-                                result.push(item);
-                            }
-                        }
-                        return result;
-                    }
-                };
-                return ItemSchemeType;
-            })();
-            base.ItemSchemeType = ItemSchemeType;
-        })(base = structure.base || (structure.base = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=ItemSchemeType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../../collections.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var base;
-        (function (base) {
-            var ItemType = (function (_super) {
-                __extends(ItemType, _super);
-                function ItemType() {
-                    _super.apply(this, arguments);
-                    this.parent = null;
-                    this.items = new collections.LinkedList();
-                }
-                /**
-                 * @return the parent
-                 */
-                ItemType.prototype.getParent = function () {
-                    return this.parent;
-                };
-                /**
-                 * @param parent the parent to set
-                 */
-                ItemType.prototype.setParent = function (parent) {
-                    this.parent = parent;
-                };
-                /**
-                 * @return the items
-                 */
-                ItemType.prototype.getItems = function () {
-                    return this.items;
-                };
-                /**
-                 * @param items the items to set
-                 */
-                ItemType.prototype.setItems = function (items) {
-                    this.items = items;
-                };
-                ItemType.prototype.getItem = function (i) {
-                    return this.items[i];
-                };
-                ItemType.prototype.setItem = function (i, it) {
-                    this.items[i] = it;
-                };
-                ItemType.prototype.removeItem = function (it) {
-                    this.items.remove(it);
-                };
-                ItemType.prototype.addItem = function (it) {
-                    this.items.add(it);
-                };
-                ItemType.prototype.size = function () {
-                    return this.items.size();
-                };
-                ItemType.prototype.findItemString = function (s) {
-                    for (var i = 0; i < this.items.size(); i++) {
-                        if (this.items.elementAtIndex(i).identifiesMeString(s))
-                            return this.items.elementAtIndex(i);
-                    }
-                    return null;
-                };
-                ItemType.prototype.findItem = function (id) {
-                    for (var i = 0; i < this.items.size(); i++) {
-                        if (this.items.elementAtIndex(i).identifiesMeId(id))
-                            return this.items.elementAtIndex(i);
-                    }
-                    return null;
-                };
-                return ItemType;
-            })(base.NameableType);
-            base.ItemType = ItemType;
-        })(base = structure.base || (structure.base = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=ItemType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../common/AnnotableType.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var base;
-        (function (base) {
-            var NameableType = (function (_super) {
-                __extends(NameableType, _super);
-                function NameableType() {
-                    _super.apply(this, arguments);
-                    this.names = null;
-                    this.descriptions = null;
-                }
-                /**
-                 * @return the names
-                 */
-                NameableType.prototype.getNames = function () {
-                    return this.names;
-                };
-                /**
-                 * @param names the names to set
-                 */
-                NameableType.prototype.setNames = function (names1) {
-                    this.names = names1;
-                };
-                /**
-                 * @return the descriptions
-                 */
-                NameableType.prototype.getDescriptions = function () {
-                    return this.descriptions;
-                };
-                /**
-                 * @param descriptions the descriptions to set
-                 */
-                NameableType.prototype.setDescriptions = function (descriptions) {
-                    this.descriptions = descriptions;
-                };
-                NameableType.prototype.findName = function (lang) {
-                    if (this.names == null) {
-                        return null;
-                    }
-                    var def = null;
-                    for (var i = 0; i < this.names.length; i++) {
-                        if (lang != null && lang == this.names[i].getLang()) {
-                            return this.names[i];
-                        }
-                        if (this.names[i].getLang() == null) {
-                            def = this.names[i];
-                        }
-                    }
-                    if (def == null && "en" != lang) {
-                        def = this.findName("en");
-                    }
-                    return def;
-                };
-                NameableType.prototype.findDescription = function (lang) {
-                    if (this.descriptions == null) {
-                        return null;
-                    }
-                    var def = null;
-                    for (var i = 0; i < this.descriptions.length; i++) {
-                        if (lang != null && lang == this.descriptions[i].getLang()) {
-                            return this.descriptions[i];
-                        }
-                        if (this.descriptions[i].getLang() == null) {
-                            def = this.descriptions[i];
-                        }
-                    }
-                    if (def == null && "en" != lang) {
-                        def = this.findDescription("en");
-                    }
-                    return def;
-                };
-                NameableType.prototype.toString = function () {
-                    var loc = sdmx.SdmxIO.getLocale();
-                    var name = this.findName(loc);
-                    if (name != null) {
-                        return name.toString();
-                    }
-                    var desc = this.findDescription(loc);
-                    if (desc != null) {
-                        return desc.getText();
-                    }
-                    return "NameableType";
-                };
-                NameableType.prototype.getName = function () {
-                    if (sdmx.SdmxIO.isSanitiseNames()) {
-                        return NameableType.sanitise(NameableType.toString(this));
-                    }
-                    else {
-                        return NameableType.toString(this);
-                    }
-                };
-                NameableType.toString = function (named) {
-                    var loc = sdmx.SdmxIO.getLocale();
-                    if (named == null) {
-                        return "";
-                    }
-                    var desc = named.findDescription(loc);
-                    if (desc == null) {
-                        var name = named.findName(loc);
-                        if (name == null) {
-                            return named.getId().toString();
-                        }
-                        return name.getText();
-                    }
-                    return desc.getText();
-                };
-                NameableType.toStringWithLocale = function (named, loc) {
-                    //if (concept.equals("FREQ")) {
-                    //    ItemType code2 = getCode();
-                    //    System.out.println("FREQ Code=" + code2);
-                    //}
-                    if (named == null) {
-                        return "";
-                    }
-                    var name = named.findName(loc);
-                    if (name == null) {
-                        var desc = named.findDescription(loc);
-                        if (desc == null) {
-                            return named.getId().toString();
-                        }
-                        return desc.getText();
-                    }
-                    return name.getText();
-                };
-                NameableType.toIDString = function (named) {
-                    return named.getId().toString();
-                };
-                NameableType.sanitise = function (s) {
-                    if (s.indexOf("'") != -1) {
-                        s = s.replace("'", "&apos;");
-                    }
-                    if (s.indexOf("\"") != -1) {
-                        s = s.replace("\"", "&quot;");
-                    }
-                    return s;
-                };
-                return NameableType;
-            })(base.IdentifiableType);
-            base.NameableType = NameableType;
-        })(base = structure.base || (structure.base = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=NameableType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../../common/AnnotableType.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var base;
-        (function (base) {
-            var VersionableType = (function (_super) {
-                __extends(VersionableType, _super);
-                function VersionableType() {
-                    _super.apply(this, arguments);
-                    this.version = sdmx.commonreferences.Version.ONE;
-                    this.validFrom = null;
-                    this.validTo = null;
-                }
-                ;
-                return VersionableType;
-            })(base.NameableType);
-            base.VersionableType = VersionableType;
-        })(base = structure.base || (structure.base = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=VersionableType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../base/ItemSchemeType.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var code;
-        (function (code) {
-            var CodelistType = (function (_super) {
-                __extends(CodelistType, _super);
-                function CodelistType() {
-                    _super.apply(this, arguments);
-                }
-                return CodelistType;
-            })(sdmx.structure.base.ItemSchemeType);
-            code.CodelistType = CodelistType;
-        })(code = structure.code || (structure.code = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=CodelistType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../base/ItemType.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var code;
-        (function (code) {
-            var CodeType = (function (_super) {
-                __extends(CodeType, _super);
-                function CodeType() {
-                    _super.apply(this, arguments);
-                }
-                return CodeType;
-            })(sdmx.structure.base.ItemType);
-            code.CodeType = CodeType;
-        })(code = structure.code || (structure.code = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=CodeType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var concept;
-        (function (concept) {
-            var ConceptSchemeType = (function (_super) {
-                __extends(ConceptSchemeType, _super);
-                function ConceptSchemeType() {
-                    _super.apply(this, arguments);
-                }
-                return ConceptSchemeType;
-            })(sdmx.structure.base.ItemSchemeType);
-            concept.ConceptSchemeType = ConceptSchemeType;
-        })(concept = structure.concept || (structure.concept = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=ConceptSchemeType.js.map
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-/// <reference path="../base/ItemType.ts" />
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var concept;
-        (function (concept) {
-            var ConceptType = (function (_super) {
-                __extends(ConceptType, _super);
-                function ConceptType() {
-                    _super.apply(this, arguments);
-                }
-                return ConceptType;
-            })(sdmx.structure.base.ItemType);
-            concept.ConceptType = ConceptType;
-        })(concept = structure.concept || (structure.concept = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=ConceptType.js.map
-
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var dataflow;
-        (function (dataflow) {
-            var Dataflow = (function () {
-                function Dataflow() {
-                }
-                return Dataflow;
-            })();
-            dataflow.Dataflow = Dataflow;
-        })(dataflow = structure.dataflow || (structure.dataflow = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=Dataflow.js.map
-
-var sdmx;
-(function (sdmx) {
-    var structure;
-    (function (structure) {
-        var datastructure;
-        (function (datastructure) {
-            var DataStructure = (function () {
-                function DataStructure() {
-                }
-                return DataStructure;
-            })();
-            datastructure.DataStructure = DataStructure;
-        })(datastructure = structure.datastructure || (structure.datastructure = {}));
-    })(structure = sdmx.structure || (sdmx.structure = {}));
-})(sdmx || (sdmx = {}));
-
-//# sourceMappingURL=DataStructure.js.map
+//# sourceMappingURL=xml.js.map

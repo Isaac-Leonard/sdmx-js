@@ -1,3 +1,4 @@
+/// <amd-module name='commonreferences'/>
 import xml = require("xml");
 
 export class NestedID extends xml.RegexXMLString {

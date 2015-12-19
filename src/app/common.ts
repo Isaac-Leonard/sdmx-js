@@ -1,4 +1,4 @@
-
+/// <amd-module name='common'/>
 export class TextType {
     private lang: string = "";
     private text: string = "";

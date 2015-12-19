@@ -1,6 +1,9 @@
+/// <amd-module name='sdmx'/>
 import message = require("message");
 import commonreferences = require("commonreferences");
 import structure = require("structure");
+import parser = require("parser");
+import sdmx20 = require("sdmx20");
 interface Queryable {
     getRegistry(): Registry;
     getRepository(): Repository;
@@ -28,12 +31,13 @@ export interface Registry {
 
 }
 export interface Repository {
-    query(query: message.DataQuery): message.DataMessageType;
-    query(flow: structure.Dataflow, query: string): message.DataMessageType;
+    query(query: message.DataQuery): message.DataMessage;
+    query(flow: structure.Dataflow, query: string): message.DataMessage;
 }
 export class SdmxIO {
     public static LOCALE: string = "en";
     public static SANITISE_NAMES: boolean = false;
+    public static PARSER:Array<parser.SdmxParserProvider> = [];
     public static getLocale():string {
         return SdmxIO.LOCALE;
     }
@@ -41,8 +45,20 @@ export class SdmxIO {
         return SdmxIO.SANITISE_NAMES;
 
     }
-    public static parseStructure(s: String): message.StructureType {
+    public static parseStructure(s: string): message.StructureType {
+        alert(SdmxIO.PARSER.length);
+        for(var i=0;i<SdmxIO.PARSER.length;i++) {
+            if (SdmxIO.PARSER[i].canParse(s)){ return SdmxIO.PARSER[i].parseStructure(s);}
+            else {
+                alert("not my type");
+                
+            }
+        }
         return null;
     }
-
+    public static registerParserProvider(p: parser.SdmxParserProvider){
+        alert('register');
+        SdmxIO.PARSER.push(p);
+        
+    }
 }
