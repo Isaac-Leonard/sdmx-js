@@ -99,7 +99,7 @@ gulp.task('serve', ['compile-ts', 'watch'], function () {
 var concat = require('gulp-concat');
 
 gulp.task('scripts1', function () {
-    return gulp.src(['./src/js/*.js','./src/js/*/*.js','./src/js/*/*/*.js','./src/js/*/*/*/*.js'])
+    return gulp.src(['./lib/*.js','./src/js/*.js','./src/js/*/*.js','./src/js/*/*/*.js','./src/js/*/*/*/*.js'])
             .pipe(concat('all.js'))
             .pipe(gulp.dest('./dist/'));
 });
