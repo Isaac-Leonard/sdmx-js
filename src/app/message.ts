@@ -2,6 +2,8 @@
 import sdmx = require("sdmx");
 import structure = require("structure");
 import commonreferences = require("commonreferences");
+import xml = require("xml");
+import common = require("common");
 export class DataMessage {
 
 }
@@ -11,7 +13,7 @@ export class DataQuery {
 }
 export class StructureType implements sdmx.Registry {
     constructor() {
-        
+
     }
     // Registry
     listDataflows(): Array<structure.Dataflow> {
@@ -70,3 +72,37 @@ export class StructureType implements sdmx.Registry {
     }
 
 }
+export class HeaderTimeType {
+    private date: xml.DateTime = null;
+    getDate(): xml.DateTime { return this.date; }
+    setDate(d: xml.DateTime): void {
+        this.date = d;
+    }
+}
+export class Contact {
+    public name: Array<common.Name> = [];
+    public departments: Array<common.TextType> = [];
+    public roles: Array<common.TextType> = [];
+    public telephones: Array<string> = [];
+    public faxes: Array<string> = [];
+    public z400s: Array<string> = [];
+    public uris: Array<xml.anyURI> = [];
+    public emails: Array<string> = [];
+}
+export class PartyType extends structure.NameableType {
+    public contacts: Array<Contact> = [];
+}
+export class Sender extends PartyType {
+
+
+}
+export class Header {
+    private id: string = null;
+    private test: boolean = null;
+    private prepared: HeaderTimeType = null;
+    private receivers:Array<PartyType>=[];
+    private names:Array<common.Name> = [];
+    private structures:Array<common.PayloadStructureType> = [];
+
+}
+

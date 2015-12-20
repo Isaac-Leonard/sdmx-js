@@ -3,7 +3,7 @@
 require.config({
     baseUrl: '../src/js/',
     paths: {
-      'compute': 'compute/main'
+      
     }
 });
 

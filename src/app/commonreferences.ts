@@ -614,3 +614,67 @@ export class PackageTypeCodelistType {
     }
     public toString(): string { return this.target; }
 }
+export class NCNameID extends IDType {
+    public static PATTERN: string = "[A-z][A-z0-9_\\-]*";
+    constructor(s: string) {
+        super(s);
+    }
+    public getPatternArray(): Array<string> {
+        return [NCNameID.PATTERN];
+    }
+    public equalsNCNameId(id: NCNameID): boolean {
+        return super.getString() == id.getString();
+    }
+}
+export class ObsDimensionsCodeType {
+/*
+ * DO ME! Add Proper codes for this class
+ * 
+ * 
+ */
+    public static ENUM: Array<ObsDimensionsCodeType> = new Array<ObsDimensionsCodeType>();
+    public static STRING_ENUM: Array<string> = new Array<string>();
+
+    public static TARGET_BASE: string = ObsDimensionsCodeType.addString("base");
+ 
+    public static BASE: ObsDimensionsCodeType = ObsDimensionsCodeType.add(ObsDimensionsCodeType.TARGET_BASE);
+    // Utility
+    private static add(s: string): ObsDimensionsCodeType{
+        var b: ObsDimensionsCodeType = new ObsDimensionsCodeType(s);
+        ObsDimensionsCodeType.ENUM.push(b);
+        return b;
+    }
+    private static addString(s: string): string {
+        ObsDimensionsCodeType.STRING_ENUM.push(s);
+        return s;
+    }
+
+    public static fromString(s: string): ObsDimensionsCodeType {
+        for (var i = 0; i < ObsDimensionsCodeType.ENUM.length; i++) {
+            if (ObsDimensionsCodeType.ENUM[i].target == s) return ObsDimensionsCodeType.ENUM[i];
+        }
+        return null;
+    }
+    public static fromStringWithException(s: string): ObsDimensionsCodeType {
+        for (var i = 0; i < ObsDimensionsCodeType.ENUM.length; i++) {
+            if (ObsDimensionsCodeType.ENUM[i].target == s) return ObsDimensionsCodeType.ENUM[i];
+        }
+        throw new Error("Value:" + s + " not found in ObsDimensionCodeType enumeration!");
+    }
+    // Instance
+    private target: string = null;
+    constructor(s: string) {
+        var contains: boolean = false;
+        for (var i = 0; i < ObsDimensionsCodeType.STRING_ENUM.length; i++) {
+            if (ObsDimensionsCodeType.STRING_ENUM[i] == s) {
+                contains = true;
+            }
+        }
+        if (!contains) throw new Error(s + " is not a valid ObsDimensionsCodeType");
+        this.target = s;
+    }
+    public toString(): string { return this.target; }
+}
+export class ProvisionAgreementReference {}
+export class StructureReferenceBase{}
+export class StructureUsageReferenceBase{}

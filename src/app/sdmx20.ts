@@ -77,21 +77,25 @@ export class Sdmx20StructureReaderTools {
             alert(childNodes[i].nodeName);
         }
         this.toHeader(this.findNodeName("Header",childNodes));
-        this.toCodelists(this.findNodeName("Codelists",childNodes));
+        this.toCodelists(this.findNodeName("CodeLists",childNodes));
         this.toConcepts(this.findNodeName("Concepts",childNodes));
         this.toKeyFamilies(this.findNodeName("KeyFamilies",childNodes));
         return this.struct;
     }
     toHeader(headerNode:any) {
+        alert(this.myLoop(headerNode));
         return null;
     }
     toCodelists(codelistsNode:any) {
+        alert(this.myLoop(codelistsNode));
         return null;
     }
     toConcepts(conceptsNode:any) {
+        alert(this.myLoop(conceptsNode));
         return null;
     }
     toKeyFamilies(keyFamiliesNode:any){
+        alert(this.myLoop(keyFamiliesNode));
         return null;
     }
     getStructureType(): message.StructureType {
@@ -117,7 +121,10 @@ export class Sdmx20StructureReaderTools {
     findNodeName(s:string,childNodes:any) {
         for(var i:number=0;i<childNodes.length;i++) {
             var nn:string = childNodes[i].nodeName;
-            if (nn.indexOf(s)!=-1)return childNodes[i];
+            if (nn.indexOf(s)!=-1){
+                alert(childNodes[i].nodeName);
+                return childNodes[i];
+            }
         }
         return null;
     }
