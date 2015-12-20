@@ -5,9 +5,10 @@ import structure = require("structure");
 import message = require("message");
 import parser = require("parser");
 import sdmx = require("sdmx");
+import parseXml = require("parseXml");
 export class Sdmx20StructureParser implements parser.SdmxParserProvider {
-    constructor(){
-        
+    constructor() {
+
     }
     getVersionIdentifier(): number {
         return 2.1;
@@ -18,7 +19,7 @@ export class Sdmx20StructureParser implements parser.SdmxParserProvider {
         if (this.isData(input)) return true;
     }
     isStructure(input: string): boolean {
-        if(input.indexOf("Structure") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message")!=-1){
+        if (input.indexOf("Structure") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
             return true;
         } else return false;
     }
@@ -29,6 +30,11 @@ export class Sdmx20StructureParser implements parser.SdmxParserProvider {
         return false;
     }
     parseStructure(input: string): message.StructureType {
+        var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input);
+        return srt.getStructureType();
+
+    }
+    parseData(input: string): message.DataMessage {
         var opts: sax.SAXOptions = <sax.SAXOptions>{};
         var parser: sax.SAXParser = sax.parser(/*strict=*/true,/*SaxOptions*/opts);
 
@@ -56,8 +62,69 @@ export class Sdmx20StructureParser implements parser.SdmxParserProvider {
         parser.write(input).close();
         return null;
     }
-    parseData(input: string): message.DataMessage {
+}
+export class Sdmx20StructureReaderTools {
+    private struct: message.StructureType = null;
+
+    constructor(s: string) {
+        var dom: any = parseXml.parseXml(s);
+        this.struct=this.toStructureType(dom.documentElement);
+    }
+    toStructureType(structure:any):message.StructureType {
+        this.struct = new message.StructureType();
+        var childNodes = structure.childNodes;
+        for(var i:number=0;i<childNodes.length;i++) {
+            alert(childNodes[i].nodeName);
+        }
+        this.toHeader(this.findNodeName("Header",childNodes));
+        this.toCodelists(this.findNodeName("Codelists",childNodes));
+        this.toConcepts(this.findNodeName("Concepts",childNodes));
+        this.toKeyFamilies(this.findNodeName("KeyFamilies",childNodes));
+        return this.struct;
+    }
+    toHeader(headerNode:any) {
         return null;
     }
+    toCodelists(codelistsNode:any) {
+        return null;
+    }
+    toConcepts(conceptsNode:any) {
+        return null;
+    }
+    toKeyFamilies(keyFamiliesNode:any){
+        return null;
+    }
+    getStructureType(): message.StructureType {
+        return this.struct;
+    }
+    myLoop(x: any): string {
+        var i: number, y: any, xLen: number, txt: string;
+        txt = "";
+        x = x.childNodes;
+        xLen = x.length;
+        for (i = 0; i < xLen; i++) {
+            y = x[i];
+            if (y.nodeType != 3) {
+                if (y.childNodes[0] != undefined) {
+                    txt += this.myLoop(y);
+                }
+            } else {
+                txt += y.nodeValue + "<br>";
+            }
+        }
+        return txt;
+    }
+    findNodeName(s:string,childNodes:any) {
+        for(var i:number=0;i<childNodes.length;i++) {
+            var nn:string = childNodes[i].nodeName;
+            if (nn.indexOf(s)!=-1)return childNodes[i];
+        }
+        return null;
+    }
+
 }
+
+
+
+
 sdmx.SdmxIO.registerParserProvider(new Sdmx20StructureParser());

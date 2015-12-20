@@ -12,8 +12,7 @@ define("message", ["require", "exports"], function (require, exports) {
     })();
     exports.DataQuery = DataQuery;
     var StructureType = (function () {
-        function StructureType(struct) {
-            this.struct = struct;
+        function StructureType() {
         }
         // Registry
         StructureType.prototype.listDataflows = function () {

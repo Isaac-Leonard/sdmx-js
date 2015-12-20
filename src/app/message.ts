@@ -10,9 +10,8 @@ export class DataQuery {
 
 }
 export class StructureType implements sdmx.Registry {
-    public struct: any;
-    constructor(struct: any) {
-        this.struct = struct;
+    constructor() {
+        
     }
     // Registry
     listDataflows(): Array<structure.Dataflow> {

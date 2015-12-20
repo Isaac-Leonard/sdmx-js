@@ -1,4 +1,4 @@
-define("sdmx20", ["require", "exports", "sax", "sdmx"], function (require, exports, sax, sdmx) {
+define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "parseXml"], function (require, exports, sax, message, sdmx, parseXml) {
     var Sdmx20StructureParser = (function () {
         function Sdmx20StructureParser() {
         }
@@ -27,6 +27,10 @@ define("sdmx20", ["require", "exports", "sax", "sdmx"], function (require, expor
             return false;
         };
         Sdmx20StructureParser.prototype.parseStructure = function (input) {
+            var srt = new Sdmx20StructureReaderTools(input);
+            return srt.getStructureType();
+        };
+        Sdmx20StructureParser.prototype.parseData = function (input) {
             var opts = {};
             var parser = sax.parser(/*strict=*/ true, /*SaxOptions*/ opts);
             parser.onerror = function (e) {
@@ -51,12 +55,71 @@ define("sdmx20", ["require", "exports", "sax", "sdmx"], function (require, expor
             parser.write(input).close();
             return null;
         };
-        Sdmx20StructureParser.prototype.parseData = function (input) {
-            return null;
-        };
         return Sdmx20StructureParser;
     })();
     exports.Sdmx20StructureParser = Sdmx20StructureParser;
+    var Sdmx20StructureReaderTools = (function () {
+        function Sdmx20StructureReaderTools(s) {
+            this.struct = null;
+            var dom = parseXml.parseXml(s);
+            this.struct = this.toStructureType(dom.documentElement);
+        }
+        Sdmx20StructureReaderTools.prototype.toStructureType = function (structure) {
+            this.struct = new message.StructureType();
+            var childNodes = structure.childNodes;
+            for (var i = 0; i < childNodes.length; i++) {
+                alert(childNodes[i].nodeName);
+            }
+            this.toHeader(this.findNodeName("Header", childNodes));
+            this.toCodelists(this.findNodeName("Codelists", childNodes));
+            this.toConcepts(this.findNodeName("Concepts", childNodes));
+            this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
+            return this.struct;
+        };
+        Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
+            return null;
+        };
+        Sdmx20StructureReaderTools.prototype.toCodelists = function (codelistsNode) {
+            return null;
+        };
+        Sdmx20StructureReaderTools.prototype.toConcepts = function (conceptsNode) {
+            return null;
+        };
+        Sdmx20StructureReaderTools.prototype.toKeyFamilies = function (keyFamiliesNode) {
+            return null;
+        };
+        Sdmx20StructureReaderTools.prototype.getStructureType = function () {
+            return this.struct;
+        };
+        Sdmx20StructureReaderTools.prototype.myLoop = function (x) {
+            var i, y, xLen, txt;
+            txt = "";
+            x = x.childNodes;
+            xLen = x.length;
+            for (i = 0; i < xLen; i++) {
+                y = x[i];
+                if (y.nodeType != 3) {
+                    if (y.childNodes[0] != undefined) {
+                        txt += this.myLoop(y);
+                    }
+                }
+                else {
+                    txt += y.nodeValue + "<br>";
+                }
+            }
+            return txt;
+        };
+        Sdmx20StructureReaderTools.prototype.findNodeName = function (s, childNodes) {
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                if (nn.indexOf(s) != -1)
+                    return childNodes[i];
+            }
+            return null;
+        };
+        return Sdmx20StructureReaderTools;
+    })();
+    exports.Sdmx20StructureReaderTools = Sdmx20StructureReaderTools;
     sdmx.SdmxIO.registerParserProvider(new Sdmx20StructureParser());
 });
 
