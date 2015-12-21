@@ -1,4 +1,4 @@
-define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "parseXml"], function (require, exports, sax, message, sdmx, parseXml) {
+define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "xml", "parseXml"], function (require, exports, sax, message, sdmx, xml, parseXml) {
     var Sdmx20StructureParser = (function () {
         function Sdmx20StructureParser() {
         }
@@ -75,13 +75,19 @@ define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "parseXml"], f
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
             var header = new message.Header();
-            header.setId(this.findTextNode(this.findNodeName("ID", headerNode)));
-            alert(this.myLoop2(headerNode));
+            header.setId(headerNode.getElementsByTagName("ID")[0].childNodes[0].nodeValue);
+            var test = headerNode.getElementsByTagName("Test")[0].childNodes[0].nodeValue;
+            header.setTest(test == "true");
+            var prepared = headerNode.getElementsByTagName("Prepared")[0].childNodes[0].nodeValue;
+            var prepDate = new xml.DateTime.fromString(prepared);
+            header.setPrepared(new message.HeaderTimeType(prepDate));
+            alert("test=" + header.getTest());
+            alert("prepared=" + header.getPrepared().getDate().toString());
             var childNodes = headerNode.childNodes;
             for (var i = 0; i < childNodes.length; i++) {
                 alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
             }
-            return null;
+            return header;
         };
         Sdmx20StructureReaderTools.prototype.toCodelists = function (codelistsNode) {
             return null;

@@ -74,8 +74,9 @@ define("message", ["require", "exports", "structure"], function (require, export
     })();
     exports.StructureType = StructureType;
     var HeaderTimeType = (function () {
-        function HeaderTimeType() {
+        function HeaderTimeType(d) {
             this.date = null;
+            this.date = d;
         }
         HeaderTimeType.prototype.getDate = function () { return this.date; };
         HeaderTimeType.prototype.setDate = function (d) {

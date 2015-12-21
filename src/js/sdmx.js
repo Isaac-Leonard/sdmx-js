@@ -21,7 +21,6 @@ define("sdmx", ["require", "exports"], function (require, exports) {
             return null;
         };
         SdmxIO.registerParserProvider = function (p) {
-            alert('register');
             SdmxIO.PARSER.push(p);
         };
         SdmxIO.LOCALE = "en";

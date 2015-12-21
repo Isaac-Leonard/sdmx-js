@@ -5,6 +5,7 @@ import structure = require("structure");
 import message = require("message");
 import parser = require("parser");
 import sdmx = require("sdmx");
+import xml = require("xml");
 import parseXml = require("parseXml");
 export class Sdmx20StructureParser implements parser.SdmxParserProvider {
     constructor() {
@@ -74,22 +75,29 @@ export class Sdmx20StructureReaderTools {
         this.struct = new message.StructureType();
         var childNodes = structure.childNodes;
 
-        this.toHeader(this.findNodeName("Header", childNodes));
-        this.toCodelists(this.findNodeName("CodeLists", childNodes));
-        this.toConcepts(this.findNodeName("Concepts", childNodes));
-        this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
+        this.toHeader(structure.getElementsByTagName("Header"));
+        this.toCodelists(structure.getElementsByTagName("CodeLists"));
+        this.toConcepts(structure.getElementsByTagName("Concepts"));
+        this.toKeyFamilies(structure.getElementsByTagName("KeyFamilies"));
         return this.struct;
     }
     toHeader(headerNode: any) {
         var header: message.Header = new message.Header()
-        header.setId(this.findTextNode(this.findNodeName("ID", headerNode)));
-        alert(this.myLoop2(headerNode));
-        var childNodes = headerNode.childNodes;
+        header.setId(headerNode.getElementsByTagName("ID")[0].childNodes[0].nodeValue);
+        var test:string= headerNode.getElementsByTagName("Test")[0].childNodes[0].nodeValue;
+        header.setTest(test=="true");
+        var prepared:string =headerNode.getElementsByTagName("Prepared")[0].childNodes[0].nodeValue;
+        var prepDate: xml.DateTime = xml.DateTime.fromString(prepared);
+        header.setPrepared(new message.HeaderTimeType(prepDate));
+        alert("test=" + header.getTest());
+        alert("prepared=" + header.getPrepared().getDate().toString());
+
+                var childNodes = headerNode.childNodes;
         for (var i: number = 0; i < childNodes.length; i++) {
             alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
         }
 
-        return null;
+        return header;
     }
     toCodelists(codelistsNode: any) {
         return null;

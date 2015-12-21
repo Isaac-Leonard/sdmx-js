@@ -46,7 +46,6 @@ export class SdmxIO {
 
     }
     public static parseStructure(s: string): message.StructureType {
-        alert(SdmxIO.PARSER.length);
         for(var i=0;i<SdmxIO.PARSER.length;i++) {
             if (SdmxIO.PARSER[i].canParse(s)){ return SdmxIO.PARSER[i].parseStructure(s);}
             else {
@@ -57,7 +56,6 @@ export class SdmxIO {
         return null;
     }
     public static registerParserProvider(p: parser.SdmxParserProvider){
-        alert('register');
         SdmxIO.PARSER.push(p);
         
     }

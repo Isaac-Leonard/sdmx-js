@@ -74,6 +74,9 @@ export class StructureType implements sdmx.Registry {
 }
 export class HeaderTimeType {
     private date: xml.DateTime = null;
+    constructor(d: xml.DateTime){
+        this.date=d;
+    }
     getDate(): xml.DateTime { return this.date; }
     setDate(d: xml.DateTime): void {
         this.date = d;
