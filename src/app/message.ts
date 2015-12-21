@@ -100,9 +100,93 @@ export class Header {
     private id: string = null;
     private test: boolean = null;
     private prepared: HeaderTimeType = null;
-    private receivers:Array<PartyType>=[];
-    private names:Array<common.Name> = [];
-    private structures:Array<common.PayloadStructureType> = [];
-
+    private receivers: Array<PartyType> = [];
+    private names: Array<common.Name> = [];
+    private structures: Array<common.PayloadStructureType> = [];
+    private dataproviderReference: commonreferences.Reference = null;
+    private dataSetAction: common.ActionType = null;
+    private dataSetId: Array<commonreferences.IDType> = [];
+    private extracted: xml.DateTime = null;
+    private reportingBegin: common.ObservationalTimePeriodType = null;
+    private reportingEnd: common.ObservationalTimePeriodType = null;
+    private embargoDate: xml.DateTime = null;
+    private source: Array<common.Name> = [];
+    getId(): string { return this.id; }
+    setId(s: string) { this.id = s; }
+    getTest(): boolean { return this.test; }
+    setTest(b: boolean) {
+        this.test = b;
+    }
+    getPrepared(): HeaderTimeType { return this.prepared; }
+    setPrepared(h: HeaderTimeType) {
+        this.prepared = h;
+    }
+    getReceivers(): Array<PartyType> {
+        return this.receivers;
+    }
+    setReceivers(recs: Array<PartyType>) {
+        this.receivers = recs;
+    }
+    getNames(): Array<common.Name> {
+        return this.names;
+    }
+    setNames(n: Array<common.Name>) {
+        this.names = n;
+    }
+    setStructures(pl: Array<common.PayloadStructureType>) {
+        this.structures = pl;
+    }
+    getStructures(): Array<common.PayloadStructureType> {
+        return this.structures;
+    }
+    getDataproviderReference():commonreferences.Reference{
+        return this.dataproviderReference;
+    }
+    setDataproviderReference(ref: commonreferences.Reference) {
+        this.dataproviderReference=ref;
+    }
+    setAction(ac: common.ActionType) {
+        this.dataSetAction=ac;
+    }
+    getAction(): common.ActionType{
+        return this.dataSetAction;
+    }
+    getDataSetId(): Array<commonreferences.IDType>{
+        return this.dataSetId;
+    }
+    setDataSetId(ids: Array<commonreferences.IDType>){
+        this.dataSetId=ids;
+    }
+    getExtracted(): xml.DateTime{
+        return this.extracted;
+    }
+    setExtracted(d: xml.DateTime) {
+        this.extracted=d;
+    }
+    getReportingBegin(): common.ObservationalTimePeriodType{
+        return this.reportingBegin;
+    }
+    setReportingBegin(o: common.ObservationalTimePeriodType) {
+        this.reportingBegin=o;
+    }
+    getReportingEnd(): common.ObservationalTimePeriodType{
+        return this.reportingEnd;
+    }
+    setReportingEnd(o: common.ObservationalTimePeriodType) {
+        this.reportingEnd=o;
+    }
+    getEmbargoDate(): xml.DateTime{
+        return this.embargoDate;
+    }
+    setEmbargoDate(dt: xml.DateTime) {
+        this.embargoDate=dt;
+    }
+    getSource(): Array<common.Name>{
+        return this.source;
+    }
+    setSource(s:Array<common.Name>){
+        this.source=s;
+    }
 }
+
 

@@ -68,34 +68,36 @@ export class Sdmx20StructureReaderTools {
 
     constructor(s: string) {
         var dom: any = parseXml.parseXml(s);
-        this.struct=this.toStructureType(dom.documentElement);
+        this.struct = this.toStructureType(dom.documentElement);
     }
-    toStructureType(structure:any):message.StructureType {
+    toStructureType(structure: any): message.StructureType {
         this.struct = new message.StructureType();
         var childNodes = structure.childNodes;
-        for(var i:number=0;i<childNodes.length;i++) {
-            alert(childNodes[i].nodeName);
-        }
-        this.toHeader(this.findNodeName("Header",childNodes));
-        this.toCodelists(this.findNodeName("CodeLists",childNodes));
-        this.toConcepts(this.findNodeName("Concepts",childNodes));
-        this.toKeyFamilies(this.findNodeName("KeyFamilies",childNodes));
+
+        this.toHeader(this.findNodeName("Header", childNodes));
+        this.toCodelists(this.findNodeName("CodeLists", childNodes));
+        this.toConcepts(this.findNodeName("Concepts", childNodes));
+        this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
         return this.struct;
     }
-    toHeader(headerNode:any) {
-        alert(this.myLoop(headerNode));
+    toHeader(headerNode: any) {
+        var header: message.Header = new message.Header()
+        header.setId(this.findTextNode(this.findNodeName("ID", headerNode)));
+        alert(this.myLoop2(headerNode));
+        var childNodes = headerNode.childNodes;
+        for (var i: number = 0; i < childNodes.length; i++) {
+            alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
+        }
+
         return null;
     }
-    toCodelists(codelistsNode:any) {
-        alert(this.myLoop(codelistsNode));
+    toCodelists(codelistsNode: any) {
         return null;
     }
-    toConcepts(conceptsNode:any) {
-        alert(this.myLoop(conceptsNode));
+    toConcepts(conceptsNode: any) {
         return null;
     }
-    toKeyFamilies(keyFamiliesNode:any){
-        alert(this.myLoop(keyFamiliesNode));
+    toKeyFamilies(keyFamiliesNode: any) {
         return null;
     }
     getStructureType(): message.StructureType {
@@ -118,15 +120,46 @@ export class Sdmx20StructureReaderTools {
         }
         return txt;
     }
-    findNodeName(s:string,childNodes:any) {
-        for(var i:number=0;i<childNodes.length;i++) {
-            var nn:string = childNodes[i].nodeName;
-            if (nn.indexOf(s)!=-1){
-                alert(childNodes[i].nodeName);
+    myLoop2(x: any): string {
+        var i: number, y: any, xLen: number, txt: string;
+        txt = "";
+        x = x.childNodes;
+        xLen = x.length;
+        for (i = 0; i < xLen; i++) {
+            y = x[i];
+            if (y.nodeType != 3) {
+                alert(y.nodeName + ":" + y.nodeValue);
+                if (y.childNodes[0] != undefined) {
+                    txt += this.myLoop2(y);
+                }
+            } else {
+                txt += y.nodeValue + "<br>";
+
+            }
+        }
+        return txt;
+    }
+    findNodeName(s: string, childNodes: any) {
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nn: string = childNodes[i].nodeName;
+            if (nn.indexOf(s) != -1) {
+                alert("found node:"+s);
                 return childNodes[i];
             }
         }
+        alert("not found node:"+s);
         return null;
+    }
+    findTextNode(node: any): string {
+        if( node == null ) return "";
+        var childNodes = node.childNodes;
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nodeType = childNodes[i].nodeType;
+            if (nodeType == 3) {
+                return childNodes[i].nodeValue;
+            }
+        }
+        return "";
     }
 
 }

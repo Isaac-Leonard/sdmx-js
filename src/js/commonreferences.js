@@ -597,6 +597,92 @@ define("commonreferences", ["require", "exports", "xml"], function (require, exp
         return PackageTypeCodelistType;
     })();
     exports.PackageTypeCodelistType = PackageTypeCodelistType;
+    var NCNameID = (function (_super) {
+        __extends(NCNameID, _super);
+        function NCNameID(s) {
+            _super.call(this, s);
+        }
+        NCNameID.prototype.getPatternArray = function () {
+            return [NCNameID.PATTERN];
+        };
+        NCNameID.prototype.equalsNCNameId = function (id) {
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        NCNameID.PATTERN = "[A-z][A-z0-9_\\-]*";
+        return NCNameID;
+    })(IDType);
+    exports.NCNameID = NCNameID;
+    var ObsDimensionsCodeType = (function () {
+        function ObsDimensionsCodeType(s) {
+            // Instance
+            this.target = null;
+            var contains = false;
+            for (var i = 0; i < ObsDimensionsCodeType.STRING_ENUM.length; i++) {
+                if (ObsDimensionsCodeType.STRING_ENUM[i] == s) {
+                    contains = true;
+                }
+            }
+            if (!contains)
+                throw new Error(s + " is not a valid ObsDimensionsCodeType");
+            this.target = s;
+        }
+        // Utility
+        ObsDimensionsCodeType.add = function (s) {
+            var b = new ObsDimensionsCodeType(s);
+            ObsDimensionsCodeType.ENUM.push(b);
+            return b;
+        };
+        ObsDimensionsCodeType.addString = function (s) {
+            ObsDimensionsCodeType.STRING_ENUM.push(s);
+            return s;
+        };
+        ObsDimensionsCodeType.fromString = function (s) {
+            for (var i = 0; i < ObsDimensionsCodeType.ENUM.length; i++) {
+                if (ObsDimensionsCodeType.ENUM[i].target == s)
+                    return ObsDimensionsCodeType.ENUM[i];
+            }
+            return null;
+        };
+        ObsDimensionsCodeType.fromStringWithException = function (s) {
+            for (var i = 0; i < ObsDimensionsCodeType.ENUM.length; i++) {
+                if (ObsDimensionsCodeType.ENUM[i].target == s)
+                    return ObsDimensionsCodeType.ENUM[i];
+            }
+            throw new Error("Value:" + s + " not found in ObsDimensionCodeType enumeration!");
+        };
+        ObsDimensionsCodeType.prototype.toString = function () { return this.target; };
+        /*
+         * DO ME! Add Proper codes for this class
+         *
+         *
+         */
+        ObsDimensionsCodeType.ENUM = new Array();
+        ObsDimensionsCodeType.STRING_ENUM = new Array();
+        ObsDimensionsCodeType.ALL_DIMENSIONS_TEXT = ObsDimensionsCodeType.addString("AllDimensions");
+        ObsDimensionsCodeType.TIME_PERIOD_TEXT = ObsDimensionsCodeType.addString("TIME_PERIOD");
+        ObsDimensionsCodeType.ALL_DIMENSIONS = new ObsDimensionsCodeType(ObsDimensionsCodeType.ALL_DIMENSIONS_TEXT);
+        ObsDimensionsCodeType.TIME_PERIOD = new ObsDimensionsCodeType(ObsDimensionsCodeType.TIME_PERIOD_TEXT);
+        return ObsDimensionsCodeType;
+    })();
+    exports.ObsDimensionsCodeType = ObsDimensionsCodeType;
+    var ProvisionAgreementReference = (function () {
+        function ProvisionAgreementReference() {
+        }
+        return ProvisionAgreementReference;
+    })();
+    exports.ProvisionAgreementReference = ProvisionAgreementReference;
+    var StructureReferenceBase = (function () {
+        function StructureReferenceBase() {
+        }
+        return StructureReferenceBase;
+    })();
+    exports.StructureReferenceBase = StructureReferenceBase;
+    var StructureUsageReferenceBase = (function () {
+        function StructureUsageReferenceBase() {
+        }
+        return StructureUsageReferenceBase;
+    })();
+    exports.StructureUsageReferenceBase = StructureUsageReferenceBase;
 });
 
 //# sourceMappingURL=commonreferences.js.map

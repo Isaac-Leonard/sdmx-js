@@ -635,9 +635,10 @@ export class ObsDimensionsCodeType {
     public static ENUM: Array<ObsDimensionsCodeType> = new Array<ObsDimensionsCodeType>();
     public static STRING_ENUM: Array<string> = new Array<string>();
 
-    public static TARGET_BASE: string = ObsDimensionsCodeType.addString("base");
- 
-    public static BASE: ObsDimensionsCodeType = ObsDimensionsCodeType.add(ObsDimensionsCodeType.TARGET_BASE);
+      public static ALL_DIMENSIONS_TEXT:string = ObsDimensionsCodeType.addString("AllDimensions");
+      public static TIME_PERIOD_TEXT:string = ObsDimensionsCodeType.addString("TIME_PERIOD");
+      public static  ALL_DIMENSIONS:ObsDimensionsCodeType = new ObsDimensionsCodeType(ObsDimensionsCodeType.ALL_DIMENSIONS_TEXT);
+      public static  TIME_PERIOD:ObsDimensionsCodeType = new ObsDimensionsCodeType(ObsDimensionsCodeType.TIME_PERIOD_TEXT);
     // Utility
     private static add(s: string): ObsDimensionsCodeType{
         var b: ObsDimensionsCodeType = new ObsDimensionsCodeType(s);
