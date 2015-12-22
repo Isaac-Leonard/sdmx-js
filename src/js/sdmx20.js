@@ -1,4 +1,11 @@
-define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "xml", "parseXml"], function (require, exports, sax, message, sdmx, xml, parseXml) {
+define("sdmx20", ["require", "exports", "sax", "message", "sdmx"], function (require, exports, sax, message, sdmx) {
+    function parseXml(s) {
+        var parseXml;
+        parseXml = new DOMParser();
+        var xmlDoc = parseXml.parseFromString(s, "text/xml");
+        return xmlDoc;
+    }
+    exports.parseXml = parseXml;
     var Sdmx20StructureParser = (function () {
         function Sdmx20StructureParser() {
         }
@@ -61,16 +68,16 @@ define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "xml", "parseX
     var Sdmx20StructureReaderTools = (function () {
         function Sdmx20StructureReaderTools(s) {
             this.struct = null;
-            var dom = parseXml.parseXml(s);
+            var dom = parseXml(s);
             this.struct = this.toStructureType(dom.documentElement);
         }
         Sdmx20StructureReaderTools.prototype.toStructureType = function (structure) {
             this.struct = new message.StructureType();
             var childNodes = structure.childNodes;
-            this.toHeader(this.findNodeName("Header", childNodes));
-            this.toCodelists(this.findNodeName("CodeLists", childNodes));
-            this.toConcepts(this.findNodeName("Concepts", childNodes));
-            this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
+            this.toHeader(structure.getElementsByTagName("Header"));
+            this.toCodelists(structure.getElementsByTagName("CodeLists"));
+            this.toConcepts(structure.getElementsByTagName("Concepts"));
+            this.toKeyFamilies(structure.getElementsByTagName("KeyFamilies"));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
@@ -79,10 +86,8 @@ define("sdmx20", ["require", "exports", "sax", "message", "sdmx", "xml", "parseX
             var test = headerNode.getElementsByTagName("Test")[0].childNodes[0].nodeValue;
             header.setTest(test == "true");
             var prepared = headerNode.getElementsByTagName("Prepared")[0].childNodes[0].nodeValue;
-            var prepDate = new xml.DateTime.fromString(prepared);
+            var prepDate = xml.DateTime.fromString(prepared);
             header.setPrepared(new message.HeaderTimeType(prepDate));
-            alert("test=" + header.getTest());
-            alert("prepared=" + header.getPrepared().getDate().toString());
             var childNodes = headerNode.childNodes;
             for (var i = 0; i < childNodes.length; i++) {
                 alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);

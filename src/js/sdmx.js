@@ -9,7 +9,6 @@ define("sdmx", ["require", "exports"], function (require, exports) {
             return SdmxIO.SANITISE_NAMES;
         };
         SdmxIO.parseStructure = function (s) {
-            alert(SdmxIO.PARSER.length);
             for (var i = 0; i < SdmxIO.PARSER.length; i++) {
                 if (SdmxIO.PARSER[i].canParse(s)) {
                     return SdmxIO.PARSER[i].parseStructure(s);

@@ -6,7 +6,13 @@ import message = require("message");
 import parser = require("parser");
 import sdmx = require("sdmx");
 import xml = require("xml");
-import parseXml = require("parseXml");
+export function parseXml(s: string): any {
+    var parseXml:DOMParser;
+    parseXml = new DOMParser();
+    var xmlDoc = parseXml.parseFromString(s,"text/xml");
+    return xmlDoc;
+}
+
 export class Sdmx20StructureParser implements parser.SdmxParserProvider {
     constructor() {
 
@@ -68,7 +74,7 @@ export class Sdmx20StructureReaderTools {
     private struct: message.StructureType = null;
 
     constructor(s: string) {
-        var dom: any = parseXml.parseXml(s);
+        var dom: any = parseXml(s);
         this.struct = this.toStructureType(dom.documentElement);
     }
     toStructureType(structure: any): message.StructureType {
@@ -89,8 +95,6 @@ export class Sdmx20StructureReaderTools {
         var prepared:string =headerNode.getElementsByTagName("Prepared")[0].childNodes[0].nodeValue;
         var prepDate: xml.DateTime = xml.DateTime.fromString(prepared);
         header.setPrepared(new message.HeaderTimeType(prepDate));
-        alert("test=" + header.getTest());
-        alert("prepared=" + header.getPrepared().getDate().toString());
 
                 var childNodes = headerNode.childNodes;
         for (var i: number = 0; i < childNodes.length; i++) {
