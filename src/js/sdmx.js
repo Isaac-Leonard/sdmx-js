@@ -1,4 +1,4 @@
-define("sdmx", ["require", "exports"], function (require, exports) {
+define("sdmx", ["require", "exports", "sdmx20"], function (require, exports, sdmx20) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -28,6 +28,7 @@ define("sdmx", ["require", "exports"], function (require, exports) {
         return SdmxIO;
     })();
     exports.SdmxIO = SdmxIO;
+    SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());
 });
 
 //# sourceMappingURL=sdmx.js.map

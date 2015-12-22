@@ -49,24 +49,29 @@ define("common", ["require", "exports", "commonreferences"], function (require, 
     })();
     exports.Annotations = Annotations;
     var AnnotableType = (function () {
-        function AnnotableType(an) {
-            this.annotations = an;
+        function AnnotableType() {
         }
+        AnnotableType.prototype.getAnnotations = function () {
+            return this.annotations;
+        };
+        AnnotableType.prototype.setAnnotations = function (annots) {
+            this.annotations = annots;
+        };
         return AnnotableType;
     })();
     exports.AnnotableType = AnnotableType;
     var Description = (function (_super) {
         __extends(Description, _super);
-        function Description() {
-            _super.apply(this, arguments);
+        function Description(lang, text) {
+            _super.call(this, lang, text);
         }
         return Description;
     })(TextType);
     exports.Description = Description;
     var Name = (function (_super) {
         __extends(Name, _super);
-        function Name() {
-            _super.apply(this, arguments);
+        function Name(lang, text) {
+            _super.call(this, lang, text);
         }
         return Name;
     })(TextType);
@@ -132,10 +137,10 @@ define("common", ["require", "exports", "commonreferences"], function (require, 
          */
         ActionType.ENUM = new Array();
         ActionType.STRING_ENUM = new Array();
-        ActionType.APPEND_TEXT = "Append";
-        ActionType.REPLACE_TEXT = "Replace";
-        ActionType.DELETE_TEXT = "Delete";
-        ActionType.INFORMATION_TEXT = "Information";
+        ActionType.APPEND_TEXT = ActionType.addString("Append");
+        ActionType.REPLACE_TEXT = ActionType.addString("Replace");
+        ActionType.DELETE_TEXT = ActionType.addString("Delete");
+        ActionType.INFORMATION_TEXT = ActionType.addString("Information");
         ActionType.APPEND = new ActionType(ActionType.APPEND_TEXT);
         ActionType.REPLACE = new ActionType(ActionType.REPLACE_TEXT);
         ActionType.DELETE = new ActionType(ActionType.DELETE_TEXT);
@@ -213,6 +218,32 @@ define("common", ["require", "exports", "commonreferences"], function (require, 
         return ObservationalTimePeriodType;
     })();
     exports.ObservationalTimePeriodType = ObservationalTimePeriodType;
+    var ExternalReferenceAttributeGroup = (function () {
+        function ExternalReferenceAttributeGroup() {
+            this.serviceURL = null;
+            this.structureURL = null;
+        }
+        /**
+         * @return the serviceURL
+         */
+        ExternalReferenceAttributeGroup.prototype.getServiceURL = function () {
+            return this.serviceURL;
+        };
+        ExternalReferenceAttributeGroup.prototype.setServiceURL = function (serviceURL) {
+            this.serviceURL = serviceURL;
+        };
+        ExternalReferenceAttributeGroup.prototype.getStructureURL = function () {
+            return this.structureURL;
+        };
+        /**
+         * @param structureURL the structureURL to set
+         */
+        ExternalReferenceAttributeGroup.prototype.setStructureURL = function (structureURL) {
+            this.structureURL = structureURL;
+        };
+        return ExternalReferenceAttributeGroup;
+    })();
+    exports.ExternalReferenceAttributeGroup = ExternalReferenceAttributeGroup;
 });
 
 //# sourceMappingURL=common.js.map

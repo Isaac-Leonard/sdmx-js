@@ -1,4 +1,5 @@
 /// <amd-module name='structure'/>
+/// <reference path="collections.ts"/>
 import common = require("common");
 import commonreferences = require("commonreferences");
 import xml = require("xml");
@@ -6,19 +7,16 @@ import structure = require("structure");
 import sdmx = require("sdmx");
 
 export class IdentifiableType extends common.AnnotableType {
-    private id: commonreferences.IDType;
+    private id: commonreferences.ID;
     private urn: xml.anyURI;
     private uri: xml.anyURI;
-    constructor(an: common.Annotations, id: commonreferences.IDType, urn: xml.anyURI, uri: xml.anyURI) {
-        super(an);
-        this.id = id;
-        this.urn = urn;
-        this.uri = uri;
+    constructor() {
+        super();
     }
-    public getId(): commonreferences.IDType { return this.id; }
+    public getId(): commonreferences.ID { return this.id; }
     public getURN(): xml.anyURI { return this.urn; }
     public getURI(): xml.anyURI { return this.uri; }
-    public setId(id: commonreferences.IDType) {
+    public setId(id: commonreferences.ID) {
         this.id = id;
     }
     public setURN(urn: xml.anyURI) {
@@ -27,7 +25,7 @@ export class IdentifiableType extends common.AnnotableType {
     public setURI(uri: xml.anyURI) {
         this.uri = uri;
     }
-    public identifiesMeId(oid: commonreferences.IDType): boolean {
+    public identifiesMeId(oid: commonreferences.ID): boolean {
         if (this.id.equalsID(oid)) return true;
         else return false;
     }
@@ -43,9 +41,12 @@ export class IdentifiableType extends common.AnnotableType {
 }
 
 export class NameableType extends IdentifiableType {
-    private names: Array<common.Name> = null;
-    private descriptions: Array<common.Description> = null;
+    private names: Array<common.Name> = [];
+    private descriptions: Array<common.Description> = [];
 
+    constructor() {
+        super();
+    }
     /**
      * @return the names
      */
@@ -184,11 +185,10 @@ export class NameableType extends IdentifiableType {
     }
 
 }
-
 export class ItemType extends NameableType {
 
     private parent: commonreferences.Reference = null;
-    private items: collections.LinkedList<ItemType> = new collections.LinkedList<ItemType>();
+    private items: Array<ItemType> = new Array<ItemType>();
     /**
      * @return the parent
      */
@@ -206,14 +206,14 @@ export class ItemType extends NameableType {
     /**
      * @return the items
      */
-    public getItems(): collections.LinkedList<ItemType> {
+    public getItems(): Array<ItemType> {
         return this.items;
     }
 
     /**
      * @param items the items to set
      */
-    public setItems(items: collections.LinkedList<ItemType>) {
+    public setItems(items: Array<ItemType>) {
         this.items = items;
     }
 
@@ -226,36 +226,153 @@ export class ItemType extends NameableType {
     }
 
     public removeItem(it: ItemType) {
-        this.items.remove(it);
+        collections.arrays.remove(this.items,it);
     }
 
     public addItem(it: ItemType) {
-        this.items.add(it);
+        this.items.push(it);
     }
 
     public size(): number {
-        return this.items.size();
+        return this.items.length;
     }
 
     public findItemString(s: string): structure.ItemType {
-        for (var i: number = 0; i < this.items.size(); i++) {
-            if (this.items.elementAtIndex(i).identifiesMeString(s)) return this.items.elementAtIndex(i);
+        for (var i: number = 0; i < this.items.length; i++) {
+            if (this.items[i].identifiesMeString(s)) return this.items[i];
         }
         return null;
     }
 
-    public findItem(id: commonreferences.IDType): ItemType {
-        for (var i: number = 0; i < this.items.size(); i++) {
-            if (this.items.elementAtIndex(i).identifiesMeId(id)) return this.items.elementAtIndex(i);
+    public findItem(id: commonreferences.ID): ItemType {
+        for (var i: number = 0; i < this.items.length; i++) {
+            if (this.items[i].identifiesMeId(id)) return this.items[i];
         }
         return null;
     }
 
 }
 
-export class ItemSchemeType {
+
+
+export class VersionableType extends NameableType {
+    private version: commonreferences.Version = commonreferences.Version.ONE;
+    private validFrom: xml.DateTime = null;;
+    private validTo: xml.DateTime = null;
+
+    constructor() {
+        super();
+    }
+
+    getVersion(): commonreferences.Version {
+        return this.version;
+    }
+
+    /**
+     * @param version the version to set
+     */
+    setVersion(version: commonreferences.Version) {
+        this.version = version;
+    }
+    getValidFrom(): xml.DateTime {
+        return this.validFrom;
+    }
+
+    setValidFrom(validFrom: xml.DateTime) {
+        this.validFrom = validFrom;
+    }
+
+    public getValidTo(): xml.DateTime {
+        return this.validTo;
+    }
+    setValidTo(validTo: xml.DateTime) {
+        this.validTo = validTo;
+    }
+
+}
+export class MaintainableType extends VersionableType {
+    private agencyID: commonreferences.NestedNCNameID = null;
+    private isfinal: boolean = null;
+    private isexternalReference: boolean = null;
+    private externalReferences: common.ExternalReferenceAttributeGroup = null;
+
+    /**
+     * @return the agencyID
+     */
+    public getAgencyID(): commonreferences.NestedNCNameID {
+        return this.agencyID;
+    }
+
+    setAgencyID(agencyID: commonreferences.NestedNCNameID) {
+        this.agencyID = agencyID;
+    }
+
+    isFinal(): boolean {
+        return this.isfinal;
+    }
+
+    setFinal(isFinal: boolean) {
+        this.isfinal = isFinal;
+    }
+
+    isExternalReference(): boolean {
+        return this.isexternalReference;
+    }
+
+    setExternalReference(isExternalReference: boolean) {
+        this.isexternalReference = isExternalReference;
+    }
+
+    public getExternalReferences(): common.ExternalReferenceAttributeGroup {
+        return this.externalReferences;
+    }
+
+    setExternalReferences(externalReferences: common.ExternalReferenceAttributeGroup) {
+        this.externalReferences = externalReferences;
+    }
+
+    identifiesMeStrings(agency2: string, id2: string, vers2: string): boolean {
+        return this.identifiesMe(new commonreferences.NestedNCNameID(agency2), new commonreferences.ID(id2), new commonreferences.Version(vers2));
+    }
+
+    identifiesMe(agency2: commonreferences.NestedNCNameID, id2: commonreferences.NestedID, vers2: commonreferences.Version): boolean {
+        //System.out.println("Left=" + this.agencyID + "." + this.getId() + "." + this.getVersion());
+        //System.out.println("Right=" + agency2 + "." + id2 + "." + vers2);
+        if (vers2 == null || this.getVersion() == null) {
+            if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsID(id2)) {
+                return true;
+            } else {
+                //System.out.println("Doesn't Match!!");
+                return false;
+            }
+        } else {
+            if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsID(id2) && this.getVersion().equalsVersion(vers2)) {
+                return true;
+            } else {
+                //System.out.println("Doesn't Match!!");
+                return false;
+            }
+        }
+    }
+    identifiesMeURI(uri: xml.anyURI): boolean {
+        var ref: commonreferences.Reference = new commonreferences.Reference(null, uri);
+        return this.identifiesMe(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
+    }
+
+    asReference(): commonreferences.Reference {
+        var ref: commonreferences.Ref = new commonreferences.Ref(this.agencyID, null, null, /*MaintainableParentId*/this.getId(), /*MaintainableParentVersion*/this.getVersion(), null, false, commonreferences.ObjectTypeCodelistType.CODELIST, commonreferences.PackageTypeCodelistType.CODELIST);
+        var reference: commonreferences.Reference = new commonreferences.Reference(ref, this.getURI());
+        return reference;
+    }
+}
+export class ItemSchemeType extends MaintainableType {
     private items: Array<ItemType> = new Array<ItemType>();
     private partial: boolean = false;
+    
+    constructor(){
+        super();
+        
+    }
 
     /**
      * @return the items
@@ -312,7 +429,7 @@ export class ItemSchemeType {
         return null;
     }
 
-    public findItemId(s: commonreferences.IDType): ItemType {
+    public findItemId(s: commonreferences.ID): ItemType {
         for (var i: number = 0; i < this.items.length; i++) {
             if (this.items[i].identifiesMeId(s)) return this.items[i];
         }
@@ -326,10 +443,10 @@ export class ItemSchemeType {
         return null;
     }
     public findSubItemsString(s: string): Array<ItemType> {
-        return this.findSubItemsId(new commonreferences.IDType(s));
+        return this.findSubItemsId(new commonreferences.ID(s));
     }
 
-    public findSubItemsId(id: commonreferences.IDType): Array<ItemType> {
+    public findSubItemsId(id: commonreferences.ID): Array<ItemType> {
         var result: Array<ItemType> = new Array<ItemType>();
         if (id == null) {
             for (var i: number = 0; i < this.items.length; i++) {
@@ -351,17 +468,14 @@ export class ItemSchemeType {
     }
 }
 
-
-export class VersionableType extends NameableType {
-    private version: commonreferences.Version = commonreferences.Version.ONE;
-    private validFrom: xml.DateTime = null;;
-    private validTo: xml.DateTime = null;
-}
 export class CodeType extends ItemType {
 
 }
-export class CodelistType extends ItemSchemeType {
-
+export class Codelist extends ItemSchemeType {
+   constructor(){
+       super();
+   }
+   
 
 }
 export class ConceptSchemeType extends ItemSchemeType {
@@ -377,4 +491,88 @@ export class Dataflow {
 }
 export class DataStructure {
 
+}
+
+export class CodeLists {
+    private codelists: Array<Codelist> = [];
+
+
+    constructor() {
+
+    }
+
+    /**
+     * @return the codelists
+     */
+    getCodelists(): Array<Codelist> {
+        return this.codelists;
+    }
+
+    /**
+     * @param codelists the codelists to set
+     */
+    setCodelists(cls: Array<Codelist>) {
+        this.codelists = cls;
+    }
+    findCodelistStrings(agency: string, id: string, vers: string): Codelist {
+        var findid: commonreferences.ID = new commonreferences.ID(id);
+        var ag: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(agency);
+        var ver: commonreferences.Version = vers == null ? null : new commonreferences.Version(vers);
+        return this.findCodelist(ag, findid, ver);
+    }
+    findCodelist(agency2: commonreferences.NestedNCNameID, findid: commonreferences.NestedID, ver: commonreferences.Version): Codelist {
+        for (var i: number = 0; i < this.codelists.length; i++) {
+            var cl2: Codelist = this.codelists[i];
+            if (cl2.identifiesMe(agency2, findid, ver)) {
+                return cl2;
+            }
+        }
+        return null;
+    }
+    findCodelistURI(uri: xml.anyURI): Codelist {
+        for (var i: number = 0; i < this.codelists.length; i++) {
+            if (this.codelists[i].identifiesMeURI(uri)) {
+                return this.codelists[i];
+            }
+        }
+        return null;
+    }
+    /*
+     * This method is used in sdmx 2.0 parsing to find a codelist with the correct ID..
+     * this is because the Dimension in the KeyFamily does not contain a complete reference
+     * only an ID.. we lookup the Codelist by it's ID, when we find a match, we can make a 
+     * LocalItemSchemeReference out of it with it's AgencyID and Version.
+     */
+    findCodelistById(id: commonreferences.NestedID): Codelist {
+        var cl: Codelist = null;
+        for (var i: number = 0; i < this.codelists.length; i++) {
+            if (this.codelists[i].identifiesMeId(id)) {
+                if (cl == null) cl = this.codelists[i];
+                else {
+                    var j: number = cl.getVersion().compareTo(this.codelists[i].getVersion());
+                    switch (j) {
+                        case -1: // Less
+                            break;
+                        case 0:  // Equal
+                            break;
+                        case 1:
+                            // Our found conceptscheme has a greater version number.
+                            cl = this.codelists[i];
+                            break;
+                    }
+                }
+            }
+        }
+        return cl;
+    }
+    findCodelistReference(ref: commonreferences.Reference): Codelist {
+        return this.findCodelist(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+    }
+
+    merge(codelists: CodeLists) {
+        if (codelists == null) return;
+        for (var i: number = 0; i < codelists.getCodelists().length; i++) {
+            this.codelists.push(codelists[i]);
+        }
+    }
 }

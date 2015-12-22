@@ -1,5 +1,5 @@
 /// <amd-module name='message'/>
-import sdmx = require("sdmx");
+import interfaces = require("interfaces");
 import structure = require("structure");
 import commonreferences = require("commonreferences");
 import xml = require("xml");
@@ -11,7 +11,7 @@ export class DataMessage {
 export class DataQuery {
 
 }
-export class StructureType implements sdmx.Registry {
+export class StructureType implements interfaces.Registry {
     constructor() {
 
     }
@@ -37,7 +37,7 @@ export class StructureType implements sdmx.Registry {
     findCode(ref: commonreferences.Reference): structure.CodeType {
         return null;
     }
-    findCodelist(ref: commonreferences.Reference): structure.CodelistType {
+    findCodelist(ref: commonreferences.Reference): structure.Codelist {
         return null;
     }
     findItemType(item: commonreferences.Reference): structure.ItemType {
@@ -55,8 +55,8 @@ export class StructureType implements sdmx.Registry {
     searchDataflow(ref: commonreferences.Reference): Array<structure.Dataflow> {
         return new Array<structure.Dataflow>();
     }
-    searchCodelist(ref: commonreferences.Reference): Array<structure.CodelistType> {
-        return new Array<structure.CodelistType>();
+    searchCodelist(ref: commonreferences.Reference): Array<structure.Codelist> {
+        return new Array<structure.Codelist>();
     }
     searchItemType(item: commonreferences.Reference): Array<structure.ItemType> {
         return new Array<structure.ItemType>();
@@ -74,8 +74,8 @@ export class StructureType implements sdmx.Registry {
 }
 export class HeaderTimeType {
     private date: xml.DateTime = null;
-    constructor(d: xml.DateTime){
-        this.date=d;
+    constructor(d: xml.DateTime) {
+        this.date = d;
     }
     getDate(): xml.DateTime { return this.date; }
     setDate(d: xml.DateTime): void {
@@ -94,21 +94,27 @@ export class Contact {
 }
 export class PartyType extends structure.NameableType {
     public contacts: Array<Contact> = [];
+    constructor(){
+        super();
+    }
 }
 export class Sender extends PartyType {
-
+   constructor(){
+       super();
+   }
 
 }
 export class Header {
     private id: string = null;
     private test: boolean = null;
     private prepared: HeaderTimeType = null;
+    private sender: PartyType = null;
     private receivers: Array<PartyType> = [];
     private names: Array<common.Name> = [];
     private structures: Array<common.PayloadStructureType> = [];
     private dataproviderReference: commonreferences.Reference = null;
     private dataSetAction: common.ActionType = null;
-    private dataSetId: Array<commonreferences.IDType> = [];
+    private dataSetId: Array<commonreferences.ID> = [];
     private extracted: xml.DateTime = null;
     private reportingBegin: common.ObservationalTimePeriodType = null;
     private reportingEnd: common.ObservationalTimePeriodType = null;
@@ -123,6 +129,10 @@ export class Header {
     getPrepared(): HeaderTimeType { return this.prepared; }
     setPrepared(h: HeaderTimeType) {
         this.prepared = h;
+    }
+    getSender(): Sender { return this.sender; }
+    setSender(p: Sender) {
+        this.sender = p;
     }
     getReceivers(): Array<PartyType> {
         return this.receivers;
@@ -142,53 +152,53 @@ export class Header {
     getStructures(): Array<common.PayloadStructureType> {
         return this.structures;
     }
-    getDataproviderReference():commonreferences.Reference{
+    getDataproviderReference(): commonreferences.Reference {
         return this.dataproviderReference;
     }
     setDataproviderReference(ref: commonreferences.Reference) {
-        this.dataproviderReference=ref;
+        this.dataproviderReference = ref;
     }
     setAction(ac: common.ActionType) {
-        this.dataSetAction=ac;
+        this.dataSetAction = ac;
     }
-    getAction(): common.ActionType{
+    getAction(): common.ActionType {
         return this.dataSetAction;
     }
-    getDataSetId(): Array<commonreferences.IDType>{
+    getDataSetId(): Array<commonreferences.ID> {
         return this.dataSetId;
     }
-    setDataSetId(ids: Array<commonreferences.IDType>){
-        this.dataSetId=ids;
+    setDataSetId(ids: Array<commonreferences.ID>) {
+        this.dataSetId = ids;
     }
-    getExtracted(): xml.DateTime{
+    getExtracted(): xml.DateTime {
         return this.extracted;
     }
     setExtracted(d: xml.DateTime) {
-        this.extracted=d;
+        this.extracted = d;
     }
-    getReportingBegin(): common.ObservationalTimePeriodType{
+    getReportingBegin(): common.ObservationalTimePeriodType {
         return this.reportingBegin;
     }
     setReportingBegin(o: common.ObservationalTimePeriodType) {
-        this.reportingBegin=o;
+        this.reportingBegin = o;
     }
-    getReportingEnd(): common.ObservationalTimePeriodType{
+    getReportingEnd(): common.ObservationalTimePeriodType {
         return this.reportingEnd;
     }
     setReportingEnd(o: common.ObservationalTimePeriodType) {
-        this.reportingEnd=o;
+        this.reportingEnd = o;
     }
-    getEmbargoDate(): xml.DateTime{
+    getEmbargoDate(): xml.DateTime {
         return this.embargoDate;
     }
     setEmbargoDate(dt: xml.DateTime) {
-        this.embargoDate=dt;
+        this.embargoDate = dt;
     }
-    getSource(): Array<common.Name>{
+    getSource(): Array<common.Name> {
         return this.source;
     }
-    setSource(s:Array<common.Name>){
-        this.source=s;
+    setSource(s: Array<common.Name>) {
+        this.source = s;
     }
 }
 

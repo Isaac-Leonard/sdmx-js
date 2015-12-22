@@ -102,7 +102,7 @@ define("message", ["require", "exports", "structure"], function (require, export
     var PartyType = (function (_super) {
         __extends(PartyType, _super);
         function PartyType() {
-            _super.apply(this, arguments);
+            _super.call(this);
             this.contacts = [];
         }
         return PartyType;
@@ -111,7 +111,7 @@ define("message", ["require", "exports", "structure"], function (require, export
     var Sender = (function (_super) {
         __extends(Sender, _super);
         function Sender() {
-            _super.apply(this, arguments);
+            _super.call(this);
         }
         return Sender;
     })(PartyType);
@@ -121,6 +121,7 @@ define("message", ["require", "exports", "structure"], function (require, export
             this.id = null;
             this.test = null;
             this.prepared = null;
+            this.sender = null;
             this.receivers = [];
             this.names = [];
             this.structures = [];
@@ -142,6 +143,10 @@ define("message", ["require", "exports", "structure"], function (require, export
         Header.prototype.getPrepared = function () { return this.prepared; };
         Header.prototype.setPrepared = function (h) {
             this.prepared = h;
+        };
+        Header.prototype.getSender = function () { return this.sender; };
+        Header.prototype.setSender = function (p) {
+            this.sender = p;
         };
         Header.prototype.getReceivers = function () {
             return this.receivers;

@@ -1,6 +1,5 @@
 /// <amd-module name='commonreferences'/>
 import xml = require("xml");
-
 export class NestedID extends xml.RegexXMLString {
 
     public static PATTERN: string = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";
@@ -22,15 +21,15 @@ export class NestedID extends xml.RegexXMLString {
         return super.equalsString(id);
     }
 
-    public equalsID(id: IDType): boolean {
+    public equalsID(id: ID): boolean {
         return super.getString() == id.getString();
     }
 
-    public asID(): IDType {
-        return new IDType(super.getString());
+    public asID(): ID {
+        return new ID(super.getString());
     }
 }
-export class IDType extends NestedID {
+export class ID extends NestedID {
 
     public static PATTERN: string = "[A-z0-9_@$\\-]+";
 
@@ -39,15 +38,14 @@ export class IDType extends NestedID {
         if (s == null) { throw new Error("null IDType string"); }
     }
 
-    public equalsID(id: IDType): boolean {
+    public equalsID(id: ID): boolean {
         return false;
     }
-
     public equalsString(id: string): boolean {
         return false;
     }
     public getPatternArray(): string[] {
-        return [IDType.PATTERN];
+        return [ID.PATTERN];
     }
 }
 export class NestedNCNameID extends NestedID {
@@ -65,16 +63,16 @@ export class NestedNCNameID extends NestedID {
 }
 export class Ref {
     private agencyId: NestedNCNameID = null;
-    private id: IDType = null;
+    private id: ID = null;
     private version: Version = null;
-    private maintainedParentId: IDType = null;
+    private maintainedParentId: ID = null;
     private maintainedParentVersion: Version = null;
     private local: boolean = null;
     private object: ObjectTypeCodelistType = null;
     private package: PackageTypeCodelistType = null;
 
 
-    constructor(agencyId: NestedNCNameID, id: NestedID, vers: Version, maintParent: IDType, mainVers: Version, containId: NestedID, loc: boolean, ob: ObjectTypeCodelistType, pack: PackageTypeCodelistType) {
+    constructor(agencyId: NestedNCNameID, id: NestedID, vers: Version, maintParent: ID, mainVers: Version, containId: NestedID, loc: boolean, ob: ObjectTypeCodelistType, pack: PackageTypeCodelistType) {
         this.agencyId = agencyId;
         this.id = id;
         this.version = vers;
@@ -88,13 +86,13 @@ export class Ref {
     public getAgencyId(): NestedNCNameID {
         return this.agencyId;
     }
-    public getId(): IDType {
+    public getId(): ID {
         return this.id;
     }
     public getVersion(): Version {
         return this.version;
     }
-    public getMaintainableParentId(): IDType {
+    public getMaintainableParentId(): ID {
         return this.maintainedParentId;
     }
     public getMaintainableParentVersion(): Version {
@@ -110,13 +108,13 @@ export class Ref {
     public setAgencyId(a: NestedNCNameID) {
         this.agencyId = a;
     }
-    public setId(id: IDType) {
+    public setId(id: ID) {
         this.id = id;
     }
     public setVersion(v: Version) {
         this.version = v;
     }
-    public setMaintainableParentId(id: IDType) {
+    public setMaintainableParentId(id: ID) {
         this.maintainedParentId = id;
     }
     public setMaintainableParentVersion(v: Version) {
@@ -136,10 +134,10 @@ export class Reference {
     private pack: PackageTypeCodelistType = null;
     private clazz: ObjectTypeCodelistType = null;
     private agency: NestedNCNameID = null;
-    private maintainedParentId: IDType = null;
+    private maintainedParentId: ID = null;
     private maintainedParentVersion: Version = null;
     private version: Version = null;
-    private containedIds: Array<IDType> = null;
+    private containedIds: Array<ID> = null;
     private objectId: NestedID = null;
 
     constructor(ref: Ref, urn: xml.anyURI) {
@@ -229,7 +227,7 @@ export class Reference {
     /**
      * @return the maintainedObjectId
      */
-    public getMaintainableParentId(): IDType {
+    public getMaintainableParentId(): ID {
         return this.maintainedParentId;
     }
 
@@ -247,7 +245,7 @@ export class Reference {
         return this.objectId;
     }
 
-    public getContainedObjectIds(): Array<IDType> {
+    public getContainedObjectIds(): Array<ID> {
         return this.containedIds;
     }
 
@@ -614,7 +612,7 @@ export class PackageTypeCodelistType {
     }
     public toString(): string { return this.target; }
 }
-export class NCNameID extends IDType {
+export class NCNameID extends ID {
     public static PATTERN: string = "[A-z][A-z0-9_\\-]*";
     constructor(s: string) {
         super(s);
@@ -627,20 +625,20 @@ export class NCNameID extends IDType {
     }
 }
 export class ObsDimensionsCodeType {
-/*
- * DO ME! Add Proper codes for this class
- * 
- * 
- */
+    /*
+     * DO ME! Add Proper codes for this class
+     * 
+     * 
+     */
     public static ENUM: Array<ObsDimensionsCodeType> = new Array<ObsDimensionsCodeType>();
     public static STRING_ENUM: Array<string> = new Array<string>();
 
-      public static ALL_DIMENSIONS_TEXT:string = ObsDimensionsCodeType.addString("AllDimensions");
-      public static TIME_PERIOD_TEXT:string = ObsDimensionsCodeType.addString("TIME_PERIOD");
-      public static  ALL_DIMENSIONS:ObsDimensionsCodeType = new ObsDimensionsCodeType(ObsDimensionsCodeType.ALL_DIMENSIONS_TEXT);
-      public static  TIME_PERIOD:ObsDimensionsCodeType = new ObsDimensionsCodeType(ObsDimensionsCodeType.TIME_PERIOD_TEXT);
+    public static ALL_DIMENSIONS_TEXT: string = ObsDimensionsCodeType.addString("AllDimensions");
+    public static TIME_PERIOD_TEXT: string = ObsDimensionsCodeType.addString("TIME_PERIOD");
+    public static ALL_DIMENSIONS: ObsDimensionsCodeType = new ObsDimensionsCodeType(ObsDimensionsCodeType.ALL_DIMENSIONS_TEXT);
+    public static TIME_PERIOD: ObsDimensionsCodeType = new ObsDimensionsCodeType(ObsDimensionsCodeType.TIME_PERIOD_TEXT);
     // Utility
-    private static add(s: string): ObsDimensionsCodeType{
+    private static add(s: string): ObsDimensionsCodeType {
         var b: ObsDimensionsCodeType = new ObsDimensionsCodeType(s);
         ObsDimensionsCodeType.ENUM.push(b);
         return b;
@@ -676,6 +674,6 @@ export class ObsDimensionsCodeType {
     }
     public toString(): string { return this.target; }
 }
-export class ProvisionAgreementReference {}
-export class StructureReferenceBase{}
-export class StructureUsageReferenceBase{}
+export class ProvisionAgreementReference { }
+export class StructureReferenceBase { }
+export class StructureUsageReferenceBase { }

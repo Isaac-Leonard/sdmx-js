@@ -3,7 +3,44 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("xml", ["require", "exports", 'moment'], function (require, exports, moment) {
+define("xml", ["require", "exports", "moment"], function (require, exports, moment) {
+    var XMLString = (function () {
+        function XMLString(s) {
+            this.value = null;
+            this.value = s;
+        }
+        XMLString.prototype.getString = function () { return this.value; };
+        XMLString.prototype.toString = function () {
+            return this.value;
+        };
+        XMLString.prototype.equalsString = function (s) {
+            return this.value == s;
+        };
+        return XMLString;
+    })();
+    exports.XMLString = XMLString;
+    var RegexXMLString = (function (_super) {
+        __extends(RegexXMLString, _super);
+        function RegexXMLString(s) {
+            _super.call(this, s);
+        }
+        // Override Me
+        RegexXMLString.prototype.getPatternArray = function () {
+            return [];
+        };
+        return RegexXMLString;
+    })(XMLString);
+    exports.RegexXMLString = RegexXMLString;
+    var anyURI = (function () {
+        function anyURI(s) {
+            this.s = null;
+            this.s = s;
+        }
+        anyURI.prototype.getString = function () { return this.s; };
+        anyURI.prototype.toString = function () { return this.s; };
+        return anyURI;
+    })();
+    exports.anyURI = anyURI;
     var DateTime = (function () {
         function DateTime(d) {
             this.baseString = null;
@@ -41,43 +78,6 @@ define("xml", ["require", "exports", 'moment'], function (require, exports, mome
         return DateTime;
     })();
     exports.DateTime = DateTime;
-    var RegexXMLString = (function (_super) {
-        __extends(RegexXMLString, _super);
-        function RegexXMLString(s) {
-            _super.call(this, s);
-        }
-        // Override Me
-        RegexXMLString.prototype.getPatternArray = function () {
-            return [];
-        };
-        return RegexXMLString;
-    })(XMLString);
-    exports.RegexXMLString = RegexXMLString;
-    var XMLString = (function () {
-        function XMLString(s) {
-            this.value = null;
-            this.value = s;
-        }
-        XMLString.prototype.getString = function () { return this.value; };
-        XMLString.prototype.toString = function () {
-            return this.value;
-        };
-        XMLString.prototype.equalsString = function (s) {
-            return this.value == s;
-        };
-        return XMLString;
-    })();
-    exports.XMLString = XMLString;
-    var anyURI = (function () {
-        function anyURI(s) {
-            this.s = null;
-            this.s = s;
-        }
-        anyURI.prototype.getString = function () { return this.s; };
-        anyURI.prototype.toString = function () { return this.s; };
-        return anyURI;
-    })();
-    exports.anyURI = anyURI;
 });
 
 //# sourceMappingURL=xml.js.map

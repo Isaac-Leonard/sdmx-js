@@ -1,19 +1,20 @@
 /// <amd-module name='sdmx20'/>
 ///<reference path="sax.d.ts"/>
+import commonreferences = require("commonreferences");
 import sax = require("sax");
 import structure = require("structure");
 import message = require("message");
-import parser = require("parser");
-import sdmx = require("sdmx");
+import interfaces = require("interfaces");
 import xml = require("xml");
+import common = require("common");
 export function parseXml(s: string): any {
-    var parseXml:DOMParser;
+    var parseXml: DOMParser;
     parseXml = new DOMParser();
-    var xmlDoc = parseXml.parseFromString(s,"text/xml");
+    var xmlDoc = parseXml.parseFromString(s, "text/xml");
     return xmlDoc;
 }
 
-export class Sdmx20StructureParser implements parser.SdmxParserProvider {
+export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
     constructor() {
 
     }
@@ -77,34 +78,122 @@ export class Sdmx20StructureReaderTools {
         var dom: any = parseXml(s);
         this.struct = this.toStructureType(dom.documentElement);
     }
-    toStructureType(structure: any): message.StructureType {
+    toStructureType(structu: any): message.StructureType {
         this.struct = new message.StructureType();
-        var childNodes = structure.childNodes;
+        var childNodes = structu.childNodes;
 
-        this.toHeader(structure.getElementsByTagName("Header"));
-        this.toCodelists(structure.getElementsByTagName("CodeLists"));
-        this.toConcepts(structure.getElementsByTagName("Concepts"));
-        this.toKeyFamilies(structure.getElementsByTagName("KeyFamilies"));
+        this.toHeader(this.findNodeName("Header", childNodes));
+        this.toCodelists(this.findNodeName("CodeLists", childNodes));
+        this.toConcepts(this.findNodeName("Concepts", childNodes));
+        this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
         return this.struct;
     }
     toHeader(headerNode: any) {
         var header: message.Header = new message.Header()
-        header.setId(headerNode.getElementsByTagName("ID")[0].childNodes[0].nodeValue);
-        var test:string= headerNode.getElementsByTagName("Test")[0].childNodes[0].nodeValue;
-        header.setTest(test=="true");
-        var prepared:string =headerNode.getElementsByTagName("Prepared")[0].childNodes[0].nodeValue;
+        header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+        var test: string = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+        header.setTest(test == "true");
+        // truncated not in sdmx 2.1
+        //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+        //header.setTruncated(truncated=="true");
+        var prepared: string = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
         var prepDate: xml.DateTime = xml.DateTime.fromString(prepared);
         header.setPrepared(new message.HeaderTimeType(prepDate));
-
-                var childNodes = headerNode.childNodes;
+        header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+        var childNodes = headerNode.childNodes;
         for (var i: number = 0; i < childNodes.length; i++) {
             alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
         }
 
         return header;
     }
+    toSender(senderNode: any): message.Sender {
+        var sender: string = senderNode.childNodes[0].nodeValue;
+
+        var senderType: message.Sender = new message.Sender();
+        var senderId: string = senderNode.getAttribute("id");
+        var senderID: commonreferences.ID = new commonreferences.ID(senderId);
+        senderType.setId(senderID);
+
+        return senderType;
+    }
+    toNames(node: any): Array<common.Name> {
+        var names: Array<common.Name> = [];
+        var senderNames = this.searchNodeName("Name", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toName(senderNames[i]));
+        }
+        return names;
+    }
+    toName(node: any): common.Name {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var name: common.Name = new common.Name(lang, text);
+        return name;
+    }
+    toDescriptions(node: any): Array<common.Description> {
+        var names: Array<common.Description> = [];
+        var senderNames = this.searchNodeName("Description", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toDescription(senderNames[i]));
+        }
+        return names;
+    }
+    toDescription(node: any): common.Description {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var desc: common.Description = new common.Description(lang, text);
+        return desc;
+    }
+    toTextType(node: any): common.TextType {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var textType: common.TextType = new common.TextType(lang, text);
+        return textType;
+    }
+    toPartyType(node: any): message.PartyType {
+        var pt = new message.PartyType();
+        return pt;
+    }
     toCodelists(codelistsNode: any) {
-        return null;
+        if (codelistsNode == null) return null;
+        var codelists: structure.CodeLists = new structure.CodeLists();
+        var codes = this.searchNodeName("CodeList", codelistsNode.childNodes);
+        for (var i: number = 0; i < codes.length; i++) {
+            codelists.getCodelists().push(this.toCodelist(codes[i]));
+        }
+        return codelists;
+    }
+    toID(node: any): commonreferences.ID {
+        if (node == null) return null;
+        return new commonreferences.ID(node.getAttribute("id"));
+    }
+    toNestedNCNameID(node: any): commonreferences.NestedNCNameID {
+        if (node == null) return null;
+        return new commonreferences.NestedNCNameID(node.getAttribute("agencyID"));
+    }
+    toCodelist(codelistNode: any) {
+        var cl: structure.Codelist = new structure.Codelist();
+        cl.setNames(this.toNames(codelistNode));
+        cl.setId(this.toID(codelistNode));
+        cl.setAgencyID(this.toNestedNCNameID(codelistNode));
+        var codeNodes = this.searchNodeName("Code", codelistNode.childNodes);
+        for (var i: number = 0; i < codeNodes.length; i++) {
+            cl.getItems().push(this.toCode(codeNodes[i]));
+        }
+        alert(JSON.stringify(cl));
+        return cl;
+    }
+    toCode(codeNode: any): structure.CodeType {
+        var c: structure.CodeType = new structure.CodeType();
+        c.setDescriptions(this.toDescriptions(codeNode));
+        c.setId(this.toValue(codeNode));
+        return c;
+    }
+    toValue(codeNode: any): commonreferences.ID {
+        if( codeNode==null ) return null;
+        var id = codeNode.getAttribute("value");
+        return new commonreferences.ID(id);
     }
     toConcepts(conceptsNode: any) {
         return null;
@@ -154,16 +243,32 @@ export class Sdmx20StructureReaderTools {
     findNodeName(s: string, childNodes: any) {
         for (var i: number = 0; i < childNodes.length; i++) {
             var nn: string = childNodes[i].nodeName;
+            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
             if (nn.indexOf(s) != -1) {
-                alert("found node:"+s);
+                //alert("found node:"+s);
                 return childNodes[i];
             }
         }
-        alert("not found node:"+s);
+        alert("not found node:" + s);
         return null;
     }
+    searchNodeName(s: string, childNodes: any): Array<any> {
+        var result: Array<any> = [];
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nn: string = childNodes[i].nodeName;
+            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+            if (nn.indexOf(s) != -1) {
+                //alert("found node:"+s);
+                result.push(childNodes[i]);
+            }
+        }
+        if (result.length == 0) {
+            alert("cannot find any " + s + " in node");
+        }
+        return result;
+    }
     findTextNode(node: any): string {
-        if( node == null ) return "";
+        if (node == null) return "";
         var childNodes = node.childNodes;
         for (var i: number = 0; i < childNodes.length; i++) {
             var nodeType = childNodes[i].nodeType;
@@ -176,7 +281,3 @@ export class Sdmx20StructureReaderTools {
 
 }
 
-
-
-
-sdmx.SdmxIO.registerParserProvider(new Sdmx20StructureParser());

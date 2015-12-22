@@ -39,19 +39,26 @@ export class Annotations {
 }
 export class AnnotableType {
     public annotations: Annotations;
-    constructor(an: Annotations) {
-        this.annotations = an;
+    constructor() {
+    }
+    getAnnotations(): Annotations {
+        return this.annotations;
+    }
+    setAnnotations(annots: Annotations) {
+        this.annotations = annots;
     }
 }
 
 export class Description extends TextType {
-
-
+    constructor(lang: string, text: string) {
+        super(lang, text);
+    }
 }
 
 export class Name extends TextType {
-
-
+    constructor(lang: string, text: string) {
+        super(lang, text);
+    }
 }
 export class ObservationDimensionType extends commonreferences.NCNameID {
     private code: commonreferences.ObsDimensionsCodeType = null;
@@ -74,10 +81,10 @@ export class ActionType {
     public static ENUM: Array<ActionType> = new Array<ActionType>();
     public static STRING_ENUM: Array<string> = new Array<string>();
 
-    public static APPEND_TEXT: string = "Append";
-    public static REPLACE_TEXT: string = "Replace";
-    public static DELETE_TEXT: string = "Delete";
-    public static INFORMATION_TEXT: string = "Information";
+    public static APPEND_TEXT: string = ActionType.addString("Append");
+    public static REPLACE_TEXT: string = ActionType.addString("Replace");
+    public static DELETE_TEXT: string = ActionType.addString("Delete");
+    public static INFORMATION_TEXT: string = ActionType.addString("Information");
     public static APPEND: ActionType = new ActionType(ActionType.APPEND_TEXT);
     public static REPLACE: ActionType = new ActionType(ActionType.REPLACE_TEXT);
     public static DELETE: ActionType = new ActionType(ActionType.DELETE_TEXT);
@@ -120,7 +127,7 @@ export class ActionType {
     public toString(): string { return this.target; }
 }
 export class PayloadStructureType {
-    private structureID: commonreferences.IDType = null;
+    private structureID: commonreferences.ID = null;
     private schemaURL: xml.anyURI = null;
     private namespace: xml.anyURI = null;
     private dimensionAtObservation: ObservationDimensionType = null;
@@ -188,7 +195,36 @@ export class ObservationalTimePeriodType {
     public toString(): string {
         return this.value;
     }
-    public getState():number {
+    public getState(): number {
         return this.state;
+    }
+}
+export class ExternalReferenceAttributeGroup {
+    private serviceURL: string = null;
+    private structureURL: string = null;
+
+
+    constructor() { }
+
+    /**
+     * @return the serviceURL
+     */
+    getServiceURL(): string {
+        return this.serviceURL;
+    }
+
+    setServiceURL(serviceURL: string) {
+        this.serviceURL = serviceURL;
+    }
+
+    getStructureURL(): string {
+        return this.structureURL;
+    }
+
+    /**
+     * @param structureURL the structureURL to set
+     */
+    setStructureURL(structureURL: string) {
+        this.structureURL = structureURL;
     }
 }

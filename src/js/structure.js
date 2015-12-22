@@ -6,11 +6,8 @@ var __extends = (this && this.__extends) || function (d, b) {
 define("structure", ["require", "exports", "common", "commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
     var IdentifiableType = (function (_super) {
         __extends(IdentifiableType, _super);
-        function IdentifiableType(an, id, urn, uri) {
-            _super.call(this, an);
-            this.id = id;
-            this.urn = urn;
-            this.uri = uri;
+        function IdentifiableType() {
+            _super.call(this);
         }
         IdentifiableType.prototype.getId = function () { return this.id; };
         IdentifiableType.prototype.getURN = function () { return this.urn; };
@@ -48,9 +45,9 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
     var NameableType = (function (_super) {
         __extends(NameableType, _super);
         function NameableType() {
-            _super.apply(this, arguments);
-            this.names = null;
-            this.descriptions = null;
+            _super.call(this);
+            this.names = [];
+            this.descriptions = [];
         }
         /**
          * @return the names
@@ -185,7 +182,7 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
         function ItemType() {
             _super.apply(this, arguments);
             this.parent = null;
-            this.items = new collections.LinkedList();
+            this.items = new Array();
         }
         /**
          * @return the parent
@@ -218,33 +215,141 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
             this.items[i] = it;
         };
         ItemType.prototype.removeItem = function (it) {
-            this.items.remove(it);
+            collections.arrays.remove(this.items, it);
         };
         ItemType.prototype.addItem = function (it) {
-            this.items.add(it);
+            this.items.push(it);
         };
         ItemType.prototype.size = function () {
-            return this.items.size();
+            return this.items.length;
         };
         ItemType.prototype.findItemString = function (s) {
-            for (var i = 0; i < this.items.size(); i++) {
-                if (this.items.elementAtIndex(i).identifiesMeString(s))
-                    return this.items.elementAtIndex(i);
+            for (var i = 0; i < this.items.length; i++) {
+                if (this.items[i].identifiesMeString(s))
+                    return this.items[i];
             }
             return null;
         };
         ItemType.prototype.findItem = function (id) {
-            for (var i = 0; i < this.items.size(); i++) {
-                if (this.items.elementAtIndex(i).identifiesMeId(id))
-                    return this.items.elementAtIndex(i);
+            for (var i = 0; i < this.items.length; i++) {
+                if (this.items[i].identifiesMeId(id))
+                    return this.items[i];
             }
             return null;
         };
         return ItemType;
     })(NameableType);
     exports.ItemType = ItemType;
-    var ItemSchemeType = (function () {
+    var VersionableType = (function (_super) {
+        __extends(VersionableType, _super);
+        function VersionableType() {
+            _super.call(this);
+            this.version = commonreferences.Version.ONE;
+            this.validFrom = null;
+            this.validTo = null;
+        }
+        ;
+        VersionableType.prototype.getVersion = function () {
+            return this.version;
+        };
+        /**
+         * @param version the version to set
+         */
+        VersionableType.prototype.setVersion = function (version) {
+            this.version = version;
+        };
+        VersionableType.prototype.getValidFrom = function () {
+            return this.validFrom;
+        };
+        VersionableType.prototype.setValidFrom = function (validFrom) {
+            this.validFrom = validFrom;
+        };
+        VersionableType.prototype.getValidTo = function () {
+            return this.validTo;
+        };
+        VersionableType.prototype.setValidTo = function (validTo) {
+            this.validTo = validTo;
+        };
+        return VersionableType;
+    })(NameableType);
+    exports.VersionableType = VersionableType;
+    var MaintainableType = (function (_super) {
+        __extends(MaintainableType, _super);
+        function MaintainableType() {
+            _super.apply(this, arguments);
+            this.agencyID = null;
+            this.isfinal = null;
+            this.isexternalReference = null;
+            this.externalReferences = null;
+        }
+        /**
+         * @return the agencyID
+         */
+        MaintainableType.prototype.getAgencyID = function () {
+            return this.agencyID;
+        };
+        MaintainableType.prototype.setAgencyID = function (agencyID) {
+            this.agencyID = agencyID;
+        };
+        MaintainableType.prototype.isFinal = function () {
+            return this.isfinal;
+        };
+        MaintainableType.prototype.setFinal = function (isFinal) {
+            this.isfinal = isFinal;
+        };
+        MaintainableType.prototype.isExternalReference = function () {
+            return this.isexternalReference;
+        };
+        MaintainableType.prototype.setExternalReference = function (isExternalReference) {
+            this.isexternalReference = isExternalReference;
+        };
+        MaintainableType.prototype.getExternalReferences = function () {
+            return this.externalReferences;
+        };
+        MaintainableType.prototype.setExternalReferences = function (externalReferences) {
+            this.externalReferences = externalReferences;
+        };
+        MaintainableType.prototype.identifiesMeStrings = function (agency2, id2, vers2) {
+            return this.identifiesMe(new commonreferences.NestedNCNameID(agency2), new commonreferences.ID(id2), new commonreferences.Version(vers2));
+        };
+        MaintainableType.prototype.identifiesMe = function (agency2, id2, vers2) {
+            //System.out.println("Left=" + this.agencyID + "." + this.getId() + "." + this.getVersion());
+            //System.out.println("Right=" + agency2 + "." + id2 + "." + vers2);
+            if (vers2 == null || this.getVersion() == null) {
+                if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsID(id2)) {
+                    return true;
+                }
+                else {
+                    //System.out.println("Doesn't Match!!");
+                    return false;
+                }
+            }
+            else {
+                if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsID(id2) && this.getVersion().equalsVersion(vers2)) {
+                    return true;
+                }
+                else {
+                    //System.out.println("Doesn't Match!!");
+                    return false;
+                }
+            }
+        };
+        MaintainableType.prototype.identifiesMeURI = function (uri) {
+            var ref = new commonreferences.Reference(null, uri);
+            return this.identifiesMe(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
+        };
+        MaintainableType.prototype.asReference = function () {
+            var ref = new commonreferences.Ref(this.agencyID, null, null, /*MaintainableParentId*/ this.getId(), /*MaintainableParentVersion*/ this.getVersion(), null, false, commonreferences.ObjectTypeCodelistType.CODELIST, commonreferences.PackageTypeCodelistType.CODELIST);
+            var reference = new commonreferences.Reference(ref, this.getURI());
+            return reference;
+        };
+        return MaintainableType;
+    })(VersionableType);
+    exports.MaintainableType = MaintainableType;
+    var ItemSchemeType = (function (_super) {
+        __extends(ItemSchemeType, _super);
         function ItemSchemeType() {
+            _super.call(this);
             this.items = new Array();
             this.partial = false;
         }
@@ -309,7 +414,7 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
             return null;
         };
         ItemSchemeType.prototype.findSubItemsString = function (s) {
-            return this.findSubItemsId(new commonreferences.IDType(s));
+            return this.findSubItemsId(new commonreferences.ID(s));
         };
         ItemSchemeType.prototype.findSubItemsId = function (id) {
             var result = new Array();
@@ -333,20 +438,8 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
             }
         };
         return ItemSchemeType;
-    })();
+    })(MaintainableType);
     exports.ItemSchemeType = ItemSchemeType;
-    var VersionableType = (function (_super) {
-        __extends(VersionableType, _super);
-        function VersionableType() {
-            _super.apply(this, arguments);
-            this.version = commonreferences.Version.ONE;
-            this.validFrom = null;
-            this.validTo = null;
-        }
-        ;
-        return VersionableType;
-    })(NameableType);
-    exports.VersionableType = VersionableType;
     var CodeType = (function (_super) {
         __extends(CodeType, _super);
         function CodeType() {
@@ -355,14 +448,14 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
         return CodeType;
     })(ItemType);
     exports.CodeType = CodeType;
-    var CodelistType = (function (_super) {
-        __extends(CodelistType, _super);
-        function CodelistType() {
-            _super.apply(this, arguments);
+    var Codelist = (function (_super) {
+        __extends(Codelist, _super);
+        function Codelist() {
+            _super.call(this);
         }
-        return CodelistType;
+        return Codelist;
     })(ItemSchemeType);
-    exports.CodelistType = CodelistType;
+    exports.Codelist = Codelist;
     var ConceptSchemeType = (function (_super) {
         __extends(ConceptSchemeType, _super);
         function ConceptSchemeType() {
@@ -391,6 +484,87 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
         return DataStructure;
     })();
     exports.DataStructure = DataStructure;
+    var CodeLists = (function () {
+        function CodeLists() {
+            this.codelists = [];
+        }
+        /**
+         * @return the codelists
+         */
+        CodeLists.prototype.getCodelists = function () {
+            return this.codelists;
+        };
+        /**
+         * @param codelists the codelists to set
+         */
+        CodeLists.prototype.setCodelists = function (cls) {
+            this.codelists = cls;
+        };
+        CodeLists.prototype.findCodelistStrings = function (agency, id, vers) {
+            var findid = new commonreferences.ID(id);
+            var ag = new commonreferences.NestedNCNameID(agency);
+            var ver = vers == null ? null : new commonreferences.Version(vers);
+            return this.findCodelist(ag, findid, ver);
+        };
+        CodeLists.prototype.findCodelist = function (agency2, findid, ver) {
+            for (var i = 0; i < this.codelists.length; i++) {
+                var cl2 = this.codelists[i];
+                if (cl2.identifiesMe(agency2, findid, ver)) {
+                    return cl2;
+                }
+            }
+            return null;
+        };
+        CodeLists.prototype.findCodelistURI = function (uri) {
+            for (var i = 0; i < this.codelists.length; i++) {
+                if (this.codelists[i].identifiesMeURI(uri)) {
+                    return this.codelists[i];
+                }
+            }
+            return null;
+        };
+        /*
+         * This method is used in sdmx 2.0 parsing to find a codelist with the correct ID..
+         * this is because the Dimension in the KeyFamily does not contain a complete reference
+         * only an ID.. we lookup the Codelist by it's ID, when we find a match, we can make a
+         * LocalItemSchemeReference out of it with it's AgencyID and Version.
+         */
+        CodeLists.prototype.findCodelistById = function (id) {
+            var cl = null;
+            for (var i = 0; i < this.codelists.length; i++) {
+                if (this.codelists[i].identifiesMeId(id)) {
+                    if (cl == null)
+                        cl = this.codelists[i];
+                    else {
+                        var j = cl.getVersion().compareTo(this.codelists[i].getVersion());
+                        switch (j) {
+                            case -1:
+                                break;
+                            case 0:
+                                break;
+                            case 1:
+                                // Our found conceptscheme has a greater version number.
+                                cl = this.codelists[i];
+                                break;
+                        }
+                    }
+                }
+            }
+            return cl;
+        };
+        CodeLists.prototype.findCodelistReference = function (ref) {
+            return this.findCodelist(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+        };
+        CodeLists.prototype.merge = function (codelists) {
+            if (codelists == null)
+                return;
+            for (var i = 0; i < codelists.getCodelists().length; i++) {
+                this.codelists.push(codelists[i]);
+            }
+        };
+        return CodeLists;
+    })();
+    exports.CodeLists = CodeLists;
 });
 
 //# sourceMappingURL=structure.js.map

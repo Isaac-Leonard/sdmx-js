@@ -1,9 +1,9 @@
 ///<reference path="collections.ts"/>
 import structure = require("structure");
-import sdmx = require("sdmx");
+import interfaces = require("interfaces");
 import commonreferences = require("commonreferences");
 import message = require("message");
-export class LocalRegistry implements sdmx.Registry {
+export class LocalRegistry implements interfaces.Registry {
     private structures: Array<message.StructureType> = [];
     // Registry
     listDataflows(): Array<structure.Dataflow> {
@@ -35,7 +35,7 @@ export class LocalRegistry implements sdmx.Registry {
     findCode(ref: commonreferences.Reference): structure.CodeType {
         return null;
     }
-    findCodelist(ref: commonreferences.Reference): structure.CodelistType {
+    findCodelist(ref: commonreferences.Reference): structure.Codelist {
         return null;
     }
     findItemType(item: commonreferences.Reference): structure.ItemType {
@@ -53,7 +53,7 @@ export class LocalRegistry implements sdmx.Registry {
     searchDataflow(ref: commonreferences.Reference): Array<structure.Dataflow> {
         return null;
     }
-    searchCodelist(ref: commonreferences.Reference): Array<structure.CodelistType> {
+    searchCodelist(ref: commonreferences.Reference): Array<structure.Codelist> {
         return null;
     }
     searchItemType(item: commonreferences.Reference): Array<structure.ItemType> {

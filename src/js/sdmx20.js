@@ -1,4 +1,4 @@
-define("sdmx20", ["require", "exports", "sax", "message", "sdmx"], function (require, exports, sax, message, sdmx) {
+define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", "message", "xml", "common"], function (require, exports, commonreferences, sax, structure, message, xml, common) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -71,31 +71,122 @@ define("sdmx20", ["require", "exports", "sax", "message", "sdmx"], function (req
             var dom = parseXml(s);
             this.struct = this.toStructureType(dom.documentElement);
         }
-        Sdmx20StructureReaderTools.prototype.toStructureType = function (structure) {
+        Sdmx20StructureReaderTools.prototype.toStructureType = function (structu) {
             this.struct = new message.StructureType();
-            var childNodes = structure.childNodes;
-            this.toHeader(structure.getElementsByTagName("Header"));
-            this.toCodelists(structure.getElementsByTagName("CodeLists"));
-            this.toConcepts(structure.getElementsByTagName("Concepts"));
-            this.toKeyFamilies(structure.getElementsByTagName("KeyFamilies"));
+            var childNodes = structu.childNodes;
+            this.toHeader(this.findNodeName("Header", childNodes));
+            this.toCodelists(this.findNodeName("CodeLists", childNodes));
+            this.toConcepts(this.findNodeName("Concepts", childNodes));
+            this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
             var header = new message.Header();
-            header.setId(headerNode.getElementsByTagName("ID")[0].childNodes[0].nodeValue);
-            var test = headerNode.getElementsByTagName("Test")[0].childNodes[0].nodeValue;
+            header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+            var test = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
             header.setTest(test == "true");
-            var prepared = headerNode.getElementsByTagName("Prepared")[0].childNodes[0].nodeValue;
+            // truncated not in sdmx 2.1
+            //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+            //header.setTruncated(truncated=="true");
+            var prepared = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
             var prepDate = xml.DateTime.fromString(prepared);
             header.setPrepared(new message.HeaderTimeType(prepDate));
+            header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
             var childNodes = headerNode.childNodes;
             for (var i = 0; i < childNodes.length; i++) {
                 alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
             }
             return header;
         };
+        Sdmx20StructureReaderTools.prototype.toSender = function (senderNode) {
+            var sender = senderNode.childNodes[0].nodeValue;
+            var senderType = new message.Sender();
+            var senderId = senderNode.getAttribute("id");
+            var senderID = new commonreferences.ID(senderId);
+            senderType.setId(senderID);
+            return senderType;
+        };
+        Sdmx20StructureReaderTools.prototype.toNames = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Name", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toName(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx20StructureReaderTools.prototype.toName = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var name = new common.Name(lang, text);
+            return name;
+        };
+        Sdmx20StructureReaderTools.prototype.toDescriptions = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Description", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toDescription(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx20StructureReaderTools.prototype.toDescription = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var desc = new common.Description(lang, text);
+            return desc;
+        };
+        Sdmx20StructureReaderTools.prototype.toTextType = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var textType = new common.TextType(lang, text);
+            return textType;
+        };
+        Sdmx20StructureReaderTools.prototype.toPartyType = function (node) {
+            var pt = new message.PartyType();
+            return pt;
+        };
         Sdmx20StructureReaderTools.prototype.toCodelists = function (codelistsNode) {
-            return null;
+            if (codelistsNode == null)
+                return null;
+            var codelists = new structure.CodeLists();
+            var codes = this.searchNodeName("CodeList", codelistsNode.childNodes);
+            for (var i = 0; i < codes.length; i++) {
+                codelists.getCodelists().push(this.toCodelist(codes[i]));
+            }
+            return codelists;
+        };
+        Sdmx20StructureReaderTools.prototype.toID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.ID(node.getAttribute("id"));
+        };
+        Sdmx20StructureReaderTools.prototype.toNestedNCNameID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.NestedNCNameID(node.getAttribute("agencyID"));
+        };
+        Sdmx20StructureReaderTools.prototype.toCodelist = function (codelistNode) {
+            var cl = new structure.Codelist();
+            cl.setNames(this.toNames(codelistNode));
+            cl.setId(this.toID(codelistNode));
+            cl.setAgencyID(this.toNestedNCNameID(codelistNode));
+            var codeNodes = this.searchNodeName("Code", codelistNode.childNodes);
+            for (var i = 0; i < codeNodes.length; i++) {
+                cl.getItems().push(this.toCode(codeNodes[i]));
+            }
+            alert(JSON.stringify(cl));
+            return cl;
+        };
+        Sdmx20StructureReaderTools.prototype.toCode = function (codeNode) {
+            var c = new structure.CodeType();
+            c.setDescriptions(this.toDescriptions(codeNode));
+            c.setId(this.toValue(codeNode));
+            return c;
+        };
+        Sdmx20StructureReaderTools.prototype.toValue = function (codeNode) {
+            if (codeNode == null)
+                return null;
+            var id = codeNode.getAttribute("value");
+            return new commonreferences.ID(id);
         };
         Sdmx20StructureReaderTools.prototype.toConcepts = function (conceptsNode) {
             return null;
@@ -146,13 +237,29 @@ define("sdmx20", ["require", "exports", "sax", "message", "sdmx"], function (req
         Sdmx20StructureReaderTools.prototype.findNodeName = function (s, childNodes) {
             for (var i = 0; i < childNodes.length; i++) {
                 var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
                 if (nn.indexOf(s) != -1) {
-                    alert("found node:" + s);
+                    //alert("found node:"+s);
                     return childNodes[i];
                 }
             }
             alert("not found node:" + s);
             return null;
+        };
+        Sdmx20StructureReaderTools.prototype.searchNodeName = function (s, childNodes) {
+            var result = [];
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    result.push(childNodes[i]);
+                }
+            }
+            if (result.length == 0) {
+                alert("cannot find any " + s + " in node");
+            }
+            return result;
         };
         Sdmx20StructureReaderTools.prototype.findTextNode = function (node) {
             if (node == null)
@@ -169,7 +276,6 @@ define("sdmx20", ["require", "exports", "sax", "message", "sdmx"], function (req
         return Sdmx20StructureReaderTools;
     })();
     exports.Sdmx20StructureReaderTools = Sdmx20StructureReaderTools;
-    sdmx.SdmxIO.registerParserProvider(new Sdmx20StructureParser());
 });
 
 //# sourceMappingURL=sdmx20.js.map

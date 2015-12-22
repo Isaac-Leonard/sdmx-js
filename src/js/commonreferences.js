@@ -24,33 +24,33 @@ define("commonreferences", ["require", "exports", "xml"], function (require, exp
             return _super.prototype.getString.call(this) == id.getString();
         };
         NestedID.prototype.asID = function () {
-            return new IDType(_super.prototype.getString.call(this));
+            return new ID(_super.prototype.getString.call(this));
         };
         NestedID.PATTERN = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";
         return NestedID;
     })(xml.RegexXMLString);
     exports.NestedID = NestedID;
-    var IDType = (function (_super) {
-        __extends(IDType, _super);
-        function IDType(s) {
+    var ID = (function (_super) {
+        __extends(ID, _super);
+        function ID(s) {
             _super.call(this, s);
             if (s == null) {
                 throw new Error("null IDType string");
             }
         }
-        IDType.prototype.equalsID = function (id) {
+        ID.prototype.equalsID = function (id) {
             return false;
         };
-        IDType.prototype.equalsString = function (id) {
+        ID.prototype.equalsString = function (id) {
             return false;
         };
-        IDType.prototype.getPatternArray = function () {
-            return [IDType.PATTERN];
+        ID.prototype.getPatternArray = function () {
+            return [ID.PATTERN];
         };
-        IDType.PATTERN = "[A-z0-9_@$\\-]+";
-        return IDType;
+        ID.PATTERN = "[A-z0-9_@$\\-]+";
+        return ID;
     })(NestedID);
-    exports.IDType = IDType;
+    exports.ID = ID;
     var NestedNCNameID = (function (_super) {
         __extends(NestedNCNameID, _super);
         function NestedNCNameID(s) {
@@ -610,7 +610,7 @@ define("commonreferences", ["require", "exports", "xml"], function (require, exp
         };
         NCNameID.PATTERN = "[A-z][A-z0-9_\\-]*";
         return NCNameID;
-    })(IDType);
+    })(ID);
     exports.NCNameID = NCNameID;
     var ObsDimensionsCodeType = (function () {
         function ObsDimensionsCodeType(s) {
