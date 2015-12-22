@@ -5,6 +5,7 @@ import commonreferences = require("commonreferences");
 import xml = require("xml");
 import structure = require("structure");
 import sdmx = require("sdmx");
+import message = require("message");
 
 export class IdentifiableType extends common.AnnotableType {
     private id: commonreferences.ID;
@@ -226,7 +227,7 @@ export class ItemType extends NameableType {
     }
 
     public removeItem(it: ItemType) {
-        collections.arrays.remove(this.items,it);
+        collections.arrays.remove(this.items, it);
     }
 
     public addItem(it: ItemType) {
@@ -360,7 +361,10 @@ export class MaintainableType extends VersionableType {
     }
 
     asReference(): commonreferences.Reference {
-        var ref: commonreferences.Ref = new commonreferences.Ref(this.agencyID, null, null, /*MaintainableParentId*/this.getId(), /*MaintainableParentVersion*/this.getVersion(), null, false, commonreferences.ObjectTypeCodelistType.CODELIST, commonreferences.PackageTypeCodelistType.CODELIST);
+        var ref: commonreferences.Ref = new commonreferences.Ref();
+        ref.setAgencyId(this.agencyID);
+        ref.setMaintainableParentId(this.getId());
+        ref.setMaintainableParentVersion(this.getVersion());
         var reference: commonreferences.Reference = new commonreferences.Reference(ref, this.getURI());
         return reference;
     }
@@ -368,10 +372,10 @@ export class MaintainableType extends VersionableType {
 export class ItemSchemeType extends MaintainableType {
     private items: Array<ItemType> = new Array<ItemType>();
     private partial: boolean = false;
-    
-    constructor(){
+
+    constructor() {
         super();
-        
+
     }
 
     /**
@@ -472,10 +476,10 @@ export class CodeType extends ItemType {
 
 }
 export class Codelist extends ItemSchemeType {
-   constructor(){
-       super();
-   }
-   
+    constructor() {
+        super();
+    }
+
 
 }
 export class ConceptSchemeType extends ItemSchemeType {
@@ -574,5 +578,168 @@ export class CodeLists {
         for (var i: number = 0; i < codelists.getCodelists().length; i++) {
             this.codelists.push(codelists[i]);
         }
+    }
+}
+export class Concepts {
+    private concepts: Array<ConceptSchemeType> = [];
+
+
+    constructor() {
+
+    }
+
+    /**
+     * @return the codelists
+     */
+    getConceptSchemes(): Array<ConceptSchemeType> {
+        return this.concepts;
+    }
+
+    /**
+     * @param codelists the codelists to set
+     */
+    setConceptSchemes(cls: Array<ConceptSchemeType>) {
+        this.concepts = cls;
+    }
+    findConceptSchemeStrings(agency: string, id: string, vers: string): ConceptSchemeType {
+        var findid: commonreferences.ID = new commonreferences.ID(id);
+        var ag: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(agency);
+        var ver: commonreferences.Version = vers == null ? null : new commonreferences.Version(vers);
+        return this.findConceptScheme(ag, findid, ver);
+    }
+    findConceptScheme(agency2: commonreferences.NestedNCNameID, findid: commonreferences.NestedID, ver: commonreferences.Version): ConceptSchemeType {
+        for (var i: number = 0; i < this.concepts.length; i++) {
+            var cl2: ConceptSchemeType = this.concepts[i];
+            if (cl2.identifiesMe(agency2, findid, ver)) {
+                return cl2;
+            }
+        }
+        return null;
+    }
+    findConceptSchemeURI(uri: xml.anyURI): ConceptSchemeType {
+        for (var i: number = 0; i < this.concepts.length; i++) {
+            if (this.concepts[i].identifiesMeURI(uri)) {
+                return this.concepts[i];
+            }
+        }
+        return null;
+    }
+    /*
+     * This method is used in sdmx 2.0 parsing to find a codelist with the correct ID..
+     * this is because the Dimension in the KeyFamily does not contain a complete reference
+     * only an ID.. we lookup the Codelist by it's ID, when we find a match, we can make a 
+     * LocalItemSchemeReference out of it with it's AgencyID and Version.
+     */
+    findConceptSchemeById(id: commonreferences.NestedID): ConceptSchemeType {
+        var cl: ConceptSchemeType = null;
+        for (var i: number = 0; i < this.concepts.length; i++) {
+            if (this.concepts[i].identifiesMeId(id)) {
+                if (cl == null) cl = this.concepts[i];
+                else {
+                    var j: number = cl.getVersion().compareTo(this.concepts[i].getVersion());
+                    switch (j) {
+                        case -1: // Less
+                            break;
+                        case 0:  // Equal
+                            break;
+                        case 1:
+                            // Our found conceptscheme has a greater version number.
+                            cl = this.concepts[i];
+                            break;
+                    }
+                }
+            }
+        }
+        return cl;
+    }
+    findConceptSchemeReference(ref: commonreferences.Reference): ConceptSchemeType {
+        return this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+    }
+
+    merge(conceptsType: Concepts) {
+        if (conceptsType == null) return;
+        for (var i: number = 0; i < conceptsType.getConceptSchemes().length; i++) {
+            this.concepts.push(conceptsType.getConceptSchemes()[i]);
+        }
+    }
+}
+export class DataStructures { }
+
+export class Structures {
+    private codelists: CodeLists = null;
+    private concepts: Concepts = null;
+    private datastructures: DataStructures = null;
+    getConcepts() {
+        return this.concepts;
+    }
+    setConcepts(c: Concepts) {
+        this.concepts = c;
+    }
+    getCodeLists() {
+        return this.codelists;
+    }
+    setCodeLists(c: CodeLists) {
+        this.codelists = c;
+    }
+    getDataStructures() {
+        return this.datastructures;
+    }
+    setDataStructures(ds: DataStructures) {
+        this.datastructures = ds;
+    }
+    // Registry
+    listDataflows(): Array<structure.Dataflow> {
+        return null;
+    }
+    clear(): void {
+
+    }
+    load(struct: message.StructureType): void {
+
+    }
+    unload(struct: message.StructureType): void {
+
+    }
+    findDataStructure(ref: commonreferences.Reference): structure.DataStructure {
+        return null;
+    }
+    findDataflow(ref: commonreferences.Reference): structure.Dataflow {
+        return null;
+    }
+    findCode(ref: commonreferences.Reference): structure.CodeType {
+        return this.codelists.findCodelistReference(ref).findItemId(ref.getId());
+    }
+    findCodelist(ref: commonreferences.Reference): structure.Codelist {
+        return this.codelists.findCodelistReference(ref);
+    }
+    findItemType(item: commonreferences.Reference): structure.ItemType {
+        return null;
+    }
+    findConcept(ref: commonreferences.Reference): structure.ConceptType {
+        return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
+    }
+    findConceptScheme(ref: commonreferences.Reference): structure.ConceptSchemeType {
+        return this.concepts.findConceptSchemeReference(ref);
+    }
+    searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {
+        return new Array<structure.ItemType>();
+    }
+    searchDataflow(ref: commonreferences.Reference): Array<structure.Dataflow> {
+        return new Array<structure.Dataflow>();
+    }
+    searchCodelist(ref: commonreferences.Reference): Array<structure.Codelist> {
+        return new Array<structure.Codelist>();
+    }
+    searchItemType(item: commonreferences.Reference): Array<structure.ItemType> {
+        return new Array<structure.ItemType>();
+    }
+    searchConcept(ref: commonreferences.Reference): Array<structure.ConceptType> {
+        return new Array<structure.ConceptType>();
+    }
+    searchConceptScheme(ref: commonreferences.Reference): Array<structure.ConceptSchemeType> {
+        return new Array<structure.ConceptSchemeType>();
+    }
+    save(): any {
+
     }
 }

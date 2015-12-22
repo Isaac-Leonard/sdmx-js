@@ -18,7 +18,17 @@ define("message", ["require", "exports", "structure"], function (require, export
     exports.DataQuery = DataQuery;
     var StructureType = (function () {
         function StructureType() {
+            this.header = null;
+            this.structures = null;
         }
+        StructureType.prototype.getHeader = function () { return this.header; };
+        StructureType.prototype.setHeader = function (h) { this.header = h; };
+        StructureType.prototype.getStructures = function () {
+            return this.structures;
+        };
+        StructureType.prototype.setStructures = function (s) {
+            this.structures = s;
+        };
         // Registry
         StructureType.prototype.listDataflows = function () {
             return null;
@@ -30,43 +40,43 @@ define("message", ["require", "exports", "structure"], function (require, export
         StructureType.prototype.unload = function (struct) {
         };
         StructureType.prototype.findDataStructure = function (ref) {
-            return null;
+            return this.structures.findDataStructure(ref);
         };
         StructureType.prototype.findDataflow = function (ref) {
-            return null;
+            return this.structures.findDataflow(ref);
         };
         StructureType.prototype.findCode = function (ref) {
-            return null;
+            return this.structures.findCode(ref);
         };
         StructureType.prototype.findCodelist = function (ref) {
-            return null;
+            return this.structures.findCodelist(ref);
         };
         StructureType.prototype.findItemType = function (item) {
-            return null;
+            return this.structures.findItemType(item);
         };
         StructureType.prototype.findConcept = function (ref) {
-            return null;
+            return this.structures.findConcept(ref);
         };
         StructureType.prototype.findConceptScheme = function (ref) {
-            return null;
+            return this.structures.findConceptScheme(ref);
         };
         StructureType.prototype.searchDataStructure = function (ref) {
-            return new Array();
+            return this.structures.searchDataStructure(ref);
         };
         StructureType.prototype.searchDataflow = function (ref) {
-            return new Array();
+            return this.structures.searchDataflow(ref);
         };
         StructureType.prototype.searchCodelist = function (ref) {
-            return new Array();
+            return this.structures.searchCodelist(ref);
         };
         StructureType.prototype.searchItemType = function (item) {
-            return new Array();
+            return this.structures.searchItemType(item);
         };
         StructureType.prototype.searchConcept = function (ref) {
-            return new Array();
+            return this.structures.searchConcept(ref);
         };
         StructureType.prototype.searchConceptScheme = function (ref) {
-            return new Array();
+            return this.structures.searchConceptScheme(ref);
         };
         StructureType.prototype.save = function () {
         };

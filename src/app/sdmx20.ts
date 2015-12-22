@@ -78,14 +78,15 @@ export class Sdmx20StructureReaderTools {
         var dom: any = parseXml(s);
         this.struct = this.toStructureType(dom.documentElement);
     }
-    toStructureType(structu: any): message.StructureType {
+    toStructureType(structureNode: any): message.StructureType {
         this.struct = new message.StructureType();
-        var childNodes = structu.childNodes;
-
-        this.toHeader(this.findNodeName("Header", childNodes));
-        this.toCodelists(this.findNodeName("CodeLists", childNodes));
-        this.toConcepts(this.findNodeName("Concepts", childNodes));
-        this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
+        var structures = new structure.Structures();
+        this.struct.setStructures(structures);
+        var childNodes = structureNode.childNodes;
+        this.struct.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+        structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
+        structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
+        structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
         return this.struct;
     }
     toHeader(headerNode: any) {
@@ -100,11 +101,6 @@ export class Sdmx20StructureReaderTools {
         var prepDate: xml.DateTime = xml.DateTime.fromString(prepared);
         header.setPrepared(new message.HeaderTimeType(prepDate));
         header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
-        var childNodes = headerNode.childNodes;
-        for (var i: number = 0; i < childNodes.length; i++) {
-            alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
-        }
-
         return header;
     }
     toSender(senderNode: any): message.Sender {
@@ -114,7 +110,6 @@ export class Sdmx20StructureReaderTools {
         var senderId: string = senderNode.getAttribute("id");
         var senderID: commonreferences.ID = new commonreferences.ID(senderId);
         senderType.setId(senderID);
-
         return senderType;
     }
     toNames(node: any): Array<common.Name> {
@@ -172,31 +167,95 @@ export class Sdmx20StructureReaderTools {
         if (node == null) return null;
         return new commonreferences.NestedNCNameID(node.getAttribute("agencyID"));
     }
+    toVersion(node: any): commonreferences.Version {
+        if (node == null) return null;
+        return new commonreferences.Version(node.getAttribute("version"));
+    }
     toCodelist(codelistNode: any) {
         var cl: structure.Codelist = new structure.Codelist();
         cl.setNames(this.toNames(codelistNode));
         cl.setId(this.toID(codelistNode));
         cl.setAgencyID(this.toNestedNCNameID(codelistNode));
+        cl.setVersion(this.toVersion(codelistNode));
         var codeNodes = this.searchNodeName("Code", codelistNode.childNodes);
         for (var i: number = 0; i < codeNodes.length; i++) {
             cl.getItems().push(this.toCode(codeNodes[i]));
         }
-        alert(JSON.stringify(cl));
         return cl;
     }
     toCode(codeNode: any): structure.CodeType {
         var c: structure.CodeType = new structure.CodeType();
         c.setDescriptions(this.toDescriptions(codeNode));
         c.setId(this.toValue(codeNode));
+        if (codeNode.getAttribute("parentCode") != null) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setMaintainableParentId(new commonreferences.ID(codeNode.getAttribute("parentCode")));
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
+            c.setParent(reference);
+        }
         return c;
     }
+    getParentCode(codeNode: any): commonreferences.ID {
+        var id = codeNode.getAttribute("parentCode");
+        if (id == null) { return null; }
+        else {
+            return new commonreferences.ID(id);
+        }
+    }
     toValue(codeNode: any): commonreferences.ID {
-        if( codeNode==null ) return null;
+        if (codeNode == null) return null;
         var id = codeNode.getAttribute("value");
         return new commonreferences.ID(id);
     }
     toConcepts(conceptsNode: any) {
-        return null;
+        if (conceptsNode == null) return null;
+        var concepts: structure.Concepts = new structure.Concepts();
+        this.struct.getStructures().setConcepts(concepts);
+        var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
+        for (var i: number = 0; i < conNodes.length; i++) {
+            var conceptScheme: structure.ConceptSchemeType = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
+            this.toConcept(conceptScheme, conNodes[i]);
+            alert(JSON.stringify(conceptScheme));
+        }
+
+        return concepts;
+    }
+    findStandaloneConceptScheme(ag: commonreferences.NestedNCNameID): structure.ConceptSchemeType {
+        var ref: commonreferences.Ref = new commonreferences.Ref();
+        ref.setAgencyId(ag);
+        ref.setMaintainableParentId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+        ref.setVersion(null);
+        var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
+        var cs: structure.ConceptSchemeType = this.struct.findConceptScheme(reference);
+        if (cs == null) {
+            cs = new structure.ConceptSchemeType();
+            cs.setAgencyID(ag);
+            cs.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+            cs.setVersion(commonreferences.Version.ONE);
+            var name: common.Name = new common.Name("en","Standalone Concept Scheme");
+            cs.setNames([name]);
+            this.struct.getStructures().getConcepts().getConceptSchemes().push(cs);
+        }
+        return cs;
+    }
+    toConceptScheme(conceptSchemeNode: any) {
+        if (conceptSchemeNode == null) return null;
+        var cs: structure.ConceptSchemeType = new structure.ConceptSchemeType();
+        cs.setNames(this.toNames(conceptSchemeNode))
+        cs.setAgencyID(this.toNestedNCNameID(conceptSchemeNode));
+        cs.setVersion(this.toVersion(conceptSchemeNode));
+        return cs;
+    }
+    toConcept(conceptScheme: structure.ConceptSchemeType, conceptNode: any) {
+        if (conceptNode == null) {
+            return null;
+        }
+        var con: structure.ConceptType = new structure.ConceptType();
+        con.setNames(this.toNames(conceptNode));
+        con.setDescriptions(this.toDescriptions(conceptNode));
+        con.setId(this.toID(conceptNode));
+        
+        conceptScheme.getItems().push(con);
     }
     toKeyFamilies(keyFamiliesNode: any) {
         return null;

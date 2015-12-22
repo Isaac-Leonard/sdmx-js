@@ -71,13 +71,15 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
             var dom = parseXml(s);
             this.struct = this.toStructureType(dom.documentElement);
         }
-        Sdmx20StructureReaderTools.prototype.toStructureType = function (structu) {
+        Sdmx20StructureReaderTools.prototype.toStructureType = function (structureNode) {
             this.struct = new message.StructureType();
-            var childNodes = structu.childNodes;
-            this.toHeader(this.findNodeName("Header", childNodes));
-            this.toCodelists(this.findNodeName("CodeLists", childNodes));
-            this.toConcepts(this.findNodeName("Concepts", childNodes));
-            this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes));
+            var structures = new structure.Structures();
+            this.struct.setStructures(structures);
+            var childNodes = structureNode.childNodes;
+            this.struct.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+            structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
+            structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
+            structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
@@ -92,10 +94,6 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
             var prepDate = xml.DateTime.fromString(prepared);
             header.setPrepared(new message.HeaderTimeType(prepDate));
             header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
-            var childNodes = headerNode.childNodes;
-            for (var i = 0; i < childNodes.length; i++) {
-                alert(childNodes[i].nodeName + ":" + childNodes[i].nodeName);
-            }
             return header;
         };
         Sdmx20StructureReaderTools.prototype.toSender = function (senderNode) {
@@ -164,23 +162,43 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
                 return null;
             return new commonreferences.NestedNCNameID(node.getAttribute("agencyID"));
         };
+        Sdmx20StructureReaderTools.prototype.toVersion = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.Version(node.getAttribute("version"));
+        };
         Sdmx20StructureReaderTools.prototype.toCodelist = function (codelistNode) {
             var cl = new structure.Codelist();
             cl.setNames(this.toNames(codelistNode));
             cl.setId(this.toID(codelistNode));
             cl.setAgencyID(this.toNestedNCNameID(codelistNode));
+            cl.setVersion(this.toVersion(codelistNode));
             var codeNodes = this.searchNodeName("Code", codelistNode.childNodes);
             for (var i = 0; i < codeNodes.length; i++) {
                 cl.getItems().push(this.toCode(codeNodes[i]));
             }
-            alert(JSON.stringify(cl));
             return cl;
         };
         Sdmx20StructureReaderTools.prototype.toCode = function (codeNode) {
             var c = new structure.CodeType();
             c.setDescriptions(this.toDescriptions(codeNode));
             c.setId(this.toValue(codeNode));
+            if (codeNode.getAttribute("parentCode") != null) {
+                var ref = new commonreferences.Ref();
+                ref.setMaintainableParentId(new commonreferences.ID(codeNode.getAttribute("parentCode")));
+                var reference = new commonreferences.Reference(ref, null);
+                c.setParent(reference);
+            }
             return c;
+        };
+        Sdmx20StructureReaderTools.prototype.getParentCode = function (codeNode) {
+            var id = codeNode.getAttribute("parentCode");
+            if (id == null) {
+                return null;
+            }
+            else {
+                return new commonreferences.ID(id);
+            }
         };
         Sdmx20StructureReaderTools.prototype.toValue = function (codeNode) {
             if (codeNode == null)
@@ -189,7 +207,54 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
             return new commonreferences.ID(id);
         };
         Sdmx20StructureReaderTools.prototype.toConcepts = function (conceptsNode) {
-            return null;
+            if (conceptsNode == null)
+                return null;
+            var concepts = new structure.Concepts();
+            this.struct.getStructures().setConcepts(concepts);
+            var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
+            for (var i = 0; i < conNodes.length; i++) {
+                var conceptScheme = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
+                this.toConcept(conceptScheme, conNodes[i]);
+                alert(JSON.stringify(conceptScheme));
+            }
+            return concepts;
+        };
+        Sdmx20StructureReaderTools.prototype.findStandaloneConceptScheme = function (ag) {
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(ag);
+            ref.setMaintainableParentId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+            ref.setVersion(null);
+            var reference = new commonreferences.Reference(ref, null);
+            var cs = this.struct.findConceptScheme(reference);
+            if (cs == null) {
+                cs = new structure.ConceptSchemeType();
+                cs.setAgencyID(ag);
+                cs.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+                cs.setVersion(commonreferences.Version.ONE);
+                var name = new common.Name("en", "Standalone Concept Scheme");
+                cs.setNames([name]);
+                this.struct.getStructures().getConcepts().getConceptSchemes().push(cs);
+            }
+            return cs;
+        };
+        Sdmx20StructureReaderTools.prototype.toConceptScheme = function (conceptSchemeNode) {
+            if (conceptSchemeNode == null)
+                return null;
+            var cs = new structure.ConceptSchemeType();
+            cs.setNames(this.toNames(conceptSchemeNode));
+            cs.setAgencyID(this.toNestedNCNameID(conceptSchemeNode));
+            cs.setVersion(this.toVersion(conceptSchemeNode));
+            return cs;
+        };
+        Sdmx20StructureReaderTools.prototype.toConcept = function (conceptScheme, conceptNode) {
+            if (conceptNode == null) {
+                return null;
+            }
+            var con = new structure.ConceptType();
+            con.setNames(this.toNames(conceptNode));
+            con.setDescriptions(this.toDescriptions(conceptNode));
+            con.setId(this.toID(conceptNode));
+            conceptScheme.getItems().push(con);
         };
         Sdmx20StructureReaderTools.prototype.toKeyFamilies = function (keyFamiliesNode) {
             return null;

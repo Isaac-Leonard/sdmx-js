@@ -39,10 +39,10 @@ export class ID extends NestedID {
     }
 
     public equalsID(id: ID): boolean {
-        return false;
+        return this.getString() == id.getString();
     }
     public equalsString(id: string): boolean {
-        return false;
+        return this.getString() == id;
     }
     public getPatternArray(): string[] {
         return [ID.PATTERN];
@@ -71,7 +71,7 @@ export class Ref {
     private object: ObjectTypeCodelistType = null;
     private package: PackageTypeCodelistType = null;
 
-
+/*
     constructor(agencyId: NestedNCNameID, id: NestedID, vers: Version, maintParent: ID, mainVers: Version, containId: NestedID, loc: boolean, ob: ObjectTypeCodelistType, pack: PackageTypeCodelistType) {
         this.agencyId = agencyId;
         this.id = id;
@@ -82,7 +82,10 @@ export class Ref {
         this.object = ob;
         this.package = pack;
     }
-
+*/
+    constructor() {
+        
+    }
     public getAgencyId(): NestedNCNameID {
         return this.agencyId;
     }

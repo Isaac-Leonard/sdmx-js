@@ -12,8 +12,19 @@ export class DataQuery {
 
 }
 export class StructureType implements interfaces.Registry {
+    private header: Header = null;
+    private structures: structure.Structures = null;
+
     constructor() {
 
+    }
+    getHeader() { return this.header; }
+    setHeader(h: Header) { this.header = h; }
+    getStructures() {
+        return this.structures;
+    }
+    setStructures(s: structure.Structures) {
+        this.structures = s;
     }
     // Registry
     listDataflows(): Array<structure.Dataflow> {
@@ -29,47 +40,49 @@ export class StructureType implements interfaces.Registry {
 
     }
     findDataStructure(ref: commonreferences.Reference): structure.DataStructure {
-        return null;
+        return this.structures.findDataStructure(ref);
     }
     findDataflow(ref: commonreferences.Reference): structure.Dataflow {
-        return null;
+        return this.structures.findDataflow(ref);
     }
     findCode(ref: commonreferences.Reference): structure.CodeType {
-        return null;
+        return this.structures.findCode(ref);
     }
     findCodelist(ref: commonreferences.Reference): structure.Codelist {
-        return null;
+        return this.structures.findCodelist(ref);
     }
     findItemType(item: commonreferences.Reference): structure.ItemType {
-        return null;
+        return this.structures.findItemType(item);
     }
     findConcept(ref: commonreferences.Reference): structure.ConceptType {
-        return null;
+        return this.structures.findConcept(ref);
     }
     findConceptScheme(ref: commonreferences.Reference): structure.ConceptSchemeType {
-        return null;
+        return this.structures.findConceptScheme(ref);
     }
     searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {
-        return new Array<structure.ItemType>();
+        return this.structures.searchDataStructure(ref);
     }
     searchDataflow(ref: commonreferences.Reference): Array<structure.Dataflow> {
-        return new Array<structure.Dataflow>();
+        return this.structures.searchDataflow(ref);
     }
     searchCodelist(ref: commonreferences.Reference): Array<structure.Codelist> {
-        return new Array<structure.Codelist>();
+        return this.structures.searchCodelist(ref);
     }
     searchItemType(item: commonreferences.Reference): Array<structure.ItemType> {
-        return new Array<structure.ItemType>();
+        return this.structures.searchItemType(item);
     }
     searchConcept(ref: commonreferences.Reference): Array<structure.ConceptType> {
-        return new Array<structure.ConceptType>();
+        return this.structures.searchConcept(ref);
     }
     searchConceptScheme(ref: commonreferences.Reference): Array<structure.ConceptSchemeType> {
-        return new Array<structure.ConceptSchemeType>();
+        return this.structures.searchConceptScheme(ref);
     }
     save(): any {
 
     }
+
+
 
 }
 export class HeaderTimeType {
@@ -94,14 +107,14 @@ export class Contact {
 }
 export class PartyType extends structure.NameableType {
     public contacts: Array<Contact> = [];
-    constructor(){
+    constructor() {
         super();
     }
 }
 export class Sender extends PartyType {
-   constructor(){
-       super();
-   }
+    constructor() {
+        super();
+    }
 
 }
 export class Header {

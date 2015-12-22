@@ -339,7 +339,10 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
             return this.identifiesMe(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
         };
         MaintainableType.prototype.asReference = function () {
-            var ref = new commonreferences.Ref(this.agencyID, null, null, /*MaintainableParentId*/ this.getId(), /*MaintainableParentVersion*/ this.getVersion(), null, false, commonreferences.ObjectTypeCodelistType.CODELIST, commonreferences.PackageTypeCodelistType.CODELIST);
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(this.agencyID);
+            ref.setMaintainableParentId(this.getId());
+            ref.setMaintainableParentVersion(this.getVersion());
             var reference = new commonreferences.Reference(ref, this.getURI());
             return reference;
         };
@@ -565,6 +568,171 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
         return CodeLists;
     })();
     exports.CodeLists = CodeLists;
+    var Concepts = (function () {
+        function Concepts() {
+            this.concepts = [];
+        }
+        /**
+         * @return the codelists
+         */
+        Concepts.prototype.getConceptSchemes = function () {
+            return this.concepts;
+        };
+        /**
+         * @param codelists the codelists to set
+         */
+        Concepts.prototype.setConceptSchemes = function (cls) {
+            this.concepts = cls;
+        };
+        Concepts.prototype.findConceptSchemeStrings = function (agency, id, vers) {
+            var findid = new commonreferences.ID(id);
+            var ag = new commonreferences.NestedNCNameID(agency);
+            var ver = vers == null ? null : new commonreferences.Version(vers);
+            return this.findConceptScheme(ag, findid, ver);
+        };
+        Concepts.prototype.findConceptScheme = function (agency2, findid, ver) {
+            for (var i = 0; i < this.concepts.length; i++) {
+                var cl2 = this.concepts[i];
+                if (cl2.identifiesMe(agency2, findid, ver)) {
+                    return cl2;
+                }
+            }
+            return null;
+        };
+        Concepts.prototype.findConceptSchemeURI = function (uri) {
+            for (var i = 0; i < this.concepts.length; i++) {
+                if (this.concepts[i].identifiesMeURI(uri)) {
+                    return this.concepts[i];
+                }
+            }
+            return null;
+        };
+        /*
+         * This method is used in sdmx 2.0 parsing to find a codelist with the correct ID..
+         * this is because the Dimension in the KeyFamily does not contain a complete reference
+         * only an ID.. we lookup the Codelist by it's ID, when we find a match, we can make a
+         * LocalItemSchemeReference out of it with it's AgencyID and Version.
+         */
+        Concepts.prototype.findConceptSchemeById = function (id) {
+            var cl = null;
+            for (var i = 0; i < this.concepts.length; i++) {
+                if (this.concepts[i].identifiesMeId(id)) {
+                    if (cl == null)
+                        cl = this.concepts[i];
+                    else {
+                        var j = cl.getVersion().compareTo(this.concepts[i].getVersion());
+                        switch (j) {
+                            case -1:
+                                break;
+                            case 0:
+                                break;
+                            case 1:
+                                // Our found conceptscheme has a greater version number.
+                                cl = this.concepts[i];
+                                break;
+                        }
+                    }
+                }
+            }
+            return cl;
+        };
+        Concepts.prototype.findConceptSchemeReference = function (ref) {
+            return this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+        };
+        Concepts.prototype.merge = function (conceptsType) {
+            if (conceptsType == null)
+                return;
+            for (var i = 0; i < conceptsType.getConceptSchemes().length; i++) {
+                this.concepts.push(conceptsType.getConceptSchemes()[i]);
+            }
+        };
+        return Concepts;
+    })();
+    exports.Concepts = Concepts;
+    var DataStructures = (function () {
+        function DataStructures() {
+        }
+        return DataStructures;
+    })();
+    exports.DataStructures = DataStructures;
+    var Structures = (function () {
+        function Structures() {
+            this.codelists = null;
+            this.concepts = null;
+            this.datastructures = null;
+        }
+        Structures.prototype.getConcepts = function () {
+            return this.concepts;
+        };
+        Structures.prototype.setConcepts = function (c) {
+            this.concepts = c;
+        };
+        Structures.prototype.getCodeLists = function () {
+            return this.codelists;
+        };
+        Structures.prototype.setCodeLists = function (c) {
+            this.codelists = c;
+        };
+        Structures.prototype.getDataStructures = function () {
+            return this.datastructures;
+        };
+        Structures.prototype.setDataStructures = function (ds) {
+            this.datastructures = ds;
+        };
+        // Registry
+        Structures.prototype.listDataflows = function () {
+            return null;
+        };
+        Structures.prototype.clear = function () {
+        };
+        Structures.prototype.load = function (struct) {
+        };
+        Structures.prototype.unload = function (struct) {
+        };
+        Structures.prototype.findDataStructure = function (ref) {
+            return null;
+        };
+        Structures.prototype.findDataflow = function (ref) {
+            return null;
+        };
+        Structures.prototype.findCode = function (ref) {
+            return this.codelists.findCodelistReference(ref).findItemId(ref.getId());
+        };
+        Structures.prototype.findCodelist = function (ref) {
+            return this.codelists.findCodelistReference(ref);
+        };
+        Structures.prototype.findItemType = function (item) {
+            return null;
+        };
+        Structures.prototype.findConcept = function (ref) {
+            return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
+        };
+        Structures.prototype.findConceptScheme = function (ref) {
+            return this.concepts.findConceptSchemeReference(ref);
+        };
+        Structures.prototype.searchDataStructure = function (ref) {
+            return new Array();
+        };
+        Structures.prototype.searchDataflow = function (ref) {
+            return new Array();
+        };
+        Structures.prototype.searchCodelist = function (ref) {
+            return new Array();
+        };
+        Structures.prototype.searchItemType = function (item) {
+            return new Array();
+        };
+        Structures.prototype.searchConcept = function (ref) {
+            return new Array();
+        };
+        Structures.prototype.searchConceptScheme = function (ref) {
+            return new Array();
+        };
+        Structures.prototype.save = function () {
+        };
+        return Structures;
+    })();
+    exports.Structures = Structures;
 });
 
 //# sourceMappingURL=structure.js.map

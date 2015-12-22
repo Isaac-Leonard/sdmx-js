@@ -39,10 +39,10 @@ define("commonreferences", ["require", "exports", "xml"], function (require, exp
             }
         }
         ID.prototype.equalsID = function (id) {
-            return false;
+            return this.getString() == id.getString();
         };
         ID.prototype.equalsString = function (id) {
-            return false;
+            return this.getString() == id;
         };
         ID.prototype.getPatternArray = function () {
             return [ID.PATTERN];
@@ -67,7 +67,19 @@ define("commonreferences", ["require", "exports", "xml"], function (require, exp
     })(NestedID);
     exports.NestedNCNameID = NestedNCNameID;
     var Ref = (function () {
-        function Ref(agencyId, id, vers, maintParent, mainVers, containId, loc, ob, pack) {
+        /*
+            constructor(agencyId: NestedNCNameID, id: NestedID, vers: Version, maintParent: ID, mainVers: Version, containId: NestedID, loc: boolean, ob: ObjectTypeCodelistType, pack: PackageTypeCodelistType) {
+                this.agencyId = agencyId;
+                this.id = id;
+                this.version = vers;
+                this.maintainedParentId = maintParent;
+                this.maintainedParentVersion = mainVers;
+                this.local = loc;
+                this.object = ob;
+                this.package = pack;
+            }
+        */
+        function Ref() {
             this.agencyId = null;
             this.id = null;
             this.version = null;
@@ -76,14 +88,6 @@ define("commonreferences", ["require", "exports", "xml"], function (require, exp
             this.local = null;
             this.object = null;
             this.package = null;
-            this.agencyId = agencyId;
-            this.id = id;
-            this.version = vers;
-            this.maintainedParentId = maintParent;
-            this.maintainedParentVersion = mainVers;
-            this.local = loc;
-            this.object = ob;
-            this.package = pack;
         }
         Ref.prototype.getAgencyId = function () {
             return this.agencyId;
