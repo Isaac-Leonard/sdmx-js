@@ -215,9 +215,7 @@ export class Sdmx20StructureReaderTools {
         for (var i: number = 0; i < conNodes.length; i++) {
             var conceptScheme: structure.ConceptSchemeType = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
             this.toConcept(conceptScheme, conNodes[i]);
-            alert(JSON.stringify(conceptScheme));
         }
-
         return concepts;
     }
     findStandaloneConceptScheme(ag: commonreferences.NestedNCNameID): structure.ConceptSchemeType {
@@ -232,7 +230,7 @@ export class Sdmx20StructureReaderTools {
             cs.setAgencyID(ag);
             cs.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
             cs.setVersion(commonreferences.Version.ONE);
-            var name: common.Name = new common.Name("en","Standalone Concept Scheme");
+            var name: common.Name = new common.Name("en", "Standalone Concept Scheme");
             cs.setNames([name]);
             this.struct.getStructures().getConcepts().getConceptSchemes().push(cs);
         }
@@ -254,7 +252,6 @@ export class Sdmx20StructureReaderTools {
         con.setNames(this.toNames(conceptNode));
         con.setDescriptions(this.toDescriptions(conceptNode));
         con.setId(this.toID(conceptNode));
-        
         conceptScheme.getItems().push(con);
     }
     toKeyFamilies(keyFamiliesNode: any) {
@@ -262,42 +259,6 @@ export class Sdmx20StructureReaderTools {
     }
     getStructureType(): message.StructureType {
         return this.struct;
-    }
-    myLoop(x: any): string {
-        var i: number, y: any, xLen: number, txt: string;
-        txt = "";
-        x = x.childNodes;
-        xLen = x.length;
-        for (i = 0; i < xLen; i++) {
-            y = x[i];
-            if (y.nodeType != 3) {
-                if (y.childNodes[0] != undefined) {
-                    txt += this.myLoop(y);
-                }
-            } else {
-                txt += y.nodeValue + "<br>";
-            }
-        }
-        return txt;
-    }
-    myLoop2(x: any): string {
-        var i: number, y: any, xLen: number, txt: string;
-        txt = "";
-        x = x.childNodes;
-        xLen = x.length;
-        for (i = 0; i < xLen; i++) {
-            y = x[i];
-            if (y.nodeType != 3) {
-                alert(y.nodeName + ":" + y.nodeValue);
-                if (y.childNodes[0] != undefined) {
-                    txt += this.myLoop2(y);
-                }
-            } else {
-                txt += y.nodeValue + "<br>";
-
-            }
-        }
-        return txt;
     }
     findNodeName(s: string, childNodes: any) {
         for (var i: number = 0; i < childNodes.length; i++) {
@@ -308,7 +269,6 @@ export class Sdmx20StructureReaderTools {
                 return childNodes[i];
             }
         }
-        alert("not found node:" + s);
         return null;
     }
     searchNodeName(s: string, childNodes: any): Array<any> {
