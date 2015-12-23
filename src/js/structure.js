@@ -481,11 +481,13 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
         return Dataflow;
     })();
     exports.Dataflow = Dataflow;
-    var DataStructure = (function () {
+    var DataStructure = (function (_super) {
+        __extends(DataStructure, _super);
         function DataStructure() {
+            _super.apply(this, arguments);
         }
         return DataStructure;
-    })();
+    })(MaintainableType);
     exports.DataStructure = DataStructure;
     var CodeLists = (function () {
         function CodeLists() {
@@ -651,7 +653,53 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
     exports.Concepts = Concepts;
     var DataStructures = (function () {
         function DataStructures() {
+            this.datastructures = [];
         }
+        /**
+         * @return the codelists
+         */
+        DataStructures.prototype.getDataStructures = function () {
+            return this.datastructures;
+        };
+        /**
+         * @param codelists the codelists to set
+         */
+        DataStructures.prototype.setDataStructures = function (cls) {
+            this.datastructures = cls;
+        };
+        DataStructures.prototype.findDataStructureStrings = function (agency, id, vers) {
+            var findid = new commonreferences.ID(id);
+            var ag = new commonreferences.NestedNCNameID(agency);
+            var ver = vers == null ? null : new commonreferences.Version(vers);
+            return this.findDataStructure(ag, findid, ver);
+        };
+        DataStructures.prototype.findDataStructure = function (agency2, findid, ver) {
+            for (var i = 0; i < this.datastructures.length; i++) {
+                var cl2 = this.datastructures[i];
+                if (cl2.identifiesMe(agency2, findid, ver)) {
+                    return cl2;
+                }
+            }
+            return null;
+        };
+        DataStructures.prototype.findCodelistURI = function (uri) {
+            for (var i = 0; i < this.datastructures.length; i++) {
+                if (this.datastructures[i].identifiesMeURI(uri)) {
+                    return this.datastructures[i];
+                }
+            }
+            return null;
+        };
+        DataStructures.prototype.findDataStructureReference = function (ref) {
+            return this.findDataStructure(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+        };
+        DataStructures.prototype.merge = function (dss) {
+            if (dss == null)
+                return;
+            for (var i = 0; i < dss.getDataStructures().length; i++) {
+                this.datastructures.push(dss.getDataStructures()[i]);
+            }
+        };
         return DataStructures;
     })();
     exports.DataStructures = DataStructures;

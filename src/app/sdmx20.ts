@@ -256,7 +256,7 @@ export class Sdmx20StructureReaderTools {
     }
     toKeyFamilies(keyFamiliesNode: any) {
         return null;
-    }
+    } 
     getStructureType(): message.StructureType {
         return this.struct;
     }

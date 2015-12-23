@@ -493,7 +493,7 @@ export class Dataflow {
 
 
 }
-export class DataStructure {
+export class DataStructure extends MaintainableType {
 
 }
 
@@ -663,7 +663,61 @@ export class Concepts {
         }
     }
 }
-export class DataStructures { }
+export class DataStructures{
+    private datastructures: Array<DataStructure> = [];
+
+
+    constructor() {
+
+    }
+
+    /**
+     * @return the codelists
+     */
+    getDataStructures(): Array<DataStructure> {
+        return this.datastructures;
+    }
+
+    /**
+     * @param codelists the codelists to set
+     */
+    setDataStructures(cls: Array<DataStructure>) {
+        this.datastructures = cls;
+    }
+    findDataStructureStrings(agency: string, id: string, vers: string): DataStructure {
+        var findid: commonreferences.ID = new commonreferences.ID(id);
+        var ag: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(agency);
+        var ver: commonreferences.Version = vers == null ? null : new commonreferences.Version(vers);
+        return this.findDataStructure(ag, findid, ver);
+    }
+    findDataStructure(agency2: commonreferences.NestedNCNameID, findid: commonreferences.NestedID, ver: commonreferences.Version): DataStructure {
+        for (var i: number = 0; i < this.datastructures.length; i++) {
+            var cl2: DataStructure = this.datastructures[i];
+            if (cl2.identifiesMe(agency2, findid, ver)) {
+                return cl2;
+            }
+        }
+        return null;
+    }
+    findCodelistURI(uri: xml.anyURI): DataStructure {
+        for (var i: number = 0; i < this.datastructures.length; i++) {
+            if (this.datastructures[i].identifiesMeURI(uri)) {
+                return this.datastructures[i];
+            }
+        }
+        return null;
+    }
+    findDataStructureReference(ref: commonreferences.Reference): DataStructure {
+        return this.findDataStructure(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+    }
+
+    merge(dss: DataStructures) {
+        if (dss == null) return;
+        for (var i: number = 0; i < dss.getDataStructures().length; i++) {
+            this.datastructures.push(dss.getDataStructures()[i]);
+        }
+    }
+}
 
 export class Structures {
     private codelists: CodeLists = null;
@@ -722,7 +776,7 @@ export class Structures {
         return this.concepts.findConceptSchemeReference(ref);
     }
     searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {
-        return new Array<structure.ItemType>();
+        return new Array<structure.DataStructure>();
     }
     searchDataflow(ref: commonreferences.Reference): Array<structure.Dataflow> {
         return new Array<structure.Dataflow>();
