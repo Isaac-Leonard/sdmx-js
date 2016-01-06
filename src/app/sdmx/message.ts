@@ -1,9 +1,9 @@
-/// <amd-module name='message'/>
-import interfaces = require("interfaces");
-import structure = require("structure");
-import commonreferences = require("commonreferences");
-import xml = require("xml");
-import common = require("common");
+/// <amd-module name='sdmx/message'/>
+import interfaces = require("sdmx/interfaces");
+import structure = require("sdmx/structure");
+import commonreferences = require("sdmx/commonreferences");
+import xml = require("sdmx/xml");
+import common = require("sdmx/common");
 export class DataMessage {
 
 }

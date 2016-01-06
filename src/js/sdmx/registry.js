@@ -1,4 +1,4 @@
-define(["require", "exports"], function (require, exports) {
+define("sdmx/registry", ["require", "exports"], function (require, exports) {
     var LocalRegistry = (function () {
         function LocalRegistry() {
             this.structures = [];

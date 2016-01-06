@@ -1,4 +1,4 @@
-/// <amd-module name='sdmx20'/>
+/// <amd-module name='sdmx/sdmx20'/>
 ///<reference path="../sax.d.ts"/>
 import commonreferences = require("sdmx/commonreferences");
 import sax = require("sax");

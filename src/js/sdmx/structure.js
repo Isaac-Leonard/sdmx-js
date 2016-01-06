@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("structure", ["require", "exports", "sdmx/common", "sdmx/commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
+define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
     var IdentifiableType = (function (_super) {
         __extends(IdentifiableType, _super);
         function IdentifiableType() {

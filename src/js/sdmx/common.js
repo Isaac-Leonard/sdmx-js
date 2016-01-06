@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("common", ["require", "exports", "commonreferences"], function (require, exports, commonreferences) {
+define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function (require, exports, commonreferences) {
     var TextType = (function () {
         function TextType(lang, text) {
             this.lang = "";

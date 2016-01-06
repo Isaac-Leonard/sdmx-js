@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("message", ["require", "exports", "structure"], function (require, exports, structure) {
+define("sdmx/message", ["require", "exports", "sdmx/structure"], function (require, exports, structure) {
     var DataMessage = (function () {
         function DataMessage() {
         }

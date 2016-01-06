@@ -1,4 +1,4 @@
-define("sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sdmx/structure", "sdmx/message", "sdmx/xml", "sdmx/common"], function (require, exports, commonreferences, sax, structure, message, xml, common) {
+define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sdmx/structure", "sdmx/message", "sdmx/xml", "sdmx/common"], function (require, exports, commonreferences, sax, structure, message, xml, common) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();

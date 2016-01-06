@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("xml", ["require", "exports", "moment"], function (require, exports, moment) {
+define("sdmx/xml", ["require", "exports", "moment"], function (require, exports, moment) {
     var XMLString = (function () {
         function XMLString(s) {
             this.value = null;

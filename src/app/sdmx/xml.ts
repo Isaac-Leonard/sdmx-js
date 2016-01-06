@@ -1,4 +1,4 @@
-/// <amd-module name='xml'/>
+/// <amd-module name='sdmx/xml'/>
 /// <reference path="../moment.d.ts"/>
 import moment = require("moment");
 export class XMLString {

@@ -1,6 +1,7 @@
-import message = require("message");
-import commonreferences = require("commonreferences");
-import structure = require("structure");
+/// <amd-module name='sdmx/interfaces'/>
+import message = require("sdmx/message");
+import commonreferences = require("sdmx/commonreferences");
+import structure = require("sdmx/structure");
 interface Queryable {
     getRegistry(): Registry;
     getRepository(): Repository;

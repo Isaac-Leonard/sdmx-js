@@ -1,4 +1,4 @@
-/// <amd-module name='structure'/>
+/// <amd-module name='sdmx/structure'/>
 /// <reference path="../collections.ts"/>
 import common = require("sdmx/common");
 import commonreferences = require("sdmx/commonreferences");

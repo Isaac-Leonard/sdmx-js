@@ -1,5 +1,5 @@
-/// <amd-module name='commonreferences'/>
-import xml = require("xml");
+/// <amd-module name='sdmx/commonreferences'/>
+import xml = require("sdmx/xml");
 export class NestedID extends xml.RegexXMLString {
 
     public static PATTERN: string = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";

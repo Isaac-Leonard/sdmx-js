@@ -1,3 +1,4 @@
+/// <amd-module name='sdmx/registry'/>
 ///<reference path="../collections.ts"/>
 import structure = require("sdmx/structure");
 import interfaces = require("sdmx/interfaces");

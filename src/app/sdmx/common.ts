@@ -1,6 +1,6 @@
-/// <amd-module name='common'/>
-import commonreferences = require("commonreferences");
-import xml = require("xml");
+/// <amd-module name='sdmx/common'/>
+import commonreferences = require("sdmx/commonreferences");
+import xml = require("sdmx/xml");
 export class TextType {
     private lang: string = "";
     private text: string = "";

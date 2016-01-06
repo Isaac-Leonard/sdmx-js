@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("commonreferences", ["require", "exports", "xml"], function (require, exports, xml) {
+define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (require, exports, xml) {
     var NestedID = (function (_super) {
         __extends(NestedID, _super);
         function NestedID(s) {
