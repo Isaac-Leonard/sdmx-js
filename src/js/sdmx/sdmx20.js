@@ -1,4 +1,4 @@
-define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", "message", "xml", "common"], function (require, exports, commonreferences, sax, structure, message, xml, common) {
+define("sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sdmx/structure", "sdmx/message", "sdmx/xml", "sdmx/common"], function (require, exports, commonreferences, sax, structure, message, xml, common) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -80,6 +80,7 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
             structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
             structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
             structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
+            alert(JSON.stringify(structures.getDataStructures()));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
@@ -256,7 +257,22 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
             conceptScheme.getItems().push(con);
         };
         Sdmx20StructureReaderTools.prototype.toKeyFamilies = function (keyFamiliesNode) {
-            return null;
+            if (keyFamiliesNode == null)
+                return null;
+            var dst = new structure.DataStructures();
+            var kfNodes = this.searchNodeName("KeyFamily", keyFamiliesNode.childNodes);
+            for (var i = 0; i < kfNodes.length; i++) {
+                dst.getDataStructures().push(this.toDataStructure(kfNodes[i]));
+            }
+            return dst;
+        };
+        Sdmx20StructureReaderTools.prototype.toDataStructure = function (keyFamilyNode) {
+            var dst = new structure.DataStructure();
+            dst.setNames(this.toNames(keyFamilyNode));
+            dst.setId(this.toID(keyFamilyNode));
+            dst.setAgencyID(this.toNestedNCNameID(keyFamilyNode));
+            dst.setVersion(this.toVersion(keyFamilyNode));
+            return dst;
         };
         Sdmx20StructureReaderTools.prototype.getStructureType = function () {
             return this.struct;
@@ -283,7 +299,6 @@ define("sdmx20", ["require", "exports", "commonreferences", "sax", "structure", 
                 }
             }
             if (result.length == 0) {
-                alert("cannot find any " + s + " in node");
             }
             return result;
         };

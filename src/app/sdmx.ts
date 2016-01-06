@@ -1,7 +1,7 @@
 /// <amd-module name='sdmx'/>
-import message = require("message");
-import interfaces = require("interfaces");
-import sdmx20 = require("sdmx20");
+import message = require("sdmx/message");
+import interfaces = require("sdmx/interfaces");
+import sdmx20 = require("sdmx/sdmx20");
 
 export class SdmxIO {
     public static LOCALE: string = "en";
@@ -19,7 +19,6 @@ export class SdmxIO {
             if (SdmxIO.PARSER[i].canParse(s)){ return SdmxIO.PARSER[i].parseStructure(s);}
             else {
                 alert("not my type");
-                
             }
         }
         return null;

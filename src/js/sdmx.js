@@ -1,4 +1,4 @@
-define("sdmx", ["require", "exports", "sdmx20"], function (require, exports, sdmx20) {
+define("sdmx", ["require", "exports", "sdmx/sdmx20"], function (require, exports, sdmx20) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }

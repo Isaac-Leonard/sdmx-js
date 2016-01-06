@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define("structure", ["require", "exports", "common", "commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
+define("structure", ["require", "exports", "sdmx/common", "sdmx/commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
     var IdentifiableType = (function (_super) {
         __extends(IdentifiableType, _super);
         function IdentifiableType() {
@@ -475,17 +475,255 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
         return ConceptType;
     })(ItemType);
     exports.ConceptType = ConceptType;
-    var Dataflow = (function () {
+    var StructureUsageType = (function (_super) {
+        __extends(StructureUsageType, _super);
+        function StructureUsageType() {
+            _super.call(this);
+            this.structure = null;
+        }
+        StructureUsageType.prototype.getStructure = function () {
+            return this.structure;
+        };
+        StructureUsageType.prototype.setStructure = function (struct) {
+            this.structure = struct;
+        };
+        return StructureUsageType;
+    })(MaintainableType);
+    exports.StructureUsageType = StructureUsageType;
+    var RepresentationType = (function () {
+        function RepresentationType() {
+        }
+        return RepresentationType;
+    })();
+    exports.RepresentationType = RepresentationType;
+    var Dataflow = (function (_super) {
+        __extends(Dataflow, _super);
         function Dataflow() {
+            _super.call(this);
         }
         return Dataflow;
-    })();
+    })(StructureUsageType);
     exports.Dataflow = Dataflow;
+    var Component = (function (_super) {
+        __extends(Component, _super);
+        function Component() {
+            _super.call(this);
+            this.conceptIdentity = null;
+            this.localRepresentation = null;
+        }
+        Component.prototype.getId = function () {
+            if (_super.prototype.getId.call(this) == null) {
+                if (this.conceptIdentity == null) {
+                    //Thread.dumpStack();
+                    return new commonreferences.ID("MISS");
+                }
+                return this.conceptIdentity.getId().asID();
+            }
+            return _super.prototype.getId.call(this);
+        };
+        Component.prototype.getConceptIdentity = function () {
+            return this.conceptIdentity;
+        };
+        Component.prototype.setConceptIdentity = function (ci) {
+            this.conceptIdentity = ci;
+        };
+        Component.prototype.getLocalRepresentation = function () {
+            return this.localRepresentation;
+        };
+        Component.prototype.setLocalRepresentation = function (lr) {
+            this.localRepresentation = lr;
+        };
+        return Component;
+    })(IdentifiableType);
+    exports.Component = Component;
+    var Dimension = (function (_super) {
+        __extends(Dimension, _super);
+        function Dimension() {
+            _super.apply(this, arguments);
+        }
+        return Dimension;
+    })(Component);
+    exports.Dimension = Dimension;
+    var TimeDimension = (function (_super) {
+        __extends(TimeDimension, _super);
+        function TimeDimension() {
+            _super.apply(this, arguments);
+        }
+        return TimeDimension;
+    })(Component);
+    exports.TimeDimension = TimeDimension;
+    var Attribute = (function (_super) {
+        __extends(Attribute, _super);
+        function Attribute() {
+            _super.apply(this, arguments);
+        }
+        return Attribute;
+    })(Component);
+    exports.Attribute = Attribute;
+    var PrimaryMeasure = (function (_super) {
+        __extends(PrimaryMeasure, _super);
+        function PrimaryMeasure() {
+            _super.apply(this, arguments);
+        }
+        return PrimaryMeasure;
+    })(Component);
+    exports.PrimaryMeasure = PrimaryMeasure;
+    var DimensionList = (function () {
+        function DimensionList() {
+            this.dimensions = [];
+            this.timeDimension = null;
+        }
+        DimensionList.prototype.getDimensions = function () { return this.dimensions; };
+        DimensionList.prototype.getTimeDimension = function () {
+            return this.timeDimension;
+        };
+        return DimensionList;
+    })();
+    exports.DimensionList = DimensionList;
+    var AttributeList = (function () {
+        function AttributeList() {
+            this.attributes = [];
+        }
+        AttributeList.prototype.getAttributes = function () { return this.attributes; };
+        return AttributeList;
+    })();
+    exports.AttributeList = AttributeList;
+    var MeasureList = (function () {
+        function MeasureList() {
+            this.primaryMeasure = null;
+        }
+        MeasureList.prototype.getPrimaryMeasure = function () { return this.primaryMeasure; };
+        return MeasureList;
+    })();
+    exports.MeasureList = MeasureList;
+    var DataStructureComponents = (function () {
+        function DataStructureComponents() {
+            this.dimensionList = null;
+            this.measureList = null;
+            this.attributeList = null;
+        }
+        DataStructureComponents.prototype.getDimensionList = function () {
+            return this.dimensionList;
+        };
+        DataStructureComponents.prototype.getMeasureList = function () {
+            return this.measureList;
+        };
+        DataStructureComponents.prototype.getAttributeList = function () {
+            return this.attributeList;
+        };
+        return DataStructureComponents;
+    })();
+    exports.DataStructureComponents = DataStructureComponents;
     var DataStructure = (function (_super) {
         __extends(DataStructure, _super);
         function DataStructure() {
             _super.apply(this, arguments);
+            this.components = null;
         }
+        DataStructure.prototype.getDataStructureComponents = function () {
+            return this.components;
+        };
+        DataStructure.prototype.setDataStructureComponents = function (components) {
+            this.components = components;
+        };
+        DataStructure.prototype.dump = function () {
+        };
+        DataStructure.prototype.findComponentString = function (col) {
+            return this.findComponent(new commonreferences.ID(col));
+        };
+        DataStructure.prototype.findComponent = function (col) {
+            /*
+            for (DimensionType dim : components.getDimensionList().getDimensions()) {
+                if (dim.identifiesMe(col)) {
+                    return dim;
+                }
+            }
+            for (AttributeType dim : components.getAttributeList().getAttributes()) {
+                if (dim.identifiesMe(col)) {
+                    return dim;
+                }
+            }
+            //System.out.println("Measure3="+components.getMeasureList().getMeasures().size());
+            if (components.getDimensionList().getMeasureDimension() != null && components.getDimensionList().getMeasureDimension().identifiesMe(col)) {
+                return components.getDimensionList().getMeasureDimension();
+            }
+            TimeDimensionType dim = components.getDimensionList().getTimeDimension();
+            if (dim.identifiesMe(col)) {
+                return dim;
+            }
+            PrimaryMeasure dim2 = components.getMeasureList().getPrimaryMeasure();
+            if (dim2.identifiesMe(col)) {
+                return dim2;
+            }
+            */
+            return null;
+        };
+        DataStructure.prototype.asReference = function () {
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(this.getAgencyID());
+            ref.setId(this.getId());
+            ref.setVersion(this.getVersion());
+            var reference = new commonreferences.Reference(ref, null);
+            return reference;
+        };
+        DataStructure.prototype.asDataflow = function () {
+            var dataFlow = new Dataflow();
+            dataFlow.setNames(this.getNames());
+            dataFlow.setDescriptions(this.getDescriptions());
+            dataFlow.setStructure(this.asReference());
+            dataFlow.setAnnotations(this.getAnnotations());
+            dataFlow.setAgencyID(this.getAgencyID());
+            dataFlow.setId(this.getId());
+            dataFlow.setVersion(this.getVersion());
+            return dataFlow;
+        };
+        DataStructure.prototype.isDimension = function (s) {
+            for (var i = 0; i < this.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+                var d = this.getDataStructureComponents().getDimensionList().getDimensions()[i];
+                if (s == d.getId().toString()) {
+                    return true;
+                }
+            }
+            if (s == this.getDataStructureComponents().getDimensionList().getTimeDimension().getId().toString()) {
+                return true;
+            }
+            return false;
+        };
+        DataStructure.prototype.isTimeDimension = function (s) {
+            if (s == this.getDataStructureComponents().getDimensionList().getTimeDimension().getId().toString()) {
+                return true;
+            }
+            return false;
+        };
+        DataStructure.prototype.isAttribute = function (s) {
+            for (var i = 0; i < this.getDataStructureComponents().getAttributeList().getAttributes().length; i++) {
+                if (s == this.getDataStructureComponents().getAttributeList().getAttributes()[i].getId().toString()) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        DataStructure.prototype.isPrimaryMeasure = function (s) {
+            if ("OBS_VALUE" == s)
+                return true;
+            else if (this.getDataStructureComponents().getMeasureList().getPrimaryMeasure().getId().toString() == s) {
+                return true;
+            }
+            return false;
+        };
+        DataStructure.prototype.getKeyPosition = function (s) {
+            var i = 0;
+            for (var j = 0; j < this.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+                if (this.getDataStructureComponents().getDimensionList().getDimensions()[i].getId().equalsString(s)) {
+                    return i;
+                }
+                i++;
+            }
+            if (s == this.getDataStructureComponents().getDimensionList().getTimeDimension().getId().toString()) {
+                return i;
+            }
+            throw new Error("Dimension " + s + " not found in DataStructure:" + this.getId().toString());
+        };
         return DataStructure;
     })(MaintainableType);
     exports.DataStructure = DataStructure;
@@ -682,7 +920,7 @@ define("structure", ["require", "exports", "common", "commonreferences", "sdmx"]
             }
             return null;
         };
-        DataStructures.prototype.findCodelistURI = function (uri) {
+        DataStructures.prototype.findDataStructureURI = function (uri) {
             for (var i = 0; i < this.datastructures.length; i++) {
                 if (this.datastructures[i].identifiesMeURI(uri)) {
                     return this.datastructures[i];

@@ -1,11 +1,12 @@
 /// <amd-module name='structure'/>
-/// <reference path="collections.ts"/>
-import common = require("common");
-import commonreferences = require("commonreferences");
-import xml = require("xml");
-import structure = require("structure");
+/// <reference path="../collections.ts"/>
+import common = require("sdmx/common");
+import commonreferences = require("sdmx/commonreferences");
+import xml = require("sdmx/xml");
+import structure = require("sdmx/structure");
 import sdmx = require("sdmx");
-import message = require("message");
+import message = require("sdmx/message");
+import interfaces = require("sdmx/interfaces");
 
 export class IdentifiableType extends common.AnnotableType {
     private id: commonreferences.ID;
@@ -488,13 +489,212 @@ export class ConceptSchemeType extends ItemSchemeType {
 export class ConceptType extends ItemType {
 
 }
-export class Dataflow {
+export class StructureUsageType extends MaintainableType {
+    private structure: commonreferences.Reference = null;
 
+    constructor() {
+        super();
+    }
 
+    public getStructure(): commonreferences.Reference {
+        return this.structure;
+    }
+    public setStructure(struct: commonreferences.Reference) {
+        this.structure = struct;
 
+    }
+}
+export class RepresentationType {
+    
+}
+export class Dataflow extends StructureUsageType {
+    constructor() {
+        super();
+    }
+}
+export class Component extends IdentifiableType {
+    private conceptIdentity: commonreferences.Reference = null;
+    private localRepresentation:RepresentationType = null;
+    
+    public getId():commonreferences.ID {
+        if( super.getId()==null ) {
+            if( this.conceptIdentity==null ) {
+                //Thread.dumpStack();
+                return new commonreferences.ID("MISS");
+            }
+            return this.conceptIdentity.getId().asID();
+        }
+        return super.getId();
+    }
+    constructor(){
+        super();
+    }
+    public getConceptIdentity() {
+        return this.conceptIdentity; }
+    public setConceptIdentity(ci: commonreferences.Reference){
+        this.conceptIdentity=ci;
+    }
+    public getLocalRepresentation() {
+        return this.localRepresentation;
+    }
+    public setLocalRepresentation(lr:RepresentationType) {
+        this.localRepresentation=lr;
+    }
+}
+export class Dimension extends Component {
+
+}
+export class TimeDimension extends Component {
+
+}
+export class Attribute extends Component {
+
+}
+export class PrimaryMeasure extends Component {
+
+}
+export class DimensionList {
+    private dimensions: Array<Dimension> = [];
+    private timeDimension: TimeDimension = null;
+    public getDimensions(): Array<Dimension> { return this.dimensions; }
+    public getTimeDimension(): TimeDimension {
+        return this.timeDimension;
+    }
+}
+export class AttributeList {
+    private attributes: Array<Attribute> = [];
+    public getAttributes(): Array<Attribute> { return this.attributes; }
+}
+export class MeasureList {
+    private primaryMeasure:PrimaryMeasure = null;
+    public getPrimaryMeasure(): PrimaryMeasure { return this.primaryMeasure;}
+
+}
+export class DataStructureComponents {
+    private dimensionList: DimensionList = null;
+    private measureList: MeasureList = null;
+    private attributeList: AttributeList = null;
+    public getDimensionList(): DimensionList {
+        return this.dimensionList;
+    }
+    public getMeasureList(): MeasureList {
+        return this.measureList;
+    }
+    public getAttributeList(): AttributeList {
+        return this.attributeList;
+    }
 }
 export class DataStructure extends MaintainableType {
 
+    private components: DataStructureComponents = null;
+
+    public getDataStructureComponents(): DataStructureComponents {
+        return this.components;
+    }
+
+    public setDataStructureComponents(components: DataStructureComponents) {
+        this.components = components;
+    }
+
+    public dump() {
+    }
+
+    public findComponentString(col: string): Component {
+        return this.findComponent(new commonreferences.ID(col));
+    }
+
+    public findComponent(col: commonreferences.ID): Component {
+        /*
+        for (DimensionType dim : components.getDimensionList().getDimensions()) {
+            if (dim.identifiesMe(col)) {
+                return dim;
+            }
+        }
+        for (AttributeType dim : components.getAttributeList().getAttributes()) {
+            if (dim.identifiesMe(col)) {
+                return dim;
+            }
+        }
+        //System.out.println("Measure3="+components.getMeasureList().getMeasures().size());
+        if (components.getDimensionList().getMeasureDimension() != null && components.getDimensionList().getMeasureDimension().identifiesMe(col)) {
+            return components.getDimensionList().getMeasureDimension();
+        }
+        TimeDimensionType dim = components.getDimensionList().getTimeDimension();
+        if (dim.identifiesMe(col)) {
+            return dim;
+        }
+        PrimaryMeasure dim2 = components.getMeasureList().getPrimaryMeasure();
+        if (dim2.identifiesMe(col)) {
+            return dim2;
+        }
+        */
+        return null;
+    }
+
+    public asReference(): commonreferences.Reference {
+        var ref: commonreferences.Ref = new commonreferences.Ref()
+        ref.setAgencyId(this.getAgencyID());
+        ref.setId(this.getId());
+        ref.setVersion(this.getVersion());
+        var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
+        return reference;
+    }
+
+    public asDataflow(): Dataflow {
+        var dataFlow: Dataflow = new Dataflow();
+        dataFlow.setNames(this.getNames());
+        dataFlow.setDescriptions(this.getDescriptions());
+        dataFlow.setStructure(this.asReference());
+        dataFlow.setAnnotations(this.getAnnotations());
+        dataFlow.setAgencyID(this.getAgencyID());
+        dataFlow.setId(this.getId());
+        dataFlow.setVersion(this.getVersion());
+        return dataFlow;
+    }
+    public isDimension(s: string): boolean {
+        for (var i: number = 0; i < this.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+            var d: Dimension = this.getDataStructureComponents().getDimensionList().getDimensions()[i];
+            if (s == d.getId().toString()) {
+                return true;
+            }
+        }
+        if (s == this.getDataStructureComponents().getDimensionList().getTimeDimension().getId().toString()) {
+            return true;
+        }
+        return false;
+    }
+    public isTimeDimension(s: string): boolean {
+        if (s == this.getDataStructureComponents().getDimensionList().getTimeDimension().getId().toString()) {
+            return true;
+        }
+        return false;
+    }
+    public isAttribute(s: String): boolean {
+        for (var i: number = 0; i < this.getDataStructureComponents().getAttributeList().getAttributes().length; i++) {
+            if (s == this.getDataStructureComponents().getAttributeList().getAttributes()[i].getId().toString()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public isPrimaryMeasure(s: string): boolean {
+        if ("OBS_VALUE" == s) return true;
+        else if (this.getDataStructureComponents().getMeasureList().getPrimaryMeasure().getId().toString() == s) { return true; }
+        return false;
+    }
+    public getKeyPosition(s: string): number {
+        var i: number = 0;
+        for (var j: number = 0; j < this.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+            if (this.getDataStructureComponents().getDimensionList().getDimensions()[i].getId().equalsString(s)) {
+                return i;
+            }
+            i++;
+        }
+        if (s == this.getDataStructureComponents().getDimensionList().getTimeDimension().getId().toString()) {
+            return i;
+        }
+        throw new Error("Dimension " + s + " not found in DataStructure:" + this.getId().toString());
+    }
 }
 
 export class CodeLists {
@@ -663,7 +863,7 @@ export class Concepts {
         }
     }
 }
-export class DataStructures{
+export class DataStructures {
     private datastructures: Array<DataStructure> = [];
 
 
@@ -699,7 +899,7 @@ export class DataStructures{
         }
         return null;
     }
-    findCodelistURI(uri: xml.anyURI): DataStructure {
+    findDataStructureURI(uri: xml.anyURI): DataStructure {
         for (var i: number = 0; i < this.datastructures.length; i++) {
             if (this.datastructures[i].identifiesMeURI(uri)) {
                 return this.datastructures[i];
@@ -719,7 +919,7 @@ export class DataStructures{
     }
 }
 
-export class Structures {
+export class Structures implements interfaces.Registry {
     private codelists: CodeLists = null;
     private concepts: Concepts = null;
     private datastructures: DataStructures = null;

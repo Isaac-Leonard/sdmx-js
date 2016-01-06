@@ -1,12 +1,12 @@
 /// <amd-module name='sdmx20'/>
-///<reference path="sax.d.ts"/>
-import commonreferences = require("commonreferences");
+///<reference path="../sax.d.ts"/>
+import commonreferences = require("sdmx/commonreferences");
 import sax = require("sax");
-import structure = require("structure");
-import message = require("message");
-import interfaces = require("interfaces");
-import xml = require("xml");
-import common = require("common");
+import structure = require("sdmx/structure");
+import message = require("sdmx/message");
+import interfaces = require("sdmx/interfaces");
+import xml = require("sdmx/xml");
+import common = require("sdmx/common");
 export function parseXml(s: string): any {
     var parseXml: DOMParser;
     parseXml = new DOMParser();
@@ -87,6 +87,7 @@ export class Sdmx20StructureReaderTools {
         structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
         structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
         structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
+        alert(JSON.stringify(structures.getDataStructures()));
         return this.struct;
     }
     toHeader(headerNode: any) {
@@ -255,8 +256,23 @@ export class Sdmx20StructureReaderTools {
         conceptScheme.getItems().push(con);
     }
     toKeyFamilies(keyFamiliesNode: any) {
-        return null;
+        if (keyFamiliesNode==null ) return null;
+        var dst:structure.DataStructures = new structure.DataStructures();
+        var kfNodes = this.searchNodeName("KeyFamily", keyFamiliesNode.childNodes);
+        for (var i: number = 0; i < kfNodes.length; i++) {
+            dst.getDataStructures().push(this.toDataStructure(kfNodes[i]));
+        }
+        return dst;
     } 
+    toDataStructure(keyFamilyNode: any): structure.DataStructure {
+        var dst: structure.DataStructure = new structure.DataStructure();
+        dst.setNames(this.toNames(keyFamilyNode));
+        dst.setId(this.toID(keyFamilyNode));
+        dst.setAgencyID(this.toNestedNCNameID(keyFamilyNode));
+        dst.setVersion(this.toVersion(keyFamilyNode));
+        return dst;
+    }
+    
     getStructureType(): message.StructureType {
         return this.struct;
     }
@@ -282,7 +298,7 @@ export class Sdmx20StructureReaderTools {
             }
         }
         if (result.length == 0) {
-            alert("cannot find any " + s + " in node");
+            //alert("cannot find any " + s + " in node");
         }
         return result;
     }
