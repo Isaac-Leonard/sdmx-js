@@ -71,3 +71,6 @@ export class DateTime {
         return this.baseString;
     }
 }
+export class duration {
+    
+}

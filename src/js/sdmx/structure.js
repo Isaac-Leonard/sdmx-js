@@ -490,12 +490,6 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         return StructureUsageType;
     })(MaintainableType);
     exports.StructureUsageType = StructureUsageType;
-    var RepresentationType = (function () {
-        function RepresentationType() {
-        }
-        return RepresentationType;
-    })();
-    exports.RepresentationType = RepresentationType;
     var Dataflow = (function (_super) {
         __extends(Dataflow, _super);
         function Dataflow() {
@@ -552,6 +546,14 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         return TimeDimension;
     })(Component);
     exports.TimeDimension = TimeDimension;
+    var MeasureDimension = (function (_super) {
+        __extends(MeasureDimension, _super);
+        function MeasureDimension() {
+            _super.apply(this, arguments);
+        }
+        return MeasureDimension;
+    })(Component);
+    exports.MeasureDimension = MeasureDimension;
     var Attribute = (function (_super) {
         __extends(Attribute, _super);
         function Attribute() {
@@ -572,10 +574,21 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         function DimensionList() {
             this.dimensions = [];
             this.timeDimension = null;
+            this.measureDimension = null;
         }
         DimensionList.prototype.getDimensions = function () { return this.dimensions; };
+        DimensionList.prototype.setDimensions = function (dims) {
+            this.dimensions = dims;
+        };
+        DimensionList.prototype.getMeasureDimension = function () { return this.measureDimension; };
+        DimensionList.prototype.setMeasureDimension = function (md) {
+            this.measureDimension = md;
+        };
         DimensionList.prototype.getTimeDimension = function () {
             return this.timeDimension;
+        };
+        DimensionList.prototype.setTimeDimension = function (td) {
+            this.timeDimension = td;
         };
         return DimensionList;
     })();
@@ -585,6 +598,9 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.attributes = [];
         }
         AttributeList.prototype.getAttributes = function () { return this.attributes; };
+        AttributeList.prototype.setAttributes = function (at) {
+            this.attributes = at;
+        };
         return AttributeList;
     })();
     exports.AttributeList = AttributeList;
@@ -593,6 +609,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.primaryMeasure = null;
         }
         MeasureList.prototype.getPrimaryMeasure = function () { return this.primaryMeasure; };
+        MeasureList.prototype.setPrimaryMeasure = function (pm) { this.primaryMeasure = pm; };
         return MeasureList;
     })();
     exports.MeasureList = MeasureList;
@@ -605,11 +622,20 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         DataStructureComponents.prototype.getDimensionList = function () {
             return this.dimensionList;
         };
+        DataStructureComponents.prototype.setDimensionList = function (dl) {
+            this.dimensionList = dl;
+        };
         DataStructureComponents.prototype.getMeasureList = function () {
             return this.measureList;
         };
+        DataStructureComponents.prototype.setMeasureList = function (ml) {
+            this.measureList = ml;
+        };
         DataStructureComponents.prototype.getAttributeList = function () {
             return this.attributeList;
+        };
+        DataStructureComponents.prototype.setAttributeList = function (al) {
+            this.attributeList = al;
         };
         return DataStructureComponents;
     })();
@@ -1019,6 +1045,174 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         return Structures;
     })();
     exports.Structures = Structures;
+    var TextFormatType = (function () {
+        function TextFormatType() {
+            this.textType = null;
+            this.isSequence = null;
+            this.interval = null;
+            this.startValue = null;
+            this.endValue = null;
+            this.timeInterval = null;
+            this.startTime = null;
+            this.endTime = null;
+            this.minLength = null;
+            this.maxLength = null;
+            this.minValue = null;
+            this.maxValue = null;
+            this.decimals = null;
+            this.pattern = null;
+            this.isMultiLingual = null;
+        }
+        TextFormatType.prototype.getTextType = function () {
+            return this.textType;
+        };
+        TextFormatType.prototype.getIsSequence = function () {
+            return this.isSequence;
+        };
+        TextFormatType.prototype.getInterval = function () {
+            return this.interval;
+        };
+        TextFormatType.prototype.getStartValue = function () {
+            return this.startValue;
+        };
+        TextFormatType.prototype.getEndValue = function () {
+            return this.endValue;
+        };
+        TextFormatType.prototype.getTimeInterval = function () {
+            return this.timeInterval;
+        };
+        TextFormatType.prototype.getStartTime = function () {
+            return this.startTime;
+        };
+        TextFormatType.prototype.getEndTime = function () {
+            return this.endTime;
+        };
+        TextFormatType.prototype.getMinLength = function () {
+            return this.minLength;
+        };
+        TextFormatType.prototype.getMaxLength = function () {
+            return this.maxLength;
+        };
+        TextFormatType.prototype.getDecimals = function () {
+            return this.decimals;
+        };
+        TextFormatType.prototype.getPattern = function () {
+            return this.pattern;
+        };
+        TextFormatType.prototype.getIsMultilingual = function () {
+            return this.isMultiLingual;
+        };
+        TextFormatType.prototype.setTextType = function (t) {
+            this.textType = t;
+        };
+        TextFormatType.prototype.setIsSequence = function (b) {
+            this.isSequence = b;
+        };
+        TextFormatType.prototype.setInterval = function (n) {
+            this.interval = n;
+        };
+        TextFormatType.prototype.setStartValue = function (n) {
+            this.startValue = n;
+        };
+        TextFormatType.prototype.setEndValue = function (n) {
+            this.endValue = n;
+        };
+        TextFormatType.prototype.setTimeInterval = function (d) {
+            this.timeInterval = d;
+        };
+        TextFormatType.prototype.setStartTime = function (t) {
+            this.startTime = t;
+        };
+        TextFormatType.prototype.setEndTime = function (t) {
+            this.endTime = t;
+        };
+        TextFormatType.prototype.setMinLength = function (n) {
+            this.minLength = n;
+        };
+        TextFormatType.prototype.setMaxLength = function (n) {
+            this.maxLength = n;
+        };
+        TextFormatType.prototype.setDecimals = function (n) {
+            this.decimals = n;
+        };
+        TextFormatType.prototype.setPattern = function (s) {
+            this.pattern = s;
+        };
+        TextFormatType.prototype.setIsMultilingual = function (b) {
+            this.isMultiLingual = b;
+        };
+        return TextFormatType;
+    })();
+    exports.TextFormatType = TextFormatType;
+    var BasicComponentTextFormatType = (function (_super) {
+        __extends(BasicComponentTextFormatType, _super);
+        function BasicComponentTextFormatType() {
+            _super.apply(this, arguments);
+        }
+        return BasicComponentTextFormatType;
+    })(TextFormatType);
+    exports.BasicComponentTextFormatType = BasicComponentTextFormatType;
+    var SimpleComponentTextFormatType = (function (_super) {
+        __extends(SimpleComponentTextFormatType, _super);
+        function SimpleComponentTextFormatType() {
+            _super.apply(this, arguments);
+        }
+        return SimpleComponentTextFormatType;
+    })(BasicComponentTextFormatType);
+    exports.SimpleComponentTextFormatType = SimpleComponentTextFormatType;
+    var CodededTextFormatType = (function (_super) {
+        __extends(CodededTextFormatType, _super);
+        function CodededTextFormatType() {
+            _super.apply(this, arguments);
+        }
+        return CodededTextFormatType;
+    })(SimpleComponentTextFormatType);
+    exports.CodededTextFormatType = CodededTextFormatType;
+    var RepresentationType = (function () {
+        function RepresentationType() {
+            this.textFormat = null;
+            this.enumeration = null;
+            this.enumerationFormat = null;
+        }
+        /**
+         * @return the textFormat
+         */
+        RepresentationType.prototype.getTextFormat = function () {
+            return this.textFormat;
+        };
+        /**
+         * @param textFormat the textFormat to set
+         */
+        RepresentationType.prototype.setTextFormat = function (textFormat) {
+            this.textFormat = textFormat;
+        };
+        /**
+         * @return the enumeration
+         */
+        RepresentationType.prototype.getEnumeration = function () {
+            return this.enumeration;
+        };
+        /**
+         * @param enumeration the enumeration to set
+         */
+        RepresentationType.prototype.setEnumeration = function (enumeration) {
+            this.enumeration = enumeration;
+        };
+        /**
+         * @return the enumerationForma
+         */
+        RepresentationType.prototype.getEnumerationFormat = function () {
+            return this.enumerationFormat;
+        };
+        /**
+         * @param enumerationForma the enumerationForma to set
+         */
+        RepresentationType.prototype.setEnumerationFormat = function (enumerationForma) {
+            this.enumerationFormat = enumerationForma;
+        };
+        return RepresentationType;
+    })();
+    exports.RepresentationType = RepresentationType;
 });
 
 //# sourceMappingURL=structure.js.map

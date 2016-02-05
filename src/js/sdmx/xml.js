@@ -78,6 +78,12 @@ define("sdmx/xml", ["require", "exports", "moment"], function (require, exports,
         return DateTime;
     })();
     exports.DateTime = DateTime;
+    var duration = (function () {
+        function duration() {
+        }
+        return duration;
+    })();
+    exports.duration = duration;
 });
 
 //# sourceMappingURL=xml.js.map

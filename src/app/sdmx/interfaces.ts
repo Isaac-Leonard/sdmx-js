@@ -39,5 +39,6 @@ export interface SdmxParserProvider {
     isData(header: string): boolean;
     isMetadata(header: string): boolean;
     parseStructure(input: string): message.StructureType;
+    parseStructureWithRegistry(input: string,reg:Registry): message.StructureType;
     parseData(input: string): message.DataMessage;
 }

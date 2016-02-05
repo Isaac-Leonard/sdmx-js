@@ -5,6 +5,7 @@ import sax = require("sax");
 import structure = require("sdmx/structure");
 import message = require("sdmx/message");
 import interfaces = require("sdmx/interfaces");
+import registry = require("sdmx/registry");
 import xml = require("sdmx/xml");
 import common = require("sdmx/common");
 export function parseXml(s: string): any {
@@ -37,8 +38,13 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
     isMetadata(header: string): boolean {
         return false;
     }
+    parseStructureWithRegistry(input: string, reg: interfaces.Registry): message.StructureType {
+        var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input, reg);
+        return srt.getStructureType();
+
+    }
     parseStructure(input: string): message.StructureType {
-        var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input);
+        var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input, null);
         return srt.getStructureType();
 
     }
@@ -72,9 +78,12 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
     }
 }
 export class Sdmx20StructureReaderTools {
+    private registry: interfaces.Registry = null;
     private struct: message.StructureType = null;
+    private currentKeyFamilyAgency: string = null;
 
-    constructor(s: string) {
+    constructor(s: string, reg: interfaces.Registry) {
+        this.registry = reg;
         var dom: any = parseXml(s);
         this.struct = this.toStructureType(dom.documentElement);
     }
@@ -82,12 +91,17 @@ export class Sdmx20StructureReaderTools {
         this.struct = new message.StructureType();
         var structures = new structure.Structures();
         this.struct.setStructures(structures);
+        if (this.registry==null ) {
+            this.registry = this.struct;
+            
+        }else{
+            this.registry = new registry.DoubleRegistry(this.registry,this.struct);
+        }
         var childNodes = structureNode.childNodes;
         this.struct.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
         structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
         structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
         structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
-        alert(JSON.stringify(structures.getDataStructures()));
         return this.struct;
     }
     toHeader(headerNode: any) {
@@ -256,23 +270,348 @@ export class Sdmx20StructureReaderTools {
         conceptScheme.getItems().push(con);
     }
     toKeyFamilies(keyFamiliesNode: any) {
-        if (keyFamiliesNode==null ) return null;
-        var dst:structure.DataStructures = new structure.DataStructures();
+        if (keyFamiliesNode == null) return null;
+        var dst: structure.DataStructures = new structure.DataStructures();
         var kfNodes = this.searchNodeName("KeyFamily", keyFamiliesNode.childNodes);
         for (var i: number = 0; i < kfNodes.length; i++) {
             dst.getDataStructures().push(this.toDataStructure(kfNodes[i]));
         }
         return dst;
-    } 
+    }
     toDataStructure(keyFamilyNode: any): structure.DataStructure {
         var dst: structure.DataStructure = new structure.DataStructure();
         dst.setNames(this.toNames(keyFamilyNode));
         dst.setId(this.toID(keyFamilyNode));
+        this.currentKeyFamilyAgency = keyFamilyNode.getAttribute("agencyID");
         dst.setAgencyID(this.toNestedNCNameID(keyFamilyNode));
         dst.setVersion(this.toVersion(keyFamilyNode));
+
+        dst.setDataStructureComponents(this.toDataStructureComponents(this.findNodeName("Components", keyFamilyNode.childNodes)));
+        this.recurseDomChildren(keyFamilyNode, true);
         return dst;
     }
-    
+    toDataStructureComponents(dsc: any): structure.DataStructureComponents {
+        var components: structure.DataStructureComponents = new structure.DataStructureComponents();
+        var dimensions = this.searchNodeName("Dimension", dsc.childNodes);
+        var timedimension = this.findNodeName("TimeDimension", dsc.childNodes);
+        var primaryMeasure = this.findNodeName("PrimaryMeasure", dsc.childNodes);
+        var attributes = this.searchNodeName("Attribute", dsc.childNodes);
+        components.setDimensionList(this.toDimensionList(dimensions));
+        this.toTimeDimension(components,timedimension);
+        this.toPrimaryMeasure(components,primaryMeasure);
+        components.setAttributeList(this.toAttributeList(attributes));
+        for (var i: number = 0; i < dimensions.length; i++) {
+            this.recurseDomChildren(dimensions[i].childNodes, true);
+        }
+        this.recurseDomChildren(timedimension.childNodes, true);
+        this.recurseDomChildren(primaryMeasure.childNodes, true);
+        for (var i: number = 0; i < attributes.length; i++) {
+            this.recurseDomChildren(attributes[i].childNodes, true);
+        }
+        return components;
+    }
+    toDimensionList(dims: Array<any>): structure.DimensionList {
+        var dimList: structure.DimensionList = new structure.DimensionList();
+        var dimArray: Array<structure.Dimension> = [];
+        for (var i: number = 0; i < dims.length; i++) {
+            if (dims[i].getAttribute("isMeasureDimension") == "true") {
+                dimList.setMeasureDimension(this.toMeasureDimension(dims[i]));
+            } else {
+                dimArray.push(this.toDimension(dims[i]));
+            }
+        }
+        dimList.setDimensions(dimArray);
+        return dimList;
+    }
+    toAttributeList(dims: Array<any>): structure.AttributeList {
+        var dimList: structure.AttributeList = new structure.AttributeList();
+        var dimArray: Array<structure.Attribute> = [];
+        for (var i: number = 0; i < dims.length; i++) {
+            dimArray.push(this.toAttribute(dims[i]));
+        }
+        dimList.setAttributes(dimArray);
+        return dimList;
+    }
+    toTimeDimension(comps: structure.DataStructureComponents, dim: any) {
+        var dim2: structure.TimeDimension = new structure.TimeDimension();
+        var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
+        var cl: structure.Codelist = this.getCodelist(dim);
+        var con: structure.ConceptType = this.getConcept(cs,dim);
+        if( con!=null ) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(cs.getAgencyID());
+            ref.setMaintainableParentId(cs.getId());
+            ref.setVersion(cs.getVersion());
+            ref.setId(con.getId());
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            dim2.setConceptIdentity(reference);
+        }
+        if( cl!=null ) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
+        }else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        }
+        comps.getDimensionList().setTimeDimension(dim2);
+    }
+    toPrimaryMeasure(comps: structure.DataStructureComponents, dim: any) {
+        var dim2: structure.PrimaryMeasure = new structure.PrimaryMeasure();
+        var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
+        var cl: structure.Codelist = this.getCodelist(dim);
+        var con: structure.ConceptType = this.getConcept(cs,dim);
+        if( con!=null ) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(cs.getAgencyID());
+            ref.setMaintainableParentId(cs.getId());
+            ref.setVersion(cs.getVersion());
+            ref.setId(con.getId());
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            dim2.setConceptIdentity(reference);
+        }
+        if( cl!=null ) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
+        }else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        }
+        comps.getMeasureList().setPrimaryMeasure(dim2);
+    }
+    toDimension(dim: any): structure.Dimension {
+        var dim2: structure.Dimension = new structure.Dimension();
+        var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
+        var cl: structure.Codelist = this.getCodelist(dim);
+        var con: structure.ConceptType = this.getConcept(cs,dim);
+        if( con!=null ) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(cs.getAgencyID());
+            ref.setMaintainableParentId(cs.getId());
+            ref.setVersion(cs.getVersion());
+            ref.setId(con.getId());
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            dim2.setConceptIdentity(reference);
+        }
+        if( cl!=null ) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
+        }else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        }
+        return dim2;
+    }
+    toAttribute(dim: any): structure.Attribute {
+        var dim2: structure.Attribute = new structure.Attribute();
+        var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
+        var cl: structure.Codelist = this.getCodelist(dim);
+        var con: structure.ConceptType = this.getConcept(cs,dim);
+        if( con!=null ) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(cs.getAgencyID());
+            ref.setMaintainableParentId(cs.getId());
+            ref.setVersion(cs.getVersion());
+            ref.setId(con.getId());
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            dim2.setConceptIdentity(reference);
+        }
+        if( cl!=null ) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
+        }else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        }
+        return dim2;
+    }
+    public toTextFormatType(tft:any):structure.TextFormatType {
+        if (tft == null) {
+            return null;
+        }
+        var tft2:structure.TextFormatType = new structure.TextFormatType();
+        if (tft.getAttribute("decimals") != null) {
+            tft2.setDecimals(parseInt(tft.getAttribute("decimals")));
+        }
+        if( tft.getAttribute("endValue")!=null){tft2.setEndValue(parseInt(tft.getAttribute("endValue")));}
+        if( tft.getAttribute("isSequence")!=null){
+            tft2.setIsSequence(tft.getAttribute("isSequence")=="true");
+            if( tft.getAttribute("interval")!=null){tft2.setInterval(parseInt(tft.getAttribute("interval")));}
+        }
+        if (tft.getAttribute("maxLength") != null) {
+            tft2.setMaxLength(parseInt(tft.getAttribute("maxLength")));
+        }
+        if (tft.getAttribute("pattern") != null) {
+            tft2.setPattern(tft.getAttribute("pattern"));
+        }
+        if( tft.getAttribute("startValue")){tft2.setStartValue(parseInt(tft.getAttribute("startValue")));}
+        if (tft.getAttribute("textType") != null) {
+            tft2.setTextType(common.DataType.fromStringWithException(tft.getAttribute("textType")));
+        }
+        if (tft.getAttribute("timeInterval")!=null ) {
+        // DO ME!!!!
+            tft2.setTimeInterval(null);
+        }
+        return tft2;
+    }
+    toLocalRepresentation(codelist: structure.Codelist, ttf:structure.TextFormatType):structure.RepresentationType {
+        var  lr2:structure.RepresentationType = new structure.RepresentationType();
+        lr2.setTextFormat(ttf);
+        if (codelist != null) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(codelist.getAgencyID());
+            ref.setMaintainableParentId(codelist.getId());
+            ref.setVersion(codelist.getVersion());
+            var reference = new commonreferences.Reference(ref,null);
+            lr2.setEnumeration(reference);
+        }
+        return lr2;
+    }
+    getCodelist(dim: any): structure.Codelist {
+        if (dim.getAttribute("codelist") == null) {
+            return null;
+        }
+        var code: structure.Codelist = null;
+        if (dim.getAttribute("codelistAgency") == null && dim.getAttribute("codelistVersion") == null) {
+            // All we have is a codelist name
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency));
+            ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
+            ref.setVersion(null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
+            code = this.registry.findCodelist(reference);
+        } else if (dim.getAttribute("codelistAgency") != null && dim.getAttribute("codelistVersion") != null) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(new commonreferences.NestedNCNameID(dim.getAttribute("codelistAgency")));
+            ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
+            ref.setVersion(new commonreferences.Version(dim.getAttribute("codelistVersion")));
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            code = this.registry.findCodelist(reference);
+        } else if (dim.getAttribute("codelistAgency") != null && dim.getAttribute("codelistVersion") == null) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(new commonreferences.NestedNCNameID(dim.getAttribute("codelistAgency")));
+            ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
+            ref.setVersion(null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            code = this.registry.findCodelist(reference);
+        }
+        return code;
+    }
+    getConceptScheme(dim: any): structure.ConceptSchemeType {
+        if ((dim.getAttribute("conceptSchemeAgency") != null || dim.getAttribute("conceptAgency") != null) && dim.getAttribute("conceptSchemeRef") != null && dim.getAttribute("conceptRef") != null) {
+            var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(dim.getAttribute("conceptSchemeAgency") == null ? dim.getAttribute("conceptAgency") : dim.getAttribute("conceptSchemeAgency"));
+            var csi: commonreferences.ID = new commonreferences.ID(dim.getAttribute("conceptSchemeRef"));
+            var vers: commonreferences.Version = dim.getAttribute("conceptVersion") == null ? null : new commonreferences.Version(dim.getAttribute("conceptVersion"));
+            var csref: commonreferences.Ref = new commonreferences.Ref();
+            csref.setAgencyId(csa);
+            csref.setMaintainableParentId(csi);
+            csref.setVersion(vers);
+            var reference: commonreferences.Reference = new commonreferences.Reference(csref, null);
+            var cst: structure.ConceptSchemeType = null;
+            cst = this.struct.findConceptScheme(reference);
+            if (cst != null) return cst;
+            cst = this.registry.findConceptScheme(reference);
+            if (cst != null) return cst;
+        } else if (dim.getAttribute("conceptSchemeRef") != null && dim.getAttribute("conceptRef") != null) {
+            var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
+            var csi: commonreferences.ID = new commonreferences.ID(dim.getAttribute("conceptSchemeRef"));
+            var vers: commonreferences.Version = dim.getAttribute("conceptVersion") == null ? null : new commonreferences.Version(dim.getAttribute("conceptVersion"));
+            var csref: commonreferences.Ref = new commonreferences.Ref();
+            csref.setAgencyId(csa);
+            csref.setMaintainableParentId(csi);
+            csref.setVersion(vers);
+            var reference: commonreferences.Reference = new commonreferences.Reference(csref, null);
+            var cst: structure.ConceptSchemeType = null;
+            cst = this.struct.findConceptScheme(reference);
+            if (cst != null) return cst;
+            cst = this.registry.findConceptScheme(reference);
+            if (cst != null) return cst;
+        } else if (dim.getAttribute("conceptRef") != null && dim.getAttribute("conceptAgency") == null) {
+            var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
+            var csi: commonreferences.ID = new commonreferences.ID("STANDALONE_CONCEPT_SCHEME");
+            var vers: commonreferences.Version = dim.getAttribute("conceptVersion") == null ? null : new commonreferences.Version(dim.getAttribute("conceptVersion"));
+            var csref: commonreferences.Ref = new commonreferences.Ref();
+            csref.setAgencyId(csa);
+            csref.setMaintainableParentId(csi);
+            csref.setVersion(vers);
+            var reference: commonreferences.Reference = new commonreferences.Reference(csref, null);
+            var cst: structure.ConceptSchemeType = null;
+            cst = this.struct.findConceptScheme(reference);
+            if (cst != null) return cst;
+            cst = this.registry.findConceptScheme(reference);
+            if (cst != null) return cst;
+            var ct: structure.ConceptType = cst != null ? cst.findItemString(dim.getAttribute("conceptRef")) : null;
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency));
+            ref.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+            var ref2: commonreferences.Reference = new commonreferences.Reference(ref, null);
+            var cst: structure.ConceptSchemeType = null;
+            cst = this.struct.findConceptScheme(ref2);
+            if (cst != null) return cst;
+            cst = this.registry.findConceptScheme(ref2);
+            if (cst != null) return cst;
+            return cst;
+        } else if (dim.getAttribute("conceptRef")() != null && dim.getAttribute("conceptAgency") != null) {
+            var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(dim.getAttribute("conceptAgency"));
+            var csi: commonreferences.ID = new commonreferences.ID("STANDALONE_CONCEPT_SCHEME");
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(csa);
+            ref.setId(csi);
+            ref.setVersion(commonreferences.Version.ONE);
+            var ref2: commonreferences.Reference = new commonreferences.Reference(ref, null);
+            var cst: structure.ConceptSchemeType = null;
+            cst = this.struct.findConceptScheme(ref2);
+            if (cst != null) return cst;
+            cst = this.registry.findConceptScheme(ref2);
+            if (cst != null) return cst;
+        }
+        return null;
+    }
+    getConcept(cs: structure.ConceptSchemeType, dim:any) {
+        if( cs!=null ) {
+            var concept:structure.ConceptType= cs.findItemString(dim.getAttribute("conceptRef"));
+            return concept;
+        }else return null;
+    }
+    findConcept(conceptRef: string): structure.ConceptType {
+        var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
+        var csi: commonreferences.ID = new commonreferences.ID(conceptRef);
+        var ref: commonreferences.Ref = new commonreferences.Ref();
+        ref.setAgencyId(csa);
+        ref.setId(csi);
+        var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
+        var ct: structure.ConceptType = this.registry.findConcept(reference);
+        if (ct == null) {
+            var ref2: commonreferences.Ref = new commonreferences.Ref();
+            ref2.setId(csi);
+            var reference2: commonreferences.Reference = new commonreferences.Reference(ref2, null);
+            return this.registry.findConcept(reference2);
+        }
+        return ct;
+    }
+    toMeasureDimension(dim: any): structure.MeasureDimension {
+        var dim2: structure.MeasureDimension = new structure.MeasureDimension();
+        var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
+        var cl: structure.Codelist = this.getCodelist(dim);
+        var con: structure.ConceptType = this.getConcept(cs,dim);
+        if( con!=null ) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(cs.getAgencyID());
+            ref.setMaintainableParentId(cs.getId());
+            ref.setVersion(cs.getVersion());
+            ref.setId(con.getId());
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            dim2.setConceptIdentity(reference);
+        }
+        if( cl!=null ) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
+        }else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        }
+        return dim2;
+    }
+
     getStructureType(): message.StructureType {
         return this.struct;
     }
@@ -313,6 +652,37 @@ export class Sdmx20StructureReaderTools {
         }
         return "";
     }
+    recurseDomChildren(start: any, output: any) {
+        var nodes;
+        if (start.childNodes) {
+            nodes = start.childNodes;
+            this.loopNodeChildren(nodes, output);
+        }
+    }
 
+    loopNodeChildren(nodes: Array<any>, output: any) {
+        var node;
+        for (var i = 0; i < nodes.length; i++) {
+            node = nodes[i];
+            if (output) {
+                this.outputNode(node);
+            }
+            if (node.childNodes) {
+                this.recurseDomChildren(node, output);
+            }
+        }
+    }
+    outputNode(node: any) {
+        var whitespace = /^\s+$/g;
+        if (node.nodeType === 1) {
+            console.log("element: " + node.tagName);
+        } else if (node.nodeType === 3) {
+            //clear whitespace text nodes
+            node.data = node.data.replace(whitespace, "");
+            if (node.data) {
+                console.log("text: " + node.data);
+            }
+        }
+    }
 }
 

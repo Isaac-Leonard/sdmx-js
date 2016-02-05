@@ -228,3 +228,140 @@ export class ExternalReferenceAttributeGroup {
         this.structureURL = structureURL;
     }
 }
+export class DataType {
+
+    public static ENUM: Array<DataType> = new Array<DataType>();
+    public static STRING_ENUM: Array<string> = new Array<string>();
+
+    public static STRING_TEXT: string = DataType.addString("String");
+    public static ALPHA_TEXT: string = DataType.addString("Alpha");
+    public static ALPHANUMERIC_TEXT: string = DataType.addString("AlphaNumeric");
+    public static NUMERIC_TEXT: string = DataType.addString("Numeric");
+    public static BIGINTEGER_TEXT: string = DataType.addString("BigInteger");
+    public static INTEGER_TEXT: string = DataType.addString("Integer");
+    public static LONG_TEXT: string = DataType.addString("Long");
+    public static SHORT_TEXT: string = DataType.addString("Short");
+    public static DECIMAL_TEXT: string = DataType.addString("Decimal");
+    public static FLOAT_TEXT: string = DataType.addString("Float");
+    public static DOUBLE_TEXT: string = DataType.addString("Double");
+    public static BOOLEAN_TEXT: string = DataType.addString("Boolean");
+    public static URI_TEXT: string = DataType.addString("URI");
+    public static COUNT_TEXT: string = DataType.addString("Count");
+    public static INCLUSIVEVALUERANGE_TEXT: string = DataType.addString("InclusiveValueRange");
+    public static EXCLUSIVEVALUERANGE_TEXT: string = DataType.addString("ExclusiveValueRange");
+    public static INCREMENTAL_TEXT: string = DataType.addString("Incremental");
+    public static OBSERVATIONAL_TIMEPERIOD_TEXT: string = DataType.addString("ObservationalTimePeriod");
+    public static STANDARD_TIMEPERIOD_TEXT: string = DataType.addString("StandardTimePeriod");
+    public static BASIC_TIMEPERIOD_TEXT: string = DataType.addString("BasicTimePeriod");
+    public static GREGORIAN_TIMEPERIOD_TEXT: string = DataType.addString("GregorianTimePeriod");
+    public static GREGORIAN_YEAR_TEXT: string = DataType.addString("GregorianYear");
+    public static GREGORIAN_YEARMONTH_TEXT: string = DataType.addString("GregorianYearMonth");
+    public static GREGORIAN_DAY_TEXT: string = DataType.addString("GregorianDay");
+    public static REPORTING_TIMEPERIOD_TEXT: string = DataType.addString("ReportingTimePeriod");
+    public static REPORTING_YEAR_TEXT: string = DataType.addString("ReportingYear");
+    public static REPORTING_SEMESTER_TEXT: string = DataType.addString("ReportingSemester");
+    public static REPORTING_TRIMESTER_TEXT: string = DataType.addString("ReportingTrimester");
+    public static REPORTING_QUARTER_TEXT: string = DataType.addString("ReportingQuarter");
+    public static REPORTING_MONTH_TEXT: string = DataType.addString("ReportingMonth");
+    public static REPORTING_WEEK_TEXT: string = DataType.addString("ReportingWeek");
+    public static REPORTING_DAY_TEXT: string = DataType.addString("ReportingDay");
+    public static DATETIME_TEXT: string = DataType.addString("DateTime");
+    public static TIMERANGE_TEXT: string = DataType.addString("TimeRange");
+    public static MONTH_TEXT: string = DataType.addString("Month");
+    public static MONTH_DAY_TEXT: string = DataType.addString("MonthDay");
+    public static DAY_TEXT: string = DataType.addString("Day");
+    public static TIME_TEXT: string = DataType.addString("Time");
+    public static DURATION_TEXT: string = DataType.addString("Duration");
+    public static XHTML_TEXT: string = DataType.addString("XHTML");
+    public static KEYVALUES_TEXT: string = DataType.addString("KeyValues");
+    public static IDENTIFIABLE_REFERENCE_TEXT: string = DataType.addString("IdentifiableReference");
+    public static DATASET_REFERENCE_TEXT: string = DataType.addString("DataSetReference");
+    public static ATTACHMENT_CONSTRAINT_REFERENCE_TEXT: string = DataType.addString("AttachmentConstraintReference");
+    public static STRING: DataType = DataType.add("String");
+    public static ALPHA: DataType = DataType.add("Alpha");
+    public static ALPHANUMERIC: DataType = DataType.add("AlphaNumeric");
+    public static NUMERIC: DataType = DataType.add("Numeric");
+    public static BIGINTEGER: DataType = DataType.add("BigInteger");
+    public static INTEGER: DataType = DataType.add("Integer");
+    public static LONG: DataType = DataType.add("Long");
+    public static SHORT: DataType = DataType.add("Short");
+    public static DECIMAL: DataType = DataType.add("Decimal");
+    public static FLOAT: DataType = DataType.add("Float");
+    public static DOUBLE: DataType = DataType.add("Double");
+    public static BOOLEAN: DataType = DataType.add("Boolean");
+    public static URI: DataType = DataType.add("URI");
+    public static COUNT: DataType = DataType.add("Count");
+    public static INCLUSIVEVALUERANGE: DataType = DataType.add("InclusiveValueRange");
+    public static EXCLUSIVEVALUERANGE: DataType = DataType.add("ExclusiveValueRange");
+    public static INCREMENTAL: DataType = DataType.add("Incremental");
+    public static OBSERVATIONAL_TIMEPERIOD: DataType = DataType.add("ObservationalTimePeriod");
+    public static STANDARD_TIMEPERIOD: DataType = DataType.add("StandardTimePeriod");
+    public static BASIC_TIMEPERIOD: DataType = DataType.add("BasicTimePeriod");
+    public static GREGORIAN_TIMEPERIOD: DataType = DataType.add("GregorianTimePeriod");
+    public static GREGORIAN_YEAR: DataType = DataType.add("GregorianYear");
+    public static GREGORIAN_YEARMONTH: DataType = DataType.add("GregorianYearMonth");
+    public static GREGORIAN_DAY: DataType = DataType.add("GregorianDay");
+    public static REPORTING_TIMEPERIOD: DataType = DataType.add("ReportingTimePeriod");
+    public static REPORTING_YEAR: DataType = DataType.add("ReportingYear");
+    public static REPORTING_SEMESTER: DataType = DataType.add("ReportingSemester");
+    public static REPORTING_TRIMESTER: DataType = DataType.add("ReportingTrimester");
+    public static REPORTING_QUARTER: DataType = DataType.add("ReportingQuarter");
+    public static REPORTING_MONTH: DataType = DataType.add("ReportingMonth");
+    public static REPORTING_WEEK: DataType = DataType.add("ReportingWeek");
+    public static REPORTING_DAY: DataType = DataType.add("ReportingDay");
+    public static DATETIME: DataType = DataType.add("DateTime");
+    public static TIMERANGE: DataType = DataType.add("TimeRange");
+    public static MONTH: DataType = DataType.add("Month");
+    public static MONTH_DAY: DataType = DataType.add("MonthDay");
+    public static DAY: DataType = DataType.add("Day");
+    public static TIME: DataType = DataType.add("Time");
+    public static DURATION: DataType = DataType.add("Duration");
+    public static XHTML: DataType = DataType.add("XHTML");
+    public static KEYVALUES: DataType = DataType.add("KeyValues");
+    public static IDENTIFIABLE_REFERENCE: DataType = DataType.add("IdentifiableReference");
+    public static DATASET_REFERENCE: DataType = DataType.add("DataSetReference");
+    public static ATTACHMENT_CONSTRAINT_REFERENCE: DataType = DataType.add("AttachmentConstraintReference");
+
+    // Utility
+    private static add(s: string): DataType {
+        var b: DataType = new DataType(s);
+        DataType.ENUM.push(b);
+        return b;
+    }
+    private static addString(s: string): string {
+        DataType.STRING_ENUM.push(s);
+        return s;
+    }
+
+    public static fromString(s: string): DataType {
+        for (var i: number = 0; i < DataType.ENUM.length; i++) {
+            if (DataType.ENUM[i].target == s) return DataType.ENUM[i];
+        }
+        return null;
+    }
+    public static fromStringWithException(s: string): DataType {
+        for (var i: number = 0; i < DataType.ENUM.length; i++) {
+            if (DataType.ENUM[i].target == s) return DataType.ENUM[i];
+        }
+        throw new Error("Value:" + s + " not found in enumeration! - DataType");
+    }
+    // Instance
+    private target: string = null;
+    private index: number = -1;
+    public constructor(s: string) {
+        var contains: boolean = false;
+        for (var i = 0; i < DataType.STRING_ENUM.length; i++) {
+            if (DataType.STRING_ENUM[i] == s) {
+                contains = true;
+            }
+        }
+        if (!contains) throw new Error(s + " is not a valid DataType");
+        this.target = s;
+        this.index = DataType.STRING_ENUM.indexOf(s);
+    }
+    public toString(): string { return this.target; }
+    public toInt(): number {
+        return this.index;
+    }
+}
+export class StandardTimePeriodType {}

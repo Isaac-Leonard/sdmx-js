@@ -504,9 +504,7 @@ export class StructureUsageType extends MaintainableType {
 
     }
 }
-export class RepresentationType {
-    
-}
+
 export class Dataflow extends StructureUsageType {
     constructor() {
         super();
@@ -514,11 +512,11 @@ export class Dataflow extends StructureUsageType {
 }
 export class Component extends IdentifiableType {
     private conceptIdentity: commonreferences.Reference = null;
-    private localRepresentation:RepresentationType = null;
-    
-    public getId():commonreferences.ID {
-        if( super.getId()==null ) {
-            if( this.conceptIdentity==null ) {
+    private localRepresentation: RepresentationType = null;
+
+    public getId(): commonreferences.ID {
+        if (super.getId() == null) {
+            if (this.conceptIdentity == null) {
                 //Thread.dumpStack();
                 return new commonreferences.ID("MISS");
             }
@@ -526,19 +524,20 @@ export class Component extends IdentifiableType {
         }
         return super.getId();
     }
-    constructor(){
+    constructor() {
         super();
     }
     public getConceptIdentity() {
-        return this.conceptIdentity; }
-    public setConceptIdentity(ci: commonreferences.Reference){
-        this.conceptIdentity=ci;
+        return this.conceptIdentity;
+    }
+    public setConceptIdentity(ci: commonreferences.Reference) {
+        this.conceptIdentity = ci;
     }
     public getLocalRepresentation() {
         return this.localRepresentation;
     }
-    public setLocalRepresentation(lr:RepresentationType) {
-        this.localRepresentation=lr;
+    public setLocalRepresentation(lr: RepresentationType) {
+        this.localRepresentation = lr;
     }
 }
 export class Dimension extends Component {
@@ -547,6 +546,10 @@ export class Dimension extends Component {
 export class TimeDimension extends Component {
 
 }
+export class MeasureDimension extends Component {
+
+}
+
 export class Attribute extends Component {
 
 }
@@ -556,18 +559,34 @@ export class PrimaryMeasure extends Component {
 export class DimensionList {
     private dimensions: Array<Dimension> = [];
     private timeDimension: TimeDimension = null;
+    private measureDimension: MeasureDimension = null;
     public getDimensions(): Array<Dimension> { return this.dimensions; }
+    public setDimensions(dims: Array<Dimension>) {
+        this.dimensions = dims;
+    }
+    public getMeasureDimension(): MeasureDimension { return this.measureDimension; }
+    public setMeasureDimension(md: MeasureDimension) {
+        this.measureDimension = md;
+    }
     public getTimeDimension(): TimeDimension {
         return this.timeDimension;
     }
+    public setTimeDimension(td: TimeDimension) {
+        this.timeDimension = td;
+    }
+
 }
 export class AttributeList {
     private attributes: Array<Attribute> = [];
     public getAttributes(): Array<Attribute> { return this.attributes; }
+    public setAttributes(at: Array<Attribute>) {
+        this.attributes = at;
+    }
 }
 export class MeasureList {
-    private primaryMeasure:PrimaryMeasure = null;
-    public getPrimaryMeasure(): PrimaryMeasure { return this.primaryMeasure;}
+    private primaryMeasure: PrimaryMeasure = null;
+    public getPrimaryMeasure(): PrimaryMeasure { return this.primaryMeasure; }
+    public setPrimaryMeasure(pm: PrimaryMeasure) { this.primaryMeasure = pm; }
 
 }
 export class DataStructureComponents {
@@ -577,11 +596,20 @@ export class DataStructureComponents {
     public getDimensionList(): DimensionList {
         return this.dimensionList;
     }
+    public setDimensionList(dl: DimensionList) {
+        this.dimensionList = dl;
+    }
     public getMeasureList(): MeasureList {
         return this.measureList;
     }
+    public setMeasureList(ml: MeasureList) {
+        this.measureList = ml;
+    }
     public getAttributeList(): AttributeList {
         return this.attributeList;
+    }
+    public setAttributeList(al: AttributeList) {
+        this.attributeList = al;
     }
 }
 export class DataStructure extends MaintainableType {
@@ -995,5 +1023,156 @@ export class Structures implements interfaces.Registry {
     }
     save(): any {
 
+    }
+}
+export class TextFormatType {
+    private textType: common.DataType = null;
+    private isSequence: boolean = null;
+    private interval: number = null;
+    private startValue: number = null;
+    private endValue: number = null;
+    private timeInterval: xml.duration = null;
+    private startTime: common.StandardTimePeriodType = null;
+    private endTime: common.StandardTimePeriodType = null;
+    private minLength: number = null;
+    private maxLength: number = null;
+    private minValue: number = null;
+    private maxValue: number = null;
+    private decimals: number = null;
+    private pattern: string = null;
+    private isMultiLingual: boolean = null;
+    constructor() {
+
+    }
+    public getTextType(): common.DataType {
+        return this.textType;
+    }
+    public getIsSequence(): boolean {
+        return this.isSequence;
+    }
+    public getInterval(): number {
+        return this.interval;
+    }
+    public getStartValue(): number {
+        return this.startValue;
+    }
+    public getEndValue(): number {
+        return this.endValue;
+    }
+    public getTimeInterval(): xml.duration {
+        return this.timeInterval;
+    }
+    public getStartTime(): common.StandardTimePeriodType {
+        return this.startTime;
+    }
+    public getEndTime(): common.StandardTimePeriodType {
+        return this.endTime;
+    }
+    public getMinLength(): number {
+        return this.minLength;
+    }
+    public getMaxLength(): number {
+        return this.maxLength;
+    }
+    public getDecimals(): number {
+        return this.decimals;
+    }
+    public getPattern(): string {
+        return this.pattern;
+    }
+    public getIsMultilingual(): boolean {
+        return this.isMultiLingual;
+    }
+    public setTextType(t: common.DataType) {
+        this.textType = t;
+    }
+    public setIsSequence(b: boolean) {
+        this.isSequence = b;
+    }
+    public setInterval(n: number) {
+        this.interval = n;
+    }
+    public setStartValue(n: number) {
+        this.startValue = n;
+    }
+    public setEndValue(n: number) {
+        this.endValue = n;
+    }
+    public setTimeInterval(d: xml.duration) {
+        this.timeInterval = d;
+    }
+    public setStartTime(t: common.StandardTimePeriodType) {
+        this.startTime = t;
+    }
+    public setEndTime(t: common.StandardTimePeriodType) {
+        this.endTime = t;
+    }
+    public setMinLength(n: number) {
+        this.minLength = n;
+    }
+    public setMaxLength(n: number) {
+        this.maxLength = n;
+    }
+    public setDecimals(n: number) {
+        this.decimals = n;
+    }
+    public setPattern(s: string) {
+        this.pattern = s;
+    }
+    public setIsMultilingual(b: boolean) {
+        this.isMultiLingual = b;
+    }
+}
+export class BasicComponentTextFormatType extends TextFormatType { }
+export class SimpleComponentTextFormatType extends BasicComponentTextFormatType { }
+export class CodededTextFormatType extends SimpleComponentTextFormatType { }
+export class RepresentationType {
+
+    private textFormat: TextFormatType = null;
+    private enumeration: commonreferences.Reference = null;
+    private enumerationFormat: CodededTextFormatType = null;
+
+    constructor() { }
+
+    /**
+     * @return the textFormat
+     */
+    public getTextFormat(): TextFormatType {
+        return this.textFormat;
+    }
+
+    /**
+     * @param textFormat the textFormat to set
+     */
+    public setTextFormat(textFormat: TextFormatType) {
+        this.textFormat = textFormat;
+    }
+
+    /**
+     * @return the enumeration
+     */
+    public getEnumeration(): commonreferences.Reference {
+        return this.enumeration;
+    }
+
+    /**
+     * @param enumeration the enumeration to set
+     */
+    public setEnumeration(enumeration: commonreferences.Reference) {
+        this.enumeration = enumeration;
+    }
+
+    /**
+     * @return the enumerationForma
+     */
+    public getEnumerationFormat(): CodededTextFormatType {
+        return this.enumerationFormat;
+    }
+
+    /**
+     * @param enumerationForma the enumerationForma to set
+     */
+    public setEnumerationFormat(enumerationForma: CodededTextFormatType) {
+        this.enumerationFormat = enumerationForma;
     }
 }
