@@ -218,6 +218,3 @@ export class Header {
         this.source = s;
     }
 }
-
-
-alert("loaded message");
