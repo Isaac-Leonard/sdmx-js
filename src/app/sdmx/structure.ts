@@ -136,7 +136,7 @@ export class NameableType extends IdentifiableType {
         }
     }
 
-    private static toString(named: NameableType): string {
+    public static toString(named: NameableType): string {
         var loc: string = sdmx.SdmxIO.getLocale();
         if (named == null) {
             return "";
@@ -152,7 +152,7 @@ export class NameableType extends IdentifiableType {
         return desc.getText();
     }
 
-    private static toStringWithLocale(named: NameableType, loc: string): string {
+    public static toStringWithLocale(named: NameableType, loc: string): string {
         //if (concept.equals("FREQ")) {
         //    ItemType code2 = getCode();
         //    System.out.println("FREQ Code=" + code2);
@@ -172,7 +172,7 @@ export class NameableType extends IdentifiableType {
 
     }
 
-    private static toIDString(named: NameableType): string {
+    public static toIDString(named: NameableType): string {
         return named.getId().toString();
     }
 
@@ -510,6 +510,16 @@ export class Dataflow extends StructureUsageType {
         super();
     }
 }
+export class DataflowList {
+    private dataflowList: Array<Dataflow> = [];
+    public getDataflowList() {
+        return this.dataflowList;
+    }
+    public setDataflowList(dl: Array<Dataflow>) {
+        this.dataflowList = dl;
+
+    }
+}
 export class Component extends IdentifiableType {
     private conceptIdentity: commonreferences.Reference = null;
     private localRepresentation: RepresentationType = null;
@@ -590,9 +600,9 @@ export class MeasureList {
 
 }
 export class DataStructureComponents {
-    private dimensionList: DimensionList = null;
-    private measureList: MeasureList = null;
-    private attributeList: AttributeList = null;
+    private dimensionList: DimensionList = new DimensionList();
+    private measureList: MeasureList = new MeasureList();
+    private attributeList: AttributeList = new AttributeList();
     public getDimensionList(): DimensionList {
         return this.dimensionList;
     }
@@ -951,6 +961,7 @@ export class Structures implements interfaces.Registry {
     private codelists: CodeLists = null;
     private concepts: Concepts = null;
     private datastructures: DataStructures = null;
+    private dataflows: DataflowList = null;
     getConcepts() {
         return this.concepts;
     }
@@ -969,9 +980,16 @@ export class Structures implements interfaces.Registry {
     setDataStructures(ds: DataStructures) {
         this.datastructures = ds;
     }
+    setDataflows(dl: DataflowList) {
+        this.dataflows = dl;
+    }
+    getDataflows(): DataflowList {
+        return this.dataflows;
+    }
     // Registry
     listDataflows(): Array<structure.Dataflow> {
-        return null;
+        if (this.dataflows == null) { return []; }
+        return this.dataflows.getDataflowList();
     }
     clear(): void {
 
@@ -983,24 +1001,30 @@ export class Structures implements interfaces.Registry {
 
     }
     findDataStructure(ref: commonreferences.Reference): structure.DataStructure {
+        if (this.datastructures == null) return null;
         return null;
     }
     findDataflow(ref: commonreferences.Reference): structure.Dataflow {
         return null;
     }
     findCode(ref: commonreferences.Reference): structure.CodeType {
+        if (this.codelists == null) return null;
         return this.codelists.findCodelistReference(ref).findItemId(ref.getId());
     }
     findCodelist(ref: commonreferences.Reference): structure.Codelist {
+        if (this.codelists == null) return null;
         return this.codelists.findCodelistReference(ref);
     }
     findItemType(item: commonreferences.Reference): structure.ItemType {
+
         return null;
     }
     findConcept(ref: commonreferences.Reference): structure.ConceptType {
+        if (this.concepts == null) return null;
         return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
     }
     findConceptScheme(ref: commonreferences.Reference): structure.ConceptSchemeType {
+        if (this.concepts == null) return null;
         return this.concepts.findConceptSchemeReference(ref);
     }
     searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {

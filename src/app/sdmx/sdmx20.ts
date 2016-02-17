@@ -102,10 +102,11 @@ export class Sdmx20StructureReaderTools {
         structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
         structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
         structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
+        structures.setDataflows(this.toDataflows(null));
         return this.struct;
     }
     toHeader(headerNode: any) {
-        var header: message.Header = new message.Header()
+        var header: message.Header = new message.Header();
         header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
         var test: string = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
         header.setTest(test == "true");
@@ -164,6 +165,19 @@ export class Sdmx20StructureReaderTools {
     toPartyType(node: any): message.PartyType {
         var pt = new message.PartyType();
         return pt;
+    }
+    toDataflows(dataflowsNode:any):structure.DataflowList {
+        var dl: structure.DataflowList = new structure.DataflowList();
+        
+        return dl;
+    }
+    toDataflow(dataflowNode:any):structure.Dataflow {
+        var df: structure.Dataflow = new structure.Dataflow();
+        df.setNames(this.toNames(dataflowNode));
+        df.setId(this.toID(dataflowNode));
+        df.setAgencyID(this.toNestedNCNameID(dataflowNode));
+        df.setVersion(this.toVersion(dataflowNode));
+        return df;
     }
     toCodelists(codelistsNode: any) {
         if (codelistsNode == null) return null;

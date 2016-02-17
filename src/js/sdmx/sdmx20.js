@@ -93,6 +93,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
             structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
             structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
             structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
+            structures.setDataflows(this.toDataflows(null));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
@@ -154,6 +155,18 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
         Sdmx20StructureReaderTools.prototype.toPartyType = function (node) {
             var pt = new message.PartyType();
             return pt;
+        };
+        Sdmx20StructureReaderTools.prototype.toDataflows = function (dataflowsNode) {
+            var dl = new structure.DataflowList();
+            return dl;
+        };
+        Sdmx20StructureReaderTools.prototype.toDataflow = function (dataflowNode) {
+            var df = new structure.Dataflow();
+            df.setNames(this.toNames(dataflowNode));
+            df.setId(this.toID(dataflowNode));
+            df.setAgencyID(this.toNestedNCNameID(dataflowNode));
+            df.setVersion(this.toVersion(dataflowNode));
+            return df;
         };
         Sdmx20StructureReaderTools.prototype.toCodelists = function (codelistsNode) {
             if (codelistsNode == null)
@@ -314,7 +327,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
             var dimArray = [];
             for (var i = 0; i < dims.length; i++) {
                 if (dims[i].getAttribute("isMeasureDimension") == "true") {
-                    dimList.setMeasureDimension(this.toDimension(dims[i]));
+                    dimList.setMeasureDimension(this.toMeasureDimension(dims[i]));
                 }
                 else {
                     dimArray.push(this.toDimension(dims[i]));
@@ -485,7 +498,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
                 // All we have is a codelist name
                 var ref = new commonreferences.Ref();
                 ref.setAgencyId(new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency));
-                alert("codelist=" + dim.getAttribute("codelist"));
                 ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
                 ref.setVersion(null);
                 var reference = new commonreferences.Reference(ref, null);
@@ -616,9 +628,29 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
             }
             return ct;
         };
-        Sdmx20StructureReaderTools.prototype.toMeasureDimension = function (md) {
-            var md2 = new structure.MeasureDimension();
-            return md2;
+        Sdmx20StructureReaderTools.prototype.toMeasureDimension = function (dim) {
+            var dim2 = new structure.MeasureDimension();
+            var cs = this.getConceptScheme(dim);
+            var cl = this.getCodelist(dim);
+            var con = this.getConcept(cs, dim);
+            if (con != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(cs.getAgencyID());
+                ref.setMaintainableParentId(cs.getId());
+                ref.setVersion(cs.getVersion());
+                ref.setId(con.getId());
+                var reference = new commonreferences.Reference(ref, null);
+                dim2.setConceptIdentity(reference);
+            }
+            if (cl != null) {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
+            }
+            else {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
+            }
+            return dim2;
         };
         Sdmx20StructureReaderTools.prototype.getStructureType = function () {
             return this.struct;

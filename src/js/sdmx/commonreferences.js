@@ -4,6 +4,32 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (require, exports, xml) {
+    var Version = (function (_super) {
+        __extends(Version, _super);
+        function Version(s) {
+            _super.call(this, s);
+        }
+        Version.prototype.getPatternArray = function () {
+            return [Version.PATTERN];
+        };
+        Version.prototype.equalsVersion = function (id) {
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        Version.prototype.equals = function (id) {
+            return _super.prototype.getString.call(this) == id;
+        };
+        Version.prototype.compareTo = function (o) {
+            if (!(o instanceof Version))
+                return -1;
+            var a1 = parseFloat(o.toString());
+            var a2 = parseFloat(toString());
+            return a1 > a2 ? 1 : a1 < a2 ? -1 : 0;
+        };
+        Version.PATTERN = "[0-9]+(\\.[0-9]+)*";
+        Version.ONE = new Version("1.0");
+        return Version;
+    })(xml.RegexXMLString);
+    exports.Version = Version;
     var NestedID = (function (_super) {
         __extends(NestedID, _super);
         function NestedID(s) {
@@ -63,6 +89,21 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         return ID;
     })(NestedID);
     exports.ID = ID;
+    var NCNameID = (function (_super) {
+        __extends(NCNameID, _super);
+        function NCNameID(s) {
+            _super.call(this, s);
+        }
+        NCNameID.prototype.getPatternArray = function () {
+            return [NCNameID.PATTERN];
+        };
+        NCNameID.prototype.equalsNCNameId = function (id) {
+            return _super.prototype.getString.call(this) == id.getString();
+        };
+        NCNameID.PATTERN = "[A-z][A-z0-9_\\-]*";
+        return NCNameID;
+    })(ID);
+    exports.NCNameID = NCNameID;
     var NestedNCNameID = (function (_super) {
         __extends(NestedNCNameID, _super);
         function NestedNCNameID(s) {
@@ -272,32 +313,6 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         return Reference;
     })();
     exports.Reference = Reference;
-    var Version = (function (_super) {
-        __extends(Version, _super);
-        function Version(s) {
-            _super.call(this, s);
-        }
-        Version.prototype.getPatternArray = function () {
-            return [Version.PATTERN];
-        };
-        Version.prototype.equalsVersion = function (id) {
-            return _super.prototype.getString.call(this) == id.getString();
-        };
-        Version.prototype.equals = function (id) {
-            return _super.prototype.getString.call(this) == id;
-        };
-        Version.prototype.compareTo = function (o) {
-            if (!(o instanceof Version))
-                return -1;
-            var a1 = parseFloat(o.toString());
-            var a2 = parseFloat(toString());
-            return a1 > a2 ? 1 : a1 < a2 ? -1 : 0;
-        };
-        Version.PATTERN = "[0-9]+(\\.[0-9]+)*";
-        Version.ONE = new Version("1.0");
-        return Version;
-    })(xml.RegexXMLString);
-    exports.Version = Version;
     var ObjectTypeCodelistType = (function () {
         function ObjectTypeCodelistType(s) {
             // Instance
@@ -613,21 +628,6 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         return PackageTypeCodelistType;
     })();
     exports.PackageTypeCodelistType = PackageTypeCodelistType;
-    var NCNameID = (function (_super) {
-        __extends(NCNameID, _super);
-        function NCNameID(s) {
-            _super.call(this, s);
-        }
-        NCNameID.prototype.getPatternArray = function () {
-            return [NCNameID.PATTERN];
-        };
-        NCNameID.prototype.equalsNCNameId = function (id) {
-            return _super.prototype.getString.call(this) == id.getString();
-        };
-        NCNameID.PATTERN = "[A-z][A-z0-9_\\-]*";
-        return NCNameID;
-    })(ID);
-    exports.NCNameID = NCNameID;
     var ObsDimensionsCodeType = (function () {
         function ObsDimensionsCodeType(s) {
             // Instance

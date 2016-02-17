@@ -498,6 +498,19 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         return Dataflow;
     })(StructureUsageType);
     exports.Dataflow = Dataflow;
+    var DataflowList = (function () {
+        function DataflowList() {
+            this.dataflowList = [];
+        }
+        DataflowList.prototype.getDataflowList = function () {
+            return this.dataflowList;
+        };
+        DataflowList.prototype.setDataflowList = function (dl) {
+            this.dataflowList = dl;
+        };
+        return DataflowList;
+    })();
+    exports.DataflowList = DataflowList;
     var Component = (function (_super) {
         __extends(Component, _super);
         function Component() {
@@ -615,9 +628,9 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
     exports.MeasureList = MeasureList;
     var DataStructureComponents = (function () {
         function DataStructureComponents() {
-            this.dimensionList = null;
-            this.measureList = null;
-            this.attributeList = null;
+            this.dimensionList = new DimensionList();
+            this.measureList = new MeasureList();
+            this.attributeList = new AttributeList();
         }
         DataStructureComponents.prototype.getDimensionList = function () {
             return this.dimensionList;
@@ -972,6 +985,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.codelists = null;
             this.concepts = null;
             this.datastructures = null;
+            this.dataflows = null;
         }
         Structures.prototype.getConcepts = function () {
             return this.concepts;
@@ -991,9 +1005,18 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Structures.prototype.setDataStructures = function (ds) {
             this.datastructures = ds;
         };
+        Structures.prototype.setDataflows = function (dl) {
+            this.dataflows = dl;
+        };
+        Structures.prototype.getDataflows = function () {
+            return this.dataflows;
+        };
         // Registry
         Structures.prototype.listDataflows = function () {
-            return null;
+            if (this.dataflows == null) {
+                return [];
+            }
+            return this.dataflows.getDataflowList();
         };
         Structures.prototype.clear = function () {
         };
@@ -1002,24 +1025,34 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Structures.prototype.unload = function (struct) {
         };
         Structures.prototype.findDataStructure = function (ref) {
+            if (this.datastructures == null)
+                return null;
             return null;
         };
         Structures.prototype.findDataflow = function (ref) {
             return null;
         };
         Structures.prototype.findCode = function (ref) {
+            if (this.codelists == null)
+                return null;
             return this.codelists.findCodelistReference(ref).findItemId(ref.getId());
         };
         Structures.prototype.findCodelist = function (ref) {
+            if (this.codelists == null)
+                return null;
             return this.codelists.findCodelistReference(ref);
         };
         Structures.prototype.findItemType = function (item) {
             return null;
         };
         Structures.prototype.findConcept = function (ref) {
+            if (this.concepts == null)
+                return null;
             return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
         };
         Structures.prototype.findConceptScheme = function (ref) {
+            if (this.concepts == null)
+                return null;
             return this.concepts.findConceptSchemeReference(ref);
         };
         Structures.prototype.searchDataStructure = function (ref) {

@@ -227,6 +227,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
         return Header;
     })();
     exports.Header = Header;
+    alert("loaded message");
 });
 
 //# sourceMappingURL=message.js.map

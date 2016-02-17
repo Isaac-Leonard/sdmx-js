@@ -2,7 +2,7 @@
 import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
-interface Queryable {
+export interface Queryable {
     getRegistry(): Registry;
     getRepository(): Repository;
 }

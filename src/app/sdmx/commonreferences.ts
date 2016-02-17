@@ -1,5 +1,27 @@
 /// <amd-module name='sdmx/commonreferences'/>
 import xml = require("sdmx/xml");
+export class Version extends xml.RegexXMLString {
+    public static PATTERN: string = "[0-9]+(\\.[0-9]+)*";
+    public static ONE: Version = new Version("1.0");
+    constructor(s: string) {
+        super(s);
+    }
+    public getPatternArray(): string[] {
+        return [Version.PATTERN];
+    }
+    public equalsVersion(id: Version): boolean {
+        return super.getString() == id.getString();
+    }
+    public equals(id: String): boolean {
+        return super.getString() == id;
+    }
+    public compareTo(o: Object): number {
+        if (!(o instanceof Version)) return -1;
+        var a1: number = parseFloat(o.toString());
+        var a2: number = parseFloat(toString());
+        return a1 > a2 ? 1 : a1 < a2 ? -1 : 0;
+    }
+}
 export class NestedID extends xml.RegexXMLString {
 
     public static PATTERN: string = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";
@@ -39,16 +61,16 @@ export class ID extends NestedID {
     }
 
     public equalsID(id: ID): boolean {
-        if( id==null ) {
+        if (id == null) {
             console.log("passed null id into ID.equalsID(...)");
             return false;
         }
-        
-        if (this.getString()=="") {
+
+        if (this.getString() == "") {
             console.log("this ID has a null string as ID");
             return false;
         }
-        if (id.getString()==""){
+        if (id.getString() == "") {
             console.log("hat ID has a null string in equalsID(...)");
             return false;
         }
@@ -59,6 +81,18 @@ export class ID extends NestedID {
     }
     public getPatternArray(): string[] {
         return [ID.PATTERN];
+    }
+}
+export class NCNameID extends ID {
+    public static PATTERN: string = "[A-z][A-z0-9_\\-]*";
+    constructor(s: string) {
+        super(s);
+    }
+    public getPatternArray(): Array<string> {
+        return [NCNameID.PATTERN];
+    }
+    public equalsNCNameId(id: NCNameID): boolean {
+        return super.getString() == id.getString();
     }
 }
 export class NestedNCNameID extends NestedID {
@@ -84,20 +118,20 @@ export class Ref {
     private object: ObjectTypeCodelistType = null;
     private package: PackageTypeCodelistType = null;
 
-/*
-    constructor(agencyId: NestedNCNameID, id: NestedID, vers: Version, maintParent: ID, mainVers: Version, containId: NestedID, loc: boolean, ob: ObjectTypeCodelistType, pack: PackageTypeCodelistType) {
-        this.agencyId = agencyId;
-        this.id = id;
-        this.version = vers;
-        this.maintainedParentId = maintParent;
-        this.maintainedParentVersion = mainVers;
-        this.local = loc;
-        this.object = ob;
-        this.package = pack;
-    }
-*/
+    /*
+        constructor(agencyId: NestedNCNameID, id: NestedID, vers: Version, maintParent: ID, mainVers: Version, containId: NestedID, loc: boolean, ob: ObjectTypeCodelistType, pack: PackageTypeCodelistType) {
+            this.agencyId = agencyId;
+            this.id = id;
+            this.version = vers;
+            this.maintainedParentId = maintParent;
+            this.maintainedParentVersion = mainVers;
+            this.local = loc;
+            this.object = ob;
+            this.package = pack;
+        }
+    */
     constructor() {
-        
+
     }
     public getAgencyId(): NestedNCNameID {
         return this.agencyId;
@@ -290,28 +324,7 @@ export class Reference {
 
     }
 }
-export class Version extends xml.RegexXMLString {
-    public static PATTERN: string = "[0-9]+(\\.[0-9]+)*";
-    public static ONE: Version = new Version("1.0");
-    constructor(s: string) {
-        super(s);
-    }
-    public getPatternArray(): string[] {
-        return [Version.PATTERN];
-    }
-    public equalsVersion(id: Version): boolean {
-        return super.getString() == id.getString();
-    }
-    public equals(id: String): boolean {
-        return super.getString() == id;
-    }
-    public compareTo(o: Object): number {
-        if (!(o instanceof Version)) return -1;
-        var a1: number = parseFloat(o.toString());
-        var a2: number = parseFloat(toString());
-        return a1 > a2 ? 1 : a1 < a2 ? -1 : 0;
-    }
-}
+
 export class ObjectTypeCodelistType {
 
     public static ENUM: Array<ObjectTypeCodelistType> = new Array<ObjectTypeCodelistType>();
@@ -567,6 +580,7 @@ export class ObjectTypeCodelistType {
         return this.index;
     }
 }
+
 export class PackageTypeCodelistType {
 
     public static ENUM: Array<PackageTypeCodelistType> = new Array<PackageTypeCodelistType>();
@@ -628,18 +642,7 @@ export class PackageTypeCodelistType {
     }
     public toString(): string { return this.target; }
 }
-export class NCNameID extends ID {
-    public static PATTERN: string = "[A-z][A-z0-9_\\-]*";
-    constructor(s: string) {
-        super(s);
-    }
-    public getPatternArray(): Array<string> {
-        return [NCNameID.PATTERN];
-    }
-    public equalsNCNameId(id: NCNameID): boolean {
-        return super.getString() == id.getString();
-    }
-}
+
 export class ObsDimensionsCodeType {
     /*
      * DO ME! Add Proper codes for this class

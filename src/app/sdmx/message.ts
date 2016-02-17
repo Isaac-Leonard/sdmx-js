@@ -117,6 +117,7 @@ export class Sender extends PartyType {
     }
 
 }
+
 export class Header {
     private id: string = null;
     private test: boolean = null;
@@ -133,6 +134,9 @@ export class Header {
     private reportingEnd: common.ObservationalTimePeriodType = null;
     private embargoDate: xml.DateTime = null;
     private source: Array<common.Name> = [];
+
+    constructor() { }
+
     getId(): string { return this.id; }
     setId(s: string) { this.id = s; }
     getTest(): boolean { return this.test; }
@@ -216,3 +220,4 @@ export class Header {
 }
 
 
+alert("loaded message");
