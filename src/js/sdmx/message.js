@@ -6,7 +6,10 @@ var __extends = (this && this.__extends) || function (d, b) {
 define("sdmx/message", ["require", "exports", "sdmx/structure"], function (require, exports, structure) {
     var DataMessage = (function () {
         function DataMessage() {
+            this.header = null;
         }
+        DataMessage.prototype.getHeader = function () { return this.header; };
+        DataMessage.prototype.setHeader = function (h) { this.header = h; };
         return DataMessage;
     })();
     exports.DataMessage = DataMessage;
@@ -227,7 +230,6 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
         return Header;
     })();
     exports.Header = Header;
-    alert("loaded message");
 });
 
 //# sourceMappingURL=message.js.map

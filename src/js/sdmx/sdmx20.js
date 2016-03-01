@@ -1,4 +1,4 @@
-define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common"], function (require, exports, commonreferences, sax, structure, message, registry, xml, common) {
+define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common"], function (require, exports, commonreferences, structure, message, registry, xml, common) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -27,8 +27,12 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
             else
                 return false;
         };
-        Sdmx20StructureParser.prototype.isData = function (header) {
-            return false;
+        Sdmx20StructureParser.prototype.isData = function (input) {
+            if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+                return true;
+            }
+            else
+                return false;
         };
         Sdmx20StructureParser.prototype.isMetadata = function (header) {
             return false;
@@ -42,33 +46,157 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sax", "sd
             return srt.getStructureType();
         };
         Sdmx20StructureParser.prototype.parseData = function (input) {
-            var opts = {};
-            var parser = sax.parser(/*strict=*/ true, /*SaxOptions*/ opts);
-            parser.onerror = function (e) {
-                // an error happened.
-            };
-            parser.ontext = function (t) {
-                // got some text.  t is the string of text.
-            };
-            parser.onopentag = function (node) {
-                // opened a tag.  node has "name" and "attributes"
-                console.log("open:" + node);
-            };
-            parser.onclosetag = function (e) {
-                console.log("close:" + e);
-            };
-            parser.onattribute = function (attr) {
-                // an attribute.  attr has "name" and "value"
-            };
-            parser.onend = function () {
-                // parser stream is done, and ready to have more stuff written to it.
-            };
-            parser.write(input).close();
-            return null;
+            var parser = new Sdmx20DataReaderTools(input);
+            return parser.getDataMessage();
         };
         return Sdmx20StructureParser;
     })();
     exports.Sdmx20StructureParser = Sdmx20StructureParser;
+    var Sdmx20DataReaderTools = (function () {
+        function Sdmx20DataReaderTools(s) {
+            this.msg = null;
+            var dom = parseXml(s);
+            this.msg = this.toDataMessage(dom.documentElement);
+        }
+        Sdmx20DataReaderTools.prototype.getDataMessage = function () { return this.msg; };
+        Sdmx20DataReaderTools.prototype.toDataMessage = function (dm) {
+            var msg = new message.DataMessage();
+            var childNodes = dm.childNodes;
+            msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+            return msg;
+        };
+        Sdmx20DataReaderTools.prototype.toHeader = function (headerNode) {
+            var header = new message.Header();
+            header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+            var test = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+            header.setTest(test == "true");
+            // truncated not in sdmx 2.1
+            //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+            //header.setTruncated(truncated=="true");
+            var prepared = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
+            var prepDate = xml.DateTime.fromString(prepared);
+            header.setPrepared(new message.HeaderTimeType(prepDate));
+            header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+            return header;
+        };
+        Sdmx20DataReaderTools.prototype.toSender = function (senderNode) {
+            var sender = senderNode.childNodes[0].nodeValue;
+            var senderType = new message.Sender();
+            var senderId = senderNode.getAttribute("id");
+            var senderID = new commonreferences.ID(senderId);
+            senderType.setId(senderID);
+            return senderType;
+        };
+        Sdmx20DataReaderTools.prototype.toNames = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Name", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toName(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx20DataReaderTools.prototype.toName = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var name = new common.Name(lang, text);
+            return name;
+        };
+        Sdmx20DataReaderTools.prototype.toDescriptions = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Description", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toDescription(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx20DataReaderTools.prototype.toDescription = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var desc = new common.Description(lang, text);
+            return desc;
+        };
+        Sdmx20DataReaderTools.prototype.toTextType = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var textType = new common.TextType(lang, text);
+            return textType;
+        };
+        Sdmx20DataReaderTools.prototype.toPartyType = function (node) {
+            var pt = new message.PartyType();
+            return pt;
+        };
+        Sdmx20DataReaderTools.prototype.findNodeName = function (s, childNodes) {
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    return childNodes[i];
+                }
+            }
+            return null;
+        };
+        Sdmx20DataReaderTools.prototype.searchNodeName = function (s, childNodes) {
+            var result = [];
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    result.push(childNodes[i]);
+                }
+            }
+            if (result.length == 0) {
+            }
+            return result;
+        };
+        Sdmx20DataReaderTools.prototype.findTextNode = function (node) {
+            if (node == null)
+                return "";
+            var childNodes = node.childNodes;
+            for (var i = 0; i < childNodes.length; i++) {
+                var nodeType = childNodes[i].nodeType;
+                if (nodeType == 3) {
+                    return childNodes[i].nodeValue;
+                }
+            }
+            return "";
+        };
+        Sdmx20DataReaderTools.prototype.recurseDomChildren = function (start, output) {
+            var nodes;
+            if (start.childNodes) {
+                nodes = start.childNodes;
+                this.loopNodeChildren(nodes, output);
+            }
+        };
+        Sdmx20DataReaderTools.prototype.loopNodeChildren = function (nodes, output) {
+            var node;
+            for (var i = 0; i < nodes.length; i++) {
+                node = nodes[i];
+                if (output) {
+                    this.outputNode(node);
+                }
+                if (node.childNodes) {
+                    this.recurseDomChildren(node, output);
+                }
+            }
+        };
+        Sdmx20DataReaderTools.prototype.outputNode = function (node) {
+            var whitespace = /^\s+$/g;
+            if (node.nodeType === 1) {
+                console.log("element: " + node.tagName);
+            }
+            else if (node.nodeType === 3) {
+                //clear whitespace text nodes
+                node.data = node.data.replace(whitespace, "");
+                if (node.data) {
+                    console.log("text: " + node.data);
+                }
+            }
+        };
+        return Sdmx20DataReaderTools;
+    })();
+    exports.Sdmx20DataReaderTools = Sdmx20DataReaderTools;
     var Sdmx20StructureReaderTools = (function () {
         function Sdmx20StructureReaderTools(s, reg) {
             this.registry = null;

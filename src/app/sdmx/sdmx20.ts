@@ -32,8 +32,10 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
             return true;
         } else return false;
     }
-    isData(header: string): boolean {
-        return false;
+    isData(input: string): boolean {
+        if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+            return true;
+        } else return false;
     }
     isMetadata(header: string): boolean {
         return false;
@@ -49,32 +51,154 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
 
     }
     parseData(input: string): message.DataMessage {
-        var opts: sax.SAXOptions = <sax.SAXOptions>{};
-        var parser: sax.SAXParser = sax.parser(/*strict=*/true,/*SaxOptions*/opts);
+        var parser: Sdmx20DataReaderTools = new Sdmx20DataReaderTools(input);
+        return parser.getDataMessage();
 
-        parser.onerror = function(e) {
-            // an error happened.
-        };
-        parser.ontext = function(t) {
-            // got some text.  t is the string of text.
-        };
-        parser.onopentag = function(node) {
-            // opened a tag.  node has "name" and "attributes"
-            console.log("open:" + node);
-        };
-        parser.onclosetag = function(e) {
-            console.log("close:" + e);
+    }
+}
+export class Sdmx20DataReaderTools {
+    private msg: message.DataMessage = null;
+    constructor(s: string) {
+        var dom: any = parseXml(s);
+        this.msg = this.toDataMessage(dom.documentElement);
+    }
+    getDataMessage(): message.DataMessage { return this.msg; }
+    toDataMessage(dm: any): message.DataMessage {
+        var msg: message.DataMessage = new message.DataMessage();
+        var childNodes = dm.childNodes;
+        msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+        return msg;
+    }
 
+    toHeader(headerNode: any) {
+        var header: message.Header = new message.Header();
+        header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+        var test: string = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+        header.setTest(test == "true");
+        // truncated not in sdmx 2.1
+        //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+        //header.setTruncated(truncated=="true");
+        var prepared: string = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
+        var prepDate: xml.DateTime = xml.DateTime.fromString(prepared);
+        header.setPrepared(new message.HeaderTimeType(prepDate));
+        header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+        return header;
+    }
+    toSender(senderNode: any): message.Sender {
+        var sender: string = senderNode.childNodes[0].nodeValue;
+
+        var senderType: message.Sender = new message.Sender();
+        var senderId: string = senderNode.getAttribute("id");
+        var senderID: commonreferences.ID = new commonreferences.ID(senderId);
+        senderType.setId(senderID);
+        return senderType;
+    }
+    toNames(node: any): Array<common.Name> {
+        var names: Array<common.Name> = [];
+        var senderNames = this.searchNodeName("Name", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toName(senderNames[i]));
         }
-        parser.onattribute = function(attr) {
-            // an attribute.  attr has "name" and "value"
-        };
-        parser.onend = function() {
-            // parser stream is done, and ready to have more stuff written to it.
-        };
-
-        parser.write(input).close();
+        return names;
+    }
+    toName(node: any): common.Name {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var name: common.Name = new common.Name(lang, text);
+        return name;
+    }
+    toDescriptions(node: any): Array<common.Description> {
+        var names: Array<common.Description> = [];
+        var senderNames = this.searchNodeName("Description", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toDescription(senderNames[i]));
+        }
+        return names;
+    }
+    toDescription(node: any): common.Description {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var desc: common.Description = new common.Description(lang, text);
+        return desc;
+    }
+    toTextType(node: any): common.TextType {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var textType: common.TextType = new common.TextType(lang, text);
+        return textType;
+    }
+    toPartyType(node: any): message.PartyType {
+        var pt = new message.PartyType();
+        return pt;
+    }
+    findNodeName(s: string, childNodes: any) {
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nn: string = childNodes[i].nodeName;
+            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+            if (nn.indexOf(s) != -1) {
+                //alert("found node:"+s);
+                return childNodes[i];
+            }
+        }
         return null;
+    }
+    searchNodeName(s: string, childNodes: any): Array<any> {
+        var result: Array<any> = [];
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nn: string = childNodes[i].nodeName;
+            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+            if (nn.indexOf(s) != -1) {
+                //alert("found node:"+s);
+                result.push(childNodes[i]);
+            }
+        }
+        if (result.length == 0) {
+            //alert("cannot find any " + s + " in node");
+        }
+        return result;
+    }
+    findTextNode(node: any): string {
+        if (node == null) return "";
+        var childNodes = node.childNodes;
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nodeType = childNodes[i].nodeType;
+            if (nodeType == 3) {
+                return childNodes[i].nodeValue;
+            }
+        }
+        return "";
+    }
+    recurseDomChildren(start: any, output: any) {
+        var nodes;
+        if (start.childNodes) {
+            nodes = start.childNodes;
+            this.loopNodeChildren(nodes, output);
+        }
+    }
+
+    loopNodeChildren(nodes: Array<any>, output: any) {
+        var node;
+        for (var i = 0; i < nodes.length; i++) {
+            node = nodes[i];
+            if (output) {
+                this.outputNode(node);
+            }
+            if (node.childNodes) {
+                this.recurseDomChildren(node, output);
+            }
+        }
+    }
+    outputNode(node: any) {
+        var whitespace = /^\s+$/g;
+        if (node.nodeType === 1) {
+            console.log("element: " + node.tagName);
+        } else if (node.nodeType === 3) {
+            //clear whitespace text nodes
+            node.data = node.data.replace(whitespace, "");
+            if (node.data) {
+                console.log("text: " + node.data);
+            }
+        }
     }
 }
 export class Sdmx20StructureReaderTools {
@@ -91,11 +215,10 @@ export class Sdmx20StructureReaderTools {
         this.struct = new message.StructureType();
         var structures = new structure.Structures();
         this.struct.setStructures(structures);
-        if (this.registry==null ) {
+        if (this.registry == null) {
             this.registry = this.struct;
-            
-        }else{
-            this.registry = new registry.DoubleRegistry(this.registry,this.struct);
+        } else {
+            this.registry = new registry.DoubleRegistry(this.registry, this.struct);
         }
         var childNodes = structureNode.childNodes;
         this.struct.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
@@ -166,12 +289,12 @@ export class Sdmx20StructureReaderTools {
         var pt = new message.PartyType();
         return pt;
     }
-    toDataflows(dataflowsNode:any):structure.DataflowList {
+    toDataflows(dataflowsNode: any): structure.DataflowList {
         var dl: structure.DataflowList = new structure.DataflowList();
-        
+
         return dl;
     }
-    toDataflow(dataflowNode:any):structure.Dataflow {
+    toDataflow(dataflowNode: any): structure.Dataflow {
         var df: structure.Dataflow = new structure.Dataflow();
         df.setNames(this.toNames(dataflowNode));
         df.setId(this.toID(dataflowNode));
@@ -311,8 +434,8 @@ export class Sdmx20StructureReaderTools {
         var primaryMeasure = this.findNodeName("PrimaryMeasure", dsc.childNodes);
         var attributes = this.searchNodeName("Attribute", dsc.childNodes);
         components.setDimensionList(this.toDimensionList(dimensions));
-        this.toTimeDimension(components,timedimension);
-        this.toPrimaryMeasure(components,primaryMeasure);
+        this.toTimeDimension(components, timedimension);
+        this.toPrimaryMeasure(components, primaryMeasure);
         components.setAttributeList(this.toAttributeList(attributes));
         for (var i: number = 0; i < dimensions.length; i++) {
             this.recurseDomChildren(dimensions[i].childNodes, true);
@@ -350,22 +473,22 @@ export class Sdmx20StructureReaderTools {
         var dim2: structure.TimeDimension = new structure.TimeDimension();
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
-        var con: structure.ConceptType = this.getConcept(cs,dim);
-        if( con!=null ) {
+        var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyID());
             ref.setMaintainableParentId(cs.getId());
             ref.setVersion(cs.getVersion());
             ref.setId(con.getId());
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
         }
-        if( cl!=null ) {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
-        }else {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        if (cl != null) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+        } else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
         }
         comps.getDimensionList().setTimeDimension(dim2);
     }
@@ -373,22 +496,22 @@ export class Sdmx20StructureReaderTools {
         var dim2: structure.PrimaryMeasure = new structure.PrimaryMeasure();
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
-        var con: structure.ConceptType = this.getConcept(cs,dim);
-        if( con!=null ) {
+        var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyID());
             ref.setMaintainableParentId(cs.getId());
             ref.setVersion(cs.getVersion());
             ref.setId(con.getId());
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
         }
-        if( cl!=null ) {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
-        }else {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        if (cl != null) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+        } else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
         }
         comps.getMeasureList().setPrimaryMeasure(dim2);
     }
@@ -396,22 +519,22 @@ export class Sdmx20StructureReaderTools {
         var dim2: structure.Dimension = new structure.Dimension();
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
-        var con: structure.ConceptType = this.getConcept(cs,dim);
-        if( con!=null ) {
+        var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyID());
             ref.setMaintainableParentId(cs.getId());
             ref.setVersion(cs.getVersion());
             ref.setId(con.getId());
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
         }
-        if( cl!=null ) {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
-        }else {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        if (cl != null) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+        } else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
         }
         return dim2;
     }
@@ -419,37 +542,37 @@ export class Sdmx20StructureReaderTools {
         var dim2: structure.Attribute = new structure.Attribute();
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
-        var con: structure.ConceptType = this.getConcept(cs,dim);
-        if( con!=null ) {
+        var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyID());
             ref.setMaintainableParentId(cs.getId());
             ref.setVersion(cs.getVersion());
             ref.setId(con.getId());
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
         }
-        if( cl!=null ) {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
-        }else {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        if (cl != null) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+        } else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
         }
         return dim2;
     }
-    public toTextFormatType(tft:any):structure.TextFormatType {
+    public toTextFormatType(tft: any): structure.TextFormatType {
         if (tft == null) {
             return null;
         }
-        var tft2:structure.TextFormatType = new structure.TextFormatType();
+        var tft2: structure.TextFormatType = new structure.TextFormatType();
         if (tft.getAttribute("decimals") != null) {
             tft2.setDecimals(parseInt(tft.getAttribute("decimals")));
         }
-        if( tft.getAttribute("endValue")!=null){tft2.setEndValue(parseInt(tft.getAttribute("endValue")));}
-        if( tft.getAttribute("isSequence")!=null){
-            tft2.setIsSequence(tft.getAttribute("isSequence")=="true");
-            if( tft.getAttribute("interval")!=null){tft2.setInterval(parseInt(tft.getAttribute("interval")));}
+        if (tft.getAttribute("endValue") != null) { tft2.setEndValue(parseInt(tft.getAttribute("endValue"))); }
+        if (tft.getAttribute("isSequence") != null) {
+            tft2.setIsSequence(tft.getAttribute("isSequence") == "true");
+            if (tft.getAttribute("interval") != null) { tft2.setInterval(parseInt(tft.getAttribute("interval"))); }
         }
         if (tft.getAttribute("maxLength") != null) {
             tft2.setMaxLength(parseInt(tft.getAttribute("maxLength")));
@@ -457,25 +580,25 @@ export class Sdmx20StructureReaderTools {
         if (tft.getAttribute("pattern") != null) {
             tft2.setPattern(tft.getAttribute("pattern"));
         }
-        if( tft.getAttribute("startValue")){tft2.setStartValue(parseInt(tft.getAttribute("startValue")));}
+        if (tft.getAttribute("startValue")) { tft2.setStartValue(parseInt(tft.getAttribute("startValue"))); }
         if (tft.getAttribute("textType") != null) {
             tft2.setTextType(common.DataType.fromStringWithException(tft.getAttribute("textType")));
         }
-        if (tft.getAttribute("timeInterval")!=null ) {
-        // DO ME!!!!
+        if (tft.getAttribute("timeInterval") != null) {
+            // DO ME!!!!
             tft2.setTimeInterval(null);
         }
         return tft2;
     }
-    toLocalRepresentation(codelist: structure.Codelist, ttf:structure.TextFormatType):structure.RepresentationType {
-        var  lr2:structure.RepresentationType = new structure.RepresentationType();
+    toLocalRepresentation(codelist: structure.Codelist, ttf: structure.TextFormatType): structure.RepresentationType {
+        var lr2: structure.RepresentationType = new structure.RepresentationType();
         lr2.setTextFormat(ttf);
         if (codelist != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(codelist.getAgencyID());
             ref.setMaintainableParentId(codelist.getId());
             ref.setVersion(codelist.getVersion());
-            var reference = new commonreferences.Reference(ref,null);
+            var reference = new commonreferences.Reference(ref, null);
             lr2.setEnumeration(reference);
         }
         return lr2;
@@ -498,14 +621,14 @@ export class Sdmx20StructureReaderTools {
             ref.setAgencyId(new commonreferences.NestedNCNameID(dim.getAttribute("codelistAgency")));
             ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
             ref.setVersion(new commonreferences.Version(dim.getAttribute("codelistVersion")));
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             code = this.registry.findCodelist(reference);
         } else if (dim.getAttribute("codelistAgency") != null && dim.getAttribute("codelistVersion") == null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(new commonreferences.NestedNCNameID(dim.getAttribute("codelistAgency")));
             ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
             ref.setVersion(null);
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             code = this.registry.findCodelist(reference);
         }
         return code;
@@ -580,11 +703,11 @@ export class Sdmx20StructureReaderTools {
         }
         return null;
     }
-    getConcept(cs: structure.ConceptSchemeType, dim:any) {
-        if( cs!=null ) {
-            var concept:structure.ConceptType= cs.findItemString(dim.getAttribute("conceptRef"));
+    getConcept(cs: structure.ConceptSchemeType, dim: any) {
+        if (cs != null) {
+            var concept: structure.ConceptType = cs.findItemString(dim.getAttribute("conceptRef"));
             return concept;
-        }else return null;
+        } else return null;
     }
     findConcept(conceptRef: string): structure.ConceptType {
         var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
@@ -606,22 +729,22 @@ export class Sdmx20StructureReaderTools {
         var dim2: structure.MeasureDimension = new structure.MeasureDimension();
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
-        var con: structure.ConceptType = this.getConcept(cs,dim);
-        if( con!=null ) {
+        var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyID());
             ref.setMaintainableParentId(cs.getId());
             ref.setVersion(cs.getVersion());
             ref.setId(con.getId());
-            var reference: commonreferences.Reference = new commonreferences.Reference(ref,null);
+            var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
         }
-        if( cl!=null ) {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl,ttf))
-        }else {
-            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat",dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null,ttf))
+        if (cl != null) {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+        } else {
+            var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
         }
         return dim2;
     }
@@ -699,4 +822,3 @@ export class Sdmx20StructureReaderTools {
         }
     }
 }
-

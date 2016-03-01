@@ -2,6 +2,7 @@
 import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
+import data = require("sdmx/data");
 export interface Queryable {
     getRegistry(): Registry;
     getRepository(): Repository;
@@ -41,4 +42,61 @@ export interface SdmxParserProvider {
     parseStructure(input: string): message.StructureType;
     parseStructureWithRegistry(input: string,reg:Registry): message.StructureType;
     parseData(input: string): message.DataMessage;
+}
+export interface Attachable {
+    getValue(s: string): string;
+    setValue(s: string, val: string);
+    getAttachmentLevel(): data.AttachmentLevel;
+    getValue(i: number): string;
+    setValue(i: number, val: string);
+}
+export interface ColumnMapper {
+    registerColumn(s: string, attach: data.AttachmentLevel): number;
+    getColumnIndex(s: string): number;
+    getColumnName(i: number): string;
+    size(): number;
+    containsColumn(name: string): boolean;
+    getObservationColumns(): Array<string>;
+    getSeriesColumns(): Array<string>;
+    getDataSetColumns(): Array<string>;
+    getGroupColumns(): Array<string>;
+    isAttachedToDataSetString(s: string): boolean;
+    isAttachedToDataSetInt(i: number): boolean;
+    isAttachedToSeriesString(s: string): boolean;
+    isAttachedToSeriesInt(i: number): boolean;
+    isAttachedToObservationString(s: string): boolean;
+    isAttachedToObservationInt(i: number): boolean;
+    isAttachedToGroupString(s: string): boolean;
+    isAttachedToGroupInt(i: number): boolean;
+    dump();
+}
+export interface DataSetWriter {
+    //public ColumnMapper getColumnMapper();
+    newDataSet();
+    newSeries();
+    newObservation();
+    writeDataSetComponent(name: string, val: string);
+    writeSeriesComponent(name: string, val: string);
+    writeObservationComponent(name: string, val: string);
+    writeGroupValues(name: string, group: collections.Dictionary<string, Object>);
+    finishObservation();
+    finishSeries();
+    finishDataSet(): DataSet;
+}
+
+export interface DataSet {
+    dump();
+    getColumnName(i: number): string;
+    getColumnIndex(s: string): number;
+    getColumnSize(): number;
+    size(): number;
+    getValue(row: number, col: number);
+    setValue(row: number, col: number, val: string);
+    getFlatObs(row: number): data.FlatObs;
+    query(cube: data.Cube, order: Array<string>): data.Cube;
+    getColumnMapper(): ColumnMapper;
+    setGroups(groups: Array<data.Group>);
+    getGroups(): Array<data.Group>;
+    groupSize(): number;
+    find(key: data.FullKey): data.FlatObs;
 }

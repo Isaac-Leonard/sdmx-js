@@ -5,6 +5,14 @@ import commonreferences = require("sdmx/commonreferences");
 import xml = require("sdmx/xml");
 import common = require("sdmx/common");
 export class DataMessage {
+    private header: Header = null;
+
+    constructor() {
+
+    }
+
+    getHeader() { return this.header; }
+    setHeader(h: Header) { this.header = h; }
 
 }
 
