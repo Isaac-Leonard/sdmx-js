@@ -40,7 +40,7 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
     isMetadata(header: string): boolean {
         return false;
     }
-    parseStructureWithRegistry(input: string, reg: interfaces.Registry): message.StructureType {
+    parseStructureWithRegistry(input: string, reg: interfaces.LocalRegistry): message.StructureType {
         var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input, reg);
         return srt.getStructureType();
 
@@ -202,11 +202,11 @@ export class Sdmx20DataReaderTools {
     }
 }
 export class Sdmx20StructureReaderTools {
-    private registry: interfaces.Registry = null;
+    private registry: interfaces.LocalRegistry = null;
     private struct: message.StructureType = null;
     private currentKeyFamilyAgency: string = null;
 
-    constructor(s: string, reg: interfaces.Registry) {
+    constructor(s: string, reg: interfaces.LocalRegistry) {
         this.registry = reg;
         var dom: any = parseXml(s);
         this.struct = this.toStructureType(dom.documentElement);
@@ -244,7 +244,6 @@ export class Sdmx20StructureReaderTools {
     }
     toSender(senderNode: any): message.Sender {
         var sender: string = senderNode.childNodes[0].nodeValue;
-
         var senderType: message.Sender = new message.Sender();
         var senderId: string = senderNode.getAttribute("id");
         var senderID: commonreferences.ID = new commonreferences.ID(senderId);
@@ -275,6 +274,10 @@ export class Sdmx20StructureReaderTools {
     }
     toDescription(node: any): common.Description {
         var lang = node.getAttribute("xml:lang");
+        if (node.childNodes.length == 0) {
+            // <structure:Description xml:lang="en" />
+            return new common.Description(lang, "");
+        }
         var text = node.childNodes[0].nodeValue;
         var desc: common.Description = new common.Description(lang, text);
         return desc;
@@ -321,6 +324,9 @@ export class Sdmx20StructureReaderTools {
     }
     toVersion(node: any): commonreferences.Version {
         if (node == null) return null;
+        if (node.getAttribute("version") == "" || node.getAttribute("version") == null) {
+            return commonreferences.Version.ONE;
+        }
         return new commonreferences.Version(node.getAttribute("version"));
     }
     toCodelist(codelistNode: any) {
@@ -424,7 +430,7 @@ export class Sdmx20StructureReaderTools {
         dst.setVersion(this.toVersion(keyFamilyNode));
 
         dst.setDataStructureComponents(this.toDataStructureComponents(this.findNodeName("Components", keyFamilyNode.childNodes)));
-        this.recurseDomChildren(keyFamilyNode, true);
+        //this.recurseDomChildren(keyFamilyNode, true);
         return dst;
     }
     toDataStructureComponents(dsc: any): structure.DataStructureComponents {
@@ -437,6 +443,7 @@ export class Sdmx20StructureReaderTools {
         this.toTimeDimension(components, timedimension);
         this.toPrimaryMeasure(components, primaryMeasure);
         components.setAttributeList(this.toAttributeList(attributes));
+        /*
         for (var i: number = 0; i < dimensions.length; i++) {
             this.recurseDomChildren(dimensions[i].childNodes, true);
         }
@@ -445,6 +452,7 @@ export class Sdmx20StructureReaderTools {
         for (var i: number = 0; i < attributes.length; i++) {
             this.recurseDomChildren(attributes[i].childNodes, true);
         }
+        */
         return components;
     }
     toDimensionList(dims: Array<any>): structure.DimensionList {
@@ -485,10 +493,10 @@ export class Sdmx20StructureReaderTools {
         }
         if (cl != null) {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
         } else {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
         }
         comps.getDimensionList().setTimeDimension(dim2);
     }
@@ -508,10 +516,10 @@ export class Sdmx20StructureReaderTools {
         }
         if (cl != null) {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
         } else {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
         }
         comps.getMeasureList().setPrimaryMeasure(dim2);
     }
@@ -531,10 +539,10 @@ export class Sdmx20StructureReaderTools {
         }
         if (cl != null) {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
         } else {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
         }
         return dim2;
     }
@@ -554,10 +562,10 @@ export class Sdmx20StructureReaderTools {
         }
         if (cl != null) {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
         } else {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
         }
         return dim2;
     }

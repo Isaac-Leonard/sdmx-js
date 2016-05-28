@@ -402,7 +402,7 @@ export class FlatDataSet implements interfaces.DataSet {
         }
         return null;
     }
-    getDimensionAtObservation(reg: interfaces.Registry, dsref: commonreferences.Reference) {
+    getDimensionAtObservation(reg: interfaces.LocalRegistry, dsref: commonreferences.Reference) {
         return "AllDimensions";
     }
 

@@ -1,5 +1,6 @@
 /// <amd-module name='sdmx/structure'/>
 /// <reference path="../collections.ts"/>
+/// <reference path="../es6-promise.d.ts"/>
 import common = require("sdmx/common");
 import commonreferences = require("sdmx/commonreferences");
 import xml = require("sdmx/xml");
@@ -519,6 +520,14 @@ export class DataflowList {
         this.dataflowList = dl;
 
     }
+    public findDataflow(ref: commonreferences.Reference): Dataflow {
+        for (var i: number = 0; i < this.dataflowList.length; i++) {
+            if (this.dataflowList[i].identifiesMe(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion())) {
+                return this.dataflowList[i];
+            }
+        }
+        return null;
+    }
 }
 export class Component extends IdentifiableType {
     private conceptIdentity: commonreferences.Reference = null;
@@ -635,6 +644,41 @@ export class DataStructure extends MaintainableType {
     }
 
     public dump() {
+        for (var i: number = 0; i < this.components.getDimensionList().getDimensions().length; i++) {
+            var dim: Dimension = this.components.getDimensionList().getDimensions()[i];
+            console.log("Dim:"+i+":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + +"id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            if (dim.getLocalRepresentation().getEnumeration() != null) {
+                console.log("Dim:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+            }
+        }
+        var dim:Component = this.components.getDimensionList().getMeasureDimension();
+        if (dim != null) {
+            console.log("Dim:measure:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            if (dim.getLocalRepresentation().getEnumeration() != null) {
+                console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+            }
+        }
+        var dim: Component = this.components.getDimensionList().getTimeDimension();
+        if (dim != null) {
+            console.log("Dim:time:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            if (dim.getLocalRepresentation().getEnumeration() != null) {
+                console.log("Dim:" + "time" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+            }
+        }
+        var dim: Component = this.components.getMeasureList().getPrimaryMeasure();
+        if (dim != null) {
+            console.log("Dim:pm:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            if (dim.getLocalRepresentation().getEnumeration() != null) {
+                console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+            }
+        }
+        for (var i: number = 0; i < this.components.getAttributeList().getAttributes().length; i++) {
+            var dim: Component = this.components.getAttributeList().getAttributes()[i];
+            console.log("Att:"+i+":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            if (dim.getLocalRepresentation().getEnumeration() != null) {
+                console.log("Att:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+            }
+        }
     }
 
     public findComponentString(col: string): Component {
@@ -957,7 +1001,7 @@ export class DataStructures {
     }
 }
 
-export class Structures implements interfaces.Registry {
+export class Structures implements interfaces.LocalRegistry {
     private codelists: CodeLists = null;
     private concepts: Concepts = null;
     private datastructures: DataStructures = null;
@@ -1002,10 +1046,11 @@ export class Structures implements interfaces.Registry {
     }
     findDataStructure(ref: commonreferences.Reference): structure.DataStructure {
         if (this.datastructures == null) return null;
-        return null;
+        return this.datastructures.findDataStructureReference(ref);
     }
     findDataflow(ref: commonreferences.Reference): structure.Dataflow {
-        return null;
+        if (this.dataflows == null) return null;
+        return this.dataflows.findDataflow(ref);
     }
     findCode(ref: commonreferences.Reference): structure.CodeType {
         if (this.codelists == null) return null;
@@ -1016,7 +1061,6 @@ export class Structures implements interfaces.Registry {
         return this.codelists.findCodelistReference(ref);
     }
     findItemType(item: commonreferences.Reference): structure.ItemType {
-
         return null;
     }
     findConcept(ref: commonreferences.Reference): structure.ConceptType {
@@ -1028,22 +1072,22 @@ export class Structures implements interfaces.Registry {
         return this.concepts.findConceptSchemeReference(ref);
     }
     searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {
-        return new Array<structure.DataStructure>();
+        return [];
     }
     searchDataflow(ref: commonreferences.Reference): Array<structure.Dataflow> {
-        return new Array<structure.Dataflow>();
+        return [];
     }
     searchCodelist(ref: commonreferences.Reference): Array<structure.Codelist> {
-        return new Array<structure.Codelist>();
+        return [];
     }
     searchItemType(item: commonreferences.Reference): Array<structure.ItemType> {
-        return new Array<structure.ItemType>();
+        return [];
     }
     searchConcept(ref: commonreferences.Reference): Array<structure.ConceptType> {
-        return new Array<structure.ConceptType>();
+        return [];
     }
     searchConceptScheme(ref: commonreferences.Reference): Array<structure.ConceptSchemeType> {
-        return new Array<structure.ConceptSchemeType>();
+        return [];
     }
     save(): any {
 

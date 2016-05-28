@@ -110,6 +110,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return names;
         };
         Sdmx20DataReaderTools.prototype.toDescription = function (node) {
+            alert(JSON.stringify(node));
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var desc = new common.Description(lang, text);
@@ -270,6 +271,10 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         };
         Sdmx20StructureReaderTools.prototype.toDescription = function (node) {
             var lang = node.getAttribute("xml:lang");
+            if (node.childNodes.length == 0) {
+                // <structure:Description xml:lang="en" />
+                return new common.Description(lang, "");
+            }
             var text = node.childNodes[0].nodeValue;
             var desc = new common.Description(lang, text);
             return desc;
@@ -319,6 +324,10 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         Sdmx20StructureReaderTools.prototype.toVersion = function (node) {
             if (node == null)
                 return null;
+            alert("version=" + node.getAttribute("version"));
+            if (node.getAttribute("version") == "" || node.getAttribute("version") == null) {
+                return commonreferences.Version.ONE;
+            }
             return new commonreferences.Version(node.getAttribute("version"));
         };
         Sdmx20StructureReaderTools.prototype.toCodelist = function (codelistNode) {
@@ -427,7 +436,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             dst.setAgencyID(this.toNestedNCNameID(keyFamilyNode));
             dst.setVersion(this.toVersion(keyFamilyNode));
             dst.setDataStructureComponents(this.toDataStructureComponents(this.findNodeName("Components", keyFamilyNode.childNodes)));
-            this.recurseDomChildren(keyFamilyNode, true);
+            //this.recurseDomChildren(keyFamilyNode, true);
             return dst;
         };
         Sdmx20StructureReaderTools.prototype.toDataStructureComponents = function (dsc) {
@@ -440,14 +449,16 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             this.toTimeDimension(components, timedimension);
             this.toPrimaryMeasure(components, primaryMeasure);
             components.setAttributeList(this.toAttributeList(attributes));
-            for (var i = 0; i < dimensions.length; i++) {
+            /*
+            for (var i: number = 0; i < dimensions.length; i++) {
                 this.recurseDomChildren(dimensions[i].childNodes, true);
             }
             this.recurseDomChildren(timedimension.childNodes, true);
             this.recurseDomChildren(primaryMeasure.childNodes, true);
-            for (var i = 0; i < attributes.length; i++) {
+            for (var i: number = 0; i < attributes.length; i++) {
                 this.recurseDomChildren(attributes[i].childNodes, true);
             }
+            */
             return components;
         };
         Sdmx20StructureReaderTools.prototype.toDimensionList = function (dims) {

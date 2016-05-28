@@ -508,6 +508,14 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         DataflowList.prototype.setDataflowList = function (dl) {
             this.dataflowList = dl;
         };
+        DataflowList.prototype.findDataflow = function (ref) {
+            for (var i = 0; i < this.dataflowList.length; i++) {
+                if (this.dataflowList[i].identifiesMe(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion())) {
+                    return this.dataflowList[i];
+                }
+            }
+            return null;
+        };
         return DataflowList;
     })();
     exports.DataflowList = DataflowList;
@@ -666,6 +674,41 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.components = components;
         };
         DataStructure.prototype.dump = function () {
+            for (var i = 0; i < this.components.getDimensionList().getDimensions().length; i++) {
+                var dim = this.components.getDimensionList().getDimensions()[i];
+                console.log("Dim:" + i + ":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + +"id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
+                if (dim.getLocalRepresentation().getEnumeration() != null) {
+                    console.log("Dim:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                }
+            }
+            var dim = this.components.getDimensionList().getMeasureDimension();
+            if (dim != null) {
+                console.log("Dim:measure:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
+                if (dim.getLocalRepresentation().getEnumeration() != null) {
+                    console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                }
+            }
+            var dim = this.components.getDimensionList().getTimeDimension();
+            if (dim != null) {
+                console.log("Dim:time:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
+                if (dim.getLocalRepresentation().getEnumeration() != null) {
+                    console.log("Dim:" + "time" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                }
+            }
+            var dim = this.components.getMeasureList().getPrimaryMeasure();
+            if (dim != null) {
+                console.log("Dim:pm:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
+                if (dim.getLocalRepresentation().getEnumeration() != null) {
+                    console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                }
+            }
+            for (var i = 0; i < this.components.getAttributeList().getAttributes().length; i++) {
+                var dim = this.components.getAttributeList().getAttributes()[i];
+                console.log("Att:" + i + ":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
+                if (dim.getLocalRepresentation().getEnumeration() != null) {
+                    console.log("Att:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                }
+            }
         };
         DataStructure.prototype.findComponentString = function (col) {
             return this.findComponent(new commonreferences.ID(col));
@@ -1027,10 +1070,12 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Structures.prototype.findDataStructure = function (ref) {
             if (this.datastructures == null)
                 return null;
-            return null;
+            return this.datastructures.findDataStructureReference(ref);
         };
         Structures.prototype.findDataflow = function (ref) {
-            return null;
+            if (this.dataflows == null)
+                return null;
+            return this.dataflows.findDataflow(ref);
         };
         Structures.prototype.findCode = function (ref) {
             if (this.codelists == null)
@@ -1056,22 +1101,22 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return this.concepts.findConceptSchemeReference(ref);
         };
         Structures.prototype.searchDataStructure = function (ref) {
-            return new Array();
+            return [];
         };
         Structures.prototype.searchDataflow = function (ref) {
-            return new Array();
+            return [];
         };
         Structures.prototype.searchCodelist = function (ref) {
-            return new Array();
+            return [];
         };
         Structures.prototype.searchItemType = function (item) {
-            return new Array();
+            return [];
         };
         Structures.prototype.searchConcept = function (ref) {
-            return new Array();
+            return [];
         };
         Structures.prototype.searchConceptScheme = function (ref) {
-            return new Array();
+            return [];
         };
         Structures.prototype.save = function () {
         };

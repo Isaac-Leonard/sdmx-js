@@ -6,11 +6,10 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
         // Registry
         LocalRegistry.prototype.listDataflows = function () {
             var dataflowList = [];
+            var parray = [];
             for (var i = 0; i < this.structures.length; i++) {
-                if (this.structures[i].listDataflows().length > 0) {
-                    collections.arrays.forEach(this.structures[i].listDataflows(), function (e) {
-                        dataflowList.push(e);
-                    });
+                for (var j = 0; j < this.structures[i].listDataflows().length; j++) {
+                    dataflowList.push(this.structures[i].listDataflows()[j]);
                 }
             }
             return dataflowList;
@@ -25,6 +24,11 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
             collections.arrays.remove(this.structures, struct);
         };
         LocalRegistry.prototype.findDataStructure = function (ref) {
+            for (var i = 0; i < this.structures.length; i++) {
+                if (this.structures[i].findDataStructure(ref) != null) {
+                    return this.structures[i].findDataStructure(ref);
+                }
+            }
             return null;
         };
         LocalRegistry.prototype.findDataflow = function (ref) {
@@ -148,64 +152,64 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
             }
         };
         DoubleRegistry.prototype.searchDataStructure = function (ref) {
-            var list = [];
+            var datastrucList = [];
             collections.arrays.forEach(this.left.searchDataStructure(ref), function (a) {
-                list.push(a);
+                datastrucList.push(a);
             });
             collections.arrays.forEach(this.right.searchDataStructure(ref), function (a) {
-                list.push(a);
+                datastrucList.push(a);
             });
-            return list;
+            return datastrucList;
         };
         DoubleRegistry.prototype.searchDataflow = function (ref) {
-            var list = [];
+            var dataflowList = [];
             collections.arrays.forEach(this.left.searchDataflow(ref), function (a) {
-                list.push(a);
+                dataflowList.push(a);
             });
             collections.arrays.forEach(this.right.searchDataflow(ref), function (a) {
-                list.push(a);
+                dataflowList.push(a);
             });
-            return list;
+            return dataflowList;
         };
         DoubleRegistry.prototype.searchCodelist = function (ref) {
-            var list = [];
+            var codeList = [];
             collections.arrays.forEach(this.left.searchCodelist(ref), function (a) {
-                list.push(a);
+                codeList.push(a);
             });
             collections.arrays.forEach(this.right.searchCodelist(ref), function (a) {
-                list.push(a);
+                codeList.push(a);
             });
-            return list;
+            return codeList;
         };
         DoubleRegistry.prototype.searchItemType = function (item) {
-            var list = [];
+            var ittList = [];
             collections.arrays.forEach(this.left.searchItemType(item), function (a) {
-                list.push(a);
+                ittList.push(a);
             });
             collections.arrays.forEach(this.right.searchItemType(item), function (a) {
-                list.push(a);
+                ittList.push(a);
             });
-            return list;
+            return ittList;
         };
         DoubleRegistry.prototype.searchConcept = function (ref) {
-            var list = [];
+            var cList = [];
             collections.arrays.forEach(this.left.searchConcept(ref), function (a) {
-                list.push(a);
+                cList.push(a);
             });
             collections.arrays.forEach(this.right.searchConcept(ref), function (a) {
-                list.push(a);
+                cList.push(a);
             });
-            return list;
+            return cList;
         };
         DoubleRegistry.prototype.searchConceptScheme = function (ref) {
-            var list = [];
+            var csList = [];
             collections.arrays.forEach(this.left.searchConceptScheme(ref), function (a) {
-                list.push(a);
+                csList.push(a);
             });
             collections.arrays.forEach(this.right.searchConceptScheme(ref), function (a) {
-                list.push(a);
+                csList.push(a);
             });
-            return list;
+            return csList;
         };
         DoubleRegistry.prototype.save = function () { };
         return DoubleRegistry;

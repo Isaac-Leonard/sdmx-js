@@ -34,7 +34,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
         };
         // Registry
         StructureType.prototype.listDataflows = function () {
-            return null;
+            return this.structures.listDataflows();
         };
         StructureType.prototype.clear = function () {
         };

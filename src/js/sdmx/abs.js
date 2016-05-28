@@ -1,4 +1,4 @@
-define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonreferences", "sdmx/common", "sdmx"], function (require, exports, registry, structure, commonreferences, common, sdmx) {
+define(["require", "exports", "sdmx/registry", "sdmx"], function (require, exports, registry, sdmx) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -6,44 +6,50 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
         return xmlDoc;
     }
     exports.parseXml = parseXml;
-    var NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+    var ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
      = (function () {
-        function NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        function ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
             (agency, service, options) {
-            this.agency = "";
-            this.serviceURL = "";
+            this.agency = "ABS";
+            this.serviceURL = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
             this.options = "";
             this.local = new registry.LocalRegistry();
             this.dataflowList = null;
-            this.serviceURL = service;
-            this.agency = agency;
-            this.options = options;
+            if (service != null) {
+                this.serviceURL = service;
+            }
+            if (agency != null) {
+                this.agency = agency;
+            }
+            if (options != null) {
+                this.options = options;
+            }
         }
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.getRegistry = function () {
             return null; //this;
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.getRepository = function () {
             return null; //this;
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.clear = function () {
             this.local.clear();
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.query = function (s) {
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.load = function (struct) {
-            console.log("nomis load");
+            console.log("abs load");
             this.local.load(struct);
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.unload = function (struct) {
             this.local.unload(struct);
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.makeRequest = function (opts) {
             return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
@@ -81,7 +87,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 xhr.send(params);
             });
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.retrieve = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
@@ -94,11 +100,12 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
+            opts.headers = {};
             return this.makeRequest(opts).then(function (a) {
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.retrieve2 = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
@@ -119,7 +126,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
           This function ignores the version argument!!!
           ILO stat does not use version numbers.. simply take the latest
          */
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.findDataStructure = function (ref) {
             var dst = this.local.findDataStructure(ref);
             if (dst != null) {
@@ -144,7 +151,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 }.bind(this));
             }
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.listDataflows = function () {
             if (this.dataflowList != null) {
                 var promise = new Promise(function (resolve, reject) {
@@ -153,60 +160,22 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 return promise;
             }
             else {
-                var promise = new Promise(function (resolve, reject) {
-                    var st = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml");
-                    var list = st.getStructures().getDataStructures().getDataStructures();
+                return this.retrieve(this.serviceURL + "GetDataStructure/ALL/ABS").then(function (st) {
+                    var array = st.getStructures().getDataStructures().getDataStructures();
                     var dfs = [];
-                    for (var i = 0; i < list.length; i++) {
-                        var dst = list[i];
-                        var cubeId = structure.NameableType.toIDString(dst);
-                        var cubeName = dst.findName("en").getText();
-                        var url = this.serviceURL + "/v01/dataset/" + cubeId + ".overview.xml";
-                        var geogList = this.parseGeography(this.retrieve2(url), cubeId, cubeName);
-                        for (var j = 0; j < geogList.length; j++) {
-                            var dataFlow = new structure.Dataflow();
-                            dataFlow.setAgencyID(new commonreferences.NestedNCNameID((this.agency)));
-                            dataFlow.setId(new commonreferences.ID(cubeId + "_" + geogList[j].getGeography()));
-                            var name = new common.Name("en", cubeName + " " + geogList[j].getGeographyName());
-                            var names = [];
-                            names.push(name);
-                            dataFlow.setNames(names);
-                            var ref = new commonreferences.Ref();
-                            ref.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
-                            ref.setMaintainableParentId(dataFlow.getId());
-                            ref.setVersion(commonreferences.Version.ONE);
-                            var reference = new commonreferences.Reference(ref, null);
-                            dataFlow.setStructure(reference);
-                            dfs.push(dataFlow);
-                        }
-                        if (geogList.length == 0) {
-                            var dataFlow = new structure.Dataflow();
-                            dataFlow.setAgencyID(new commonreferences.NestedNCNameID((this.agency)));
-                            dataFlow.setId(new commonreferences.ID(cubeId + "_NOGEOG"));
-                            var name = new common.Name("en", cubeName);
-                            var names = [];
-                            names.push(name);
-                            dataFlow.setNames(names);
-                            var ref = new commonreferences.Ref();
-                            ref.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
-                            ref.setMaintainableParentId(dataFlow.getId());
-                            ref.setVersion(commonreferences.Version.ONE);
-                            var reference = new commonreferences.Reference(ref, null);
-                            dataFlow.setStructure(reference);
-                            dfs.push(dataFlow);
-                        }
+                    for (var i = 0; i < array.length; i++) {
+                        dfs.push(array[i].asDataflow());
                     }
                     this.dataflowList = dfs;
-                    resolve(dfs);
+                    return dfs;
                 }.bind(this));
-                return promise;
             }
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.getServiceURL = function () {
             return this.serviceURL;
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.parseGeography = function (doc, cubeId, cubeName) {
             var geogList = [];
             var tagContent = null;
@@ -235,7 +204,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             }
             return geogList;
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.recurseDomChildren = function (start, output) {
             var nodes;
             if (start.childNodes) {
@@ -243,7 +212,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 this.loopNodeChildren(nodes, output);
             }
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.loopNodeChildren = function (nodes, output) {
             var node;
             for (var i = 0; i < nodes.length; i++) {
@@ -256,7 +225,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 }
             }
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.outputNode = function (node) {
             var whitespace = /^\s+$/g;
             if (node.nodeType === 1) {
@@ -270,7 +239,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 }
             }
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.findNodeName = function (s, childNodes) {
             for (var i = 0; i < childNodes.length; i++) {
                 var nn = childNodes[i].nodeName;
@@ -282,7 +251,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             }
             return null;
         };
-        NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         .prototype.searchNodeName = function (s, childNodes) {
             var result = [];
             for (var i = 0; i < childNodes.length; i++) {
@@ -297,11 +266,11 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             }
             return result;
         };
-        return NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+        return ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
         ;
     })();
-    exports.NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-     = NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+    exports.ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+     = ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
     ;
     var NOMISGeography = (function () {
         function NOMISGeography(geography, geographyName, cubeName, cubeId) {
@@ -329,4 +298,4 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
     exports.NOMISGeography = NOMISGeography;
 });
 
-//# sourceMappingURL=nomis.js.map
+//# sourceMappingURL=abs.js.map

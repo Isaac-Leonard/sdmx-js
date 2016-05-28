@@ -1,13 +1,15 @@
 /// <amd-module name='sdmx/interfaces'/>
+///<reference path="../es6-promise.d.ts"/>
 import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
 import data = require("sdmx/data");
+
 export interface Queryable {
-    getRegistry(): Registry;
+    getRegistry(): RemoteRegistry;
     getRepository(): Repository;
 }
-export interface Registry {
+export interface LocalRegistry {
     // Registry
     listDataflows(): Array<structure.Dataflow>;
     clear(): void;
@@ -29,9 +31,33 @@ export interface Registry {
     save(): any;
 
 }
+export interface RemoteRegistry {
+    // Registry
+    listDataflows(): Promise<Array<structure.Dataflow>>;
+    clear(): void;
+    load(struct: message.StructureType): void;
+    unload(struct: message.StructureType): void;
+    findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure>;
+    findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow>;
+    findCode(ref: commonreferences.Reference): Promise<structure.CodeType>;
+    findCodelist(ref: commonreferences.Reference): Promise<structure.Codelist>;
+    findItemType(item: commonreferences.Reference): Promise<structure.ItemType>;
+    findConcept(ref: commonreferences.Reference): Promise<structure.ConceptType>;
+    findConceptScheme(ref: commonreferences.Reference): Promise<structure.ConceptSchemeType>;
+    searchDataStructure(ref: commonreferences.Reference): Promise<Array<structure.DataStructure>>;
+    searchDataflow(ref: commonreferences.Reference): Promise<Array<structure.Dataflow>>;
+    searchCodelist(ref: commonreferences.Reference): Promise<Array<structure.Codelist>>;
+    searchItemType(item: commonreferences.Reference): Promise<Array<structure.ItemType>>;
+    searchConcept(ref: commonreferences.Reference): Promise<Array<structure.ConceptType>>;
+    searchConceptScheme(ref: commonreferences.Reference): Promise<Array<structure.ConceptSchemeType>>;
+    getLocalRegistry():LocalRegistry;
+    save(): any;
+
+}
+
 export interface Repository {
-    query(query: message.DataQuery): message.DataMessage;
-    query(flow: structure.Dataflow, query: string): message.DataMessage;
+    query(query: message.DataQuery): Promise<message.DataMessage>;
+    query(flow: structure.Dataflow, query: string): Promise<message.DataMessage>;
 }
 export interface SdmxParserProvider {
     getVersionIdentifier(): number;
@@ -40,7 +66,7 @@ export interface SdmxParserProvider {
     isData(header: string): boolean;
     isMetadata(header: string): boolean;
     parseStructure(input: string): message.StructureType;
-    parseStructureWithRegistry(input: string,reg:Registry): message.StructureType;
+    parseStructureWithRegistry(input: string,reg:LocalRegistry): message.StructureType;
     parseData(input: string): message.DataMessage;
 }
 export interface Attachable {

@@ -19,7 +19,7 @@ export class DataMessage {
 export class DataQuery {
 
 }
-export class StructureType implements interfaces.Registry {
+export class StructureType implements interfaces.LocalRegistry {
     private header: Header = null;
     private structures: structure.Structures = null;
 
@@ -36,7 +36,7 @@ export class StructureType implements interfaces.Registry {
     }
     // Registry
     listDataflows(): Array<structure.Dataflow> {
-        return null;
+        return this.structures.listDataflows();
     }
     clear(): void {
 
@@ -89,9 +89,6 @@ export class StructureType implements interfaces.Registry {
     save(): any {
 
     }
-
-
-
 }
 export class HeaderTimeType {
     private date: xml.DateTime = null;

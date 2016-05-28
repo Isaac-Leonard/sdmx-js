@@ -16,10 +16,10 @@ export function parseXml(s: string): any {
     var xmlDoc = parseXml.parseFromString(s, "text/xml");
     return xmlDoc;
 }
-export class NOMISRESTServiceRegistry //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
+export class ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
 {
-    private agency: string = "";
-    private serviceURL: string = "";
+    private agency: string = "ABS";
+    private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
 
@@ -41,13 +41,13 @@ export class NOMISRESTServiceRegistry //implements interfaces.Registry, interfac
 
     }
     constructor(agency: string, service: string, options: string) {
-        this.serviceURL = service;
-        this.agency = agency;
-        this.options = options;
+        if(service!=null){this.serviceURL = service;}
+        if(agency!=null){this.agency = agency;}
+        if(options!=null){this.options = options;}
     }
 
     load(struct: message.StructureType) {
-        console.log("nomis load");
+        console.log("abs load");
         this.local.load(struct);
     }
 
@@ -101,6 +101,7 @@ export class NOMISRESTServiceRegistry //implements interfaces.Registry, interfac
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
+        opts.headers = {};
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -155,55 +156,17 @@ export class NOMISRESTServiceRegistry //implements interfaces.Registry, interfac
             }.bind(this));
             return promise;
         } else {
-            var promise = new Promise(function(resolve, reject) {
-                var st: message.StructureType = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml");
-                var list: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
-                var dfs: Array<structure.Dataflow> = [];
-                for (var i: number = 0; i < list.length; i++) {
-                    var dst: structure.DataStructure = list[i];
-                    var cubeId: string = structure.NameableType.toIDString(dst);
-                    var cubeName: string = dst.findName("en").getText();
-                    var url: string = this.serviceURL + "/v01/dataset/" + cubeId + ".overview.xml";
-                    var geogList: Array<NOMISGeography> = this.parseGeography(this.retrieve2(url), cubeId, cubeName);
-                    for (var j = 0; j < geogList.length; j++) {
-                        var dataFlow: structure.Dataflow = new structure.Dataflow();
-                        dataFlow.setAgencyID(new commonreferences.NestedNCNameID((this.agency)));
-                        dataFlow.setId(new commonreferences.ID(cubeId + "_" + geogList[j].getGeography()));
-                        var name: common.Name = new common.Name("en", cubeName + " " + geogList[j].getGeographyName());
-                        var names: Array<common.Name> = [];
-                        names.push(name);
-                        dataFlow.setNames(names);
-                        var ref: commonreferences.Ref = new commonreferences.Ref();
-                        ref.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
-                        ref.setMaintainableParentId(dataFlow.getId());
-                        ref.setVersion(commonreferences.Version.ONE);
-                        var reference = new commonreferences.Reference(ref, null);
-                        dataFlow.setStructure(reference);
-                        dfs.push(dataFlow);
-                    }
-                    if (geogList.length == 0) {
-                        var dataFlow: structure.Dataflow = new structure.Dataflow();
-                        dataFlow.setAgencyID(new commonreferences.NestedNCNameID((this.agency)));
-                        dataFlow.setId(new commonreferences.ID(cubeId + "_NOGEOG"));
-                        var name: common.Name = new common.Name("en", cubeName);
-                        var names: Array<common.Name> = [];
-                        names.push(name);
-                        dataFlow.setNames(names);
-                        var ref: commonreferences.Ref = new commonreferences.Ref();
-                        ref.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
-                        ref.setMaintainableParentId(dataFlow.getId());
-                        ref.setVersion(commonreferences.Version.ONE);
-                        var reference = new commonreferences.Reference(ref, null);
-                        dataFlow.setStructure(reference);
-                        dfs.push(dataFlow);
-                    }
+            return this.retrieve(this.serviceURL + "GetDataStructure/ALL/ABS").then(function(st: message.StructureType) {
+                var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
+                var dfs:Array<structure.Dataflow> = [];
+                for (var i = 0; i < array.length;i++) {
+                    dfs.push(array[i].asDataflow());
                 }
                 this.dataflowList = dfs;
-                resolve(dfs);
-            }.bind(this));
-            return promise;
+                return dfs;
+            }.bind(this)
+            );
         }
-
     }
     public getServiceURL(): string {
         return this.serviceURL;
