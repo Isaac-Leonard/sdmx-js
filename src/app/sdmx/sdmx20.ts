@@ -97,7 +97,6 @@ export class Sdmx20DataReaderTools {
         return msg;
     }
     toDataSets(dm: Array<any>): Array<data.FlatDataSet> {
-        alert("datasets length=" + dm.length);
         var dss: Array<data.FlatDataSet> = [];
         for (var i: number = 0; i < dm.length; i++) {
             dss.push(this.toDataSet(dm[i].childNodes));
@@ -105,7 +104,6 @@ export class Sdmx20DataReaderTools {
         return dss;
     }
     toDataSet(ds: any): data.FlatDataSet {
-        alert("toDataSet");
         this.dw.newDataSet();
         var series: Array<any> = this.searchNodeName("Series", ds);
         if (series.length == 0) {
@@ -113,7 +111,6 @@ export class Sdmx20DataReaderTools {
             for (var i: number = 0; i < obsArray.length; i++) {
                 this.dw.newObservation();
                 var atts = obsArray[i].attributes;
-                alert(JSON.stringify(atts));
             }
         } else {
             for (var i: number = 0; i < series.length; i++) {

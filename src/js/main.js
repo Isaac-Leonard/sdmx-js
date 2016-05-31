@@ -28,7 +28,7 @@ require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sd
             ref.setVersion(new commonreferences.Version("1.0"));
             var reference = new commonreferences.Reference(ref, null);
             q.query(reference, null).then(function (dm) {
-                var table = document.createElement("Table");
+                var table = document.createElement("table");
                 var tr = document.createElement("tr");
                 for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
                     var th = document.createElement("th");
@@ -38,7 +38,6 @@ require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sd
                 table.appendChild(tr);
                 for (var i = 0; i < dm.getDataSet(0).size(); i++) {
                     var tr = document.createElement("tr");
-                    var s = "Obs ";
                     var obs = dm.getDataSet(0).getFlatObs(i);
                     for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
                         var td = document.createElement("td");
