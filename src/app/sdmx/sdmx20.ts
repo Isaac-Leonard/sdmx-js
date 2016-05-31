@@ -1,3 +1,20 @@
+/*
+    This file is part of sdmx-js.
+
+    sdmx-js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sdmx-js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 James Gardner
+*/
 /// <amd-module name='sdmx/sdmx20'/>
 ///<reference path="../sax.d.ts"/>
 import commonreferences = require("sdmx/commonreferences");
@@ -8,6 +25,7 @@ import interfaces = require("sdmx/interfaces");
 import registry = require("sdmx/registry");
 import xml = require("sdmx/xml");
 import common = require("sdmx/common");
+import data = require("sdmx/data");
 export function parseXml(s: string): any {
     var parseXml: DOMParser;
     parseXml = new DOMParser();
@@ -58,16 +76,66 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
 }
 export class Sdmx20DataReaderTools {
     private msg: message.DataMessage = null;
+    private dw: data.FlatDataSetWriter = new data.FlatDataSetWriter();
+
     constructor(s: string) {
         var dom: any = parseXml(s);
         this.msg = this.toDataMessage(dom.documentElement);
+
+
     }
+
     getDataMessage(): message.DataMessage { return this.msg; }
     toDataMessage(dm: any): message.DataMessage {
         var msg: message.DataMessage = new message.DataMessage();
         var childNodes = dm.childNodes;
         msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+        var dss = this.toDataSets(this.searchNodeName("DataSet", childNodes));
+        for (var i: number = 0; i < dss.length; i++) {
+            msg.addDataSet(dss[i]);
+        }
         return msg;
+    }
+    toDataSets(dm: Array<any>): Array<data.FlatDataSet> {
+        alert("datasets length=" + dm.length);
+        var dss: Array<data.FlatDataSet> = [];
+        for (var i: number = 0; i < dm.length; i++) {
+            dss.push(this.toDataSet(dm[i].childNodes));
+        }
+        return dss;
+    }
+    toDataSet(ds: any): data.FlatDataSet {
+        alert("toDataSet");
+        this.dw.newDataSet();
+        var series: Array<any> = this.searchNodeName("Series", ds);
+        if (series.length == 0) {
+            var obsArray: Array<any> = this.searchNodeName("Obs", ds);
+            for (var i: number = 0; i < obsArray.length; i++) {
+                this.dw.newObservation();
+                var atts = obsArray[i].attributes;
+                alert(JSON.stringify(atts));
+            }
+        } else {
+            for (var i: number = 0; i < series.length; i++) {
+                this.dw.newSeries();
+                var satts: Array<any> = series[i].attributes;
+                for (var av: number = 0; av < satts.length; av++) {
+                    this.dw.writeSeriesComponent(satts[av].nodeName, satts[av].value);
+                }
+                var obsArray: Array<any> = this.searchNodeName("Obs", series[i].childNodes);
+                for (var j: number = 0; j < obsArray.length; j++) {
+                    this.dw.newObservation();
+                    var atts = obsArray[j].attributes;
+                    for (var av: number = 0; av < atts.length; av++) {
+                        this.dw.writeObservationComponent(atts[av].nodeName, atts[av].value);
+                    }
+                    this.dw.finishObservation();
+                }
+                this.dw.finishSeries();
+            }
+
+        }
+        return this.dw.finishDataSet();
     }
 
     toHeader(headerNode: any) {

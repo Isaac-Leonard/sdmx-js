@@ -7,9 +7,19 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
     var DataMessage = (function () {
         function DataMessage() {
             this.header = null;
+            this.dataSets = [];
         }
         DataMessage.prototype.getHeader = function () { return this.header; };
         DataMessage.prototype.setHeader = function (h) { this.header = h; };
+        DataMessage.prototype.getDataSet = function (i) { return this.dataSets[i]; };
+        DataMessage.prototype.setDataSet = function (i, ds) { this.dataSets[i] = ds; };
+        DataMessage.prototype.addDataSet = function (ds) {
+            this.dataSets.push(ds);
+            return collections.arrays.indexOf(this.dataSets, ds);
+        };
+        DataMessage.prototype.removeDataSet = function (ds) {
+            collections.arrays.remove(this.dataSets, ds);
+        };
         return DataMessage;
     })();
     exports.DataMessage = DataMessage;

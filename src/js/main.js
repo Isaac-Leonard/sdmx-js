@@ -14,38 +14,59 @@ require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sd
             //sdmx.SdmxIO.parseStructure(s);
             //var d2 = new Date();
             /*
-            var q = new abs.ABS();
-            var dfs = q.listDataflows();
-            for(var i=0;i<dfs.length;i++) {
-                console.log(structure.NameableType.toString(dfs[i]));
-                
-            }
-            */
-           /*
-             var q = new nomis.NOMISRESTServiceRegistry("NOMIS", "https://www.nomisweb.co.uk/api", "uid=0xad235cca367972d98bd642ef04ea259da5de264f");
-             var ref = new commonreferences.Ref();
-             ref.setAgencyId(new commonreferences.NestedNCNameID("NOMIS"));
-             ref.setMaintainableParentId(new commonreferences.ID("NM_1_1"));
-             ref.setVersion(new commonreferences.Version("1.0"));
-             var reference = new commonreferences.Reference(ref, null);
-             var dst = q.findDataStructure(reference);
-             dst.then(function (a) {
-             alert(JSON.stringify(a));
-             a.dump();
-             });
-            */
+             var q = new abs.ABS();
+             var dfs = q.listDataflows();
+             for(var i=0;i<dfs.length;i++) {
+             console.log(structure.NameableType.toString(dfs[i]));
+             
+             }
+             */
+            var q = sdmx.SdmxIO.connect("NOMIS");
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(new commonreferences.NestedNCNameID("NOMIS"));
+            ref.setMaintainableParentId(new commonreferences.ID("NM_1_1_TYPE2"));
+            ref.setVersion(new commonreferences.Version("1.0"));
+            var reference = new commonreferences.Reference(ref, null);
+            q.query(reference, null).then(function (dm) {
+                var table = document.createElement("Table");
+                var tr = document.createElement("tr");
+                for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
+                    var th = document.createElement("th");
+                    th.innerHTML = dm.getDataSet(0).getColumnName(j);
+                    tr.appendChild(th)
+                }
+                table.appendChild(tr);
+                for (var i = 0; i < dm.getDataSet(0).size(); i++) {
+                    var tr = document.createElement("tr");
+                    var s = "Obs ";
+                    var obs = dm.getDataSet(0).getFlatObs(i);
+                    for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
+                        var td = document.createElement("td");
+                        td.innerHTML = obs.getValue(j);
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+                document.getElementById("container").appendChild(table);
+            });
+            //var dst = q.findDataStructure(reference);
+            //dst.then(function (a) {
+            //alert(JSON.stringify(a));
+            //a.dump();
+            //});
+
             /*
              var dfs = q.listDataflows();
              for(var i=0;i<dfs.length;i++) {
              document.write("<p>"+structure.NameableType.toString(dfs[i])+structure.NameableType.toIDString(dfs[i])+"</p><br/>");
              }
              */
-            
+            /*
              var d1 = new Date();
              var s = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><CompactData xmlns=\"http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message\" xmlns:bisc=\"urn:sdmx:org.sdmx.infomodel.keyfamily.KeyFamily=BIS:EXT_DEBT:compact\" xmlns:compact=\"http://www.SDMX.org/resources/SDMXML/schemas/v2_0/compact\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message SDMXMessage.xsd urn:sdmx:org.sdmx.infomodel.keyfamily.KeyFamily=BIS:EXT_DEBT:compact BIS_JOINT_DEBT_Compact.xsd http://www.SDMX.org/resources/SDMXML/schemas/v2_0/compact SDMXCompactData.xsd\" ><Header><ID>JD014</ID><Test>true</Test><Truncated>false</Truncated><Name xml:lang=\"en\">Trans46305</Name><Prepared>2001-03-11T09:30:47-05:00</Prepared><Sender id=\"BIS\"><Name xml:lang=\"en\">Bank for International Settlements</Name><Contact><Name xml:lang=\"en\">G.B. Smith</Name><Telephone>+000.000.0000</Telephone></Contact></Sender><Receiver id=\"ECB\"><Name xml:lang=\"en\">European Central Bank</Name><Contact><Name xml:lang=\"en\">B.S. Featherstone</Name><Department xml:lang=\"en\">Statistics Division</Department><Telephone>+000.000.0001</Telephone></Contact></Receiver><DataSetAction>Append</DataSetAction><Extracted>2001-03-11T09:30:47-05:00</Extracted><ReportingBegin>2000-01-01T00:00:00</ReportingBegin><ReportingEnd>2000-12-01T00:00:00</ReportingEnd></Header><bisc:DataSet><bisc:SiblingGroup  VIS_CTY=\"MX\" JD_TYPE=\"P\" JD_CATEGORY=\"A\" AVAILABILITY=\"A\" DECIMALS=\"2\" BIS_UNIT=\"USD\" UNIT_MULT=\"5\"/><bisc:SiblingGroup VIS_CTY=\"MX\" JD_TYPE=\"P\" JD_CATEGORY=\"B\" AVAILABILITY=\"A\" DECIMALS=\"2\" BIS_UNIT=\"USD\" UNIT_MULT=\"5\"/><bisc:Series FREQ=\"M\" COLLECTION=\"B\" TIME_FORMAT=\"P1M\" VIS_CTY=\"MX\" JD_TYPE=\"P\" JD_CATEGORY=\"A\" ><bisc:Obs TIME_PERIOD=\"2000-01\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2001-02\" OBS_VALUE=\"2.29\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-03\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-04\" OBS_VALUE=\"5.24\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-05\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-06\" OBS_VALUE=\"3.78\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-07\" OBS_VALUE=\"3.65\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-08\" OBS_VALUE=\"2.37\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-09\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-10\" OBS_VALUE=\"3.17\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-11\" OBS_VALUE=\"3.34\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-12\" OBS_VALUE=\"1.21\" OBS_STATUS=\"A\"/></bisc:Series><bisc:Series FREQ=\"A\" COLLECTION=\"B\" TIME_FORMAT=\"P1Y\" VIS_CTY=\"MX\" JD_TYPE=\"P\" JD_CATEGORY=\"A\"><bisc:Obs TIME_PERIOD=\"2000-01\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/></bisc:Series><bisc:Series FREQ=\"M\" COLLECTION=\"B\" TIME_FORMAT=\"P1M\" VIS_CTY=\"MX\" JD_TYPE=\"P\" JD_CATEGORY=\"B\"><bisc:Obs TIME_PERIOD=\"2000-01\" OBS_VALUE=\"5.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2001-02\" OBS_VALUE=\"3.29\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-03\" OBS_VALUE=\"6.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-04\" OBS_VALUE=\"2.24\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-05\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-06\" OBS_VALUE=\"7.78\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-07\" OBS_VALUE=\"3.65\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-08\" OBS_VALUE=\"5.37\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-09\" OBS_VALUE=\"3.14\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-10\" OBS_VALUE=\"1.17\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-11\" OBS_VALUE=\"4.34\" OBS_STATUS=\"A\"/><bisc:Obs TIME_PERIOD=\"2000-12\" OBS_VALUE=\"1.21\" OBS_STATUS=\"A\"/></bisc:Series><bisc:Series FREQ=\"A\" COLLECTION=\"B\" TIME_FORMAT=\"P1Y\" VIS_CTY=\"MX\" JD_TYPE=\"P\" JD_CATEGORY=\"B\" ><bisc:Obs TIME_PERIOD=\"2000-01\" OBS_VALUE=\"4.14\" OBS_STATUS=\"A\"/></bisc:Series></bisc:DataSet></CompactData>";
              var msg = sdmx.SdmxIO.parseData(s);
              alert(JSON.stringify(msg));
              var d2 = new Date();
              alert(d2.getTime()-d1.getTime());
-            
+             */
         });

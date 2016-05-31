@@ -190,9 +190,6 @@ define("sdmx/data", ["require", "exports"], function (require, exports) {
             if (collections.arrays.contains(this.columns, s) || collections.arrays.contains(this.groupColumns, s)) {
                 throw new Error("Attempt to Register already registered Column!!");
             }
-            if (attach != AttachmentLevel.OBSERVATION && attach != AttachmentLevel.GROUP || attach != AttachmentLevel.DATASET) {
-                throw new Error("Attachment level is not OBSERVATION Or Group or DataSet");
-            }
             if (attach == AttachmentLevel.GROUP) {
                 this.groupColumns.push(s);
                 this.columns.push(s);

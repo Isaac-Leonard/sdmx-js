@@ -1,3 +1,20 @@
+/*
+    This file is part of sdmx-js.
+
+    sdmx-js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sdmx-js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 James Gardner
+*/
 /// <amd-module name='sdmx/data'/>
 ///<reference path="../collections.ts"/>
 import interfaces = require("sdmx/interfaces");
@@ -177,9 +194,6 @@ export class FlatColumnMapper implements interfaces.ColumnMapper {
     registerColumn(s: string, attach: AttachmentLevel): number {
         if (collections.arrays.contains(this.columns, s) || collections.arrays.contains(this.groupColumns, s)) {
             throw new Error("Attempt to Register already registered Column!!");
-        }
-        if (attach != AttachmentLevel.OBSERVATION && attach != AttachmentLevel.GROUP || attach != AttachmentLevel.DATASET) {
-            throw new Error("Attachment level is not OBSERVATION Or Group or DataSet");
         }
         if (attach == AttachmentLevel.GROUP) {
             this.groupColumns.push(s);

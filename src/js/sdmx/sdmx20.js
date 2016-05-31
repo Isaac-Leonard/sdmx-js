@@ -1,4 +1,4 @@
-define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common"], function (require, exports, commonreferences, structure, message, registry, xml, common) {
+define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data"], function (require, exports, commonreferences, structure, message, registry, xml, common, data) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -55,6 +55,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
     var Sdmx20DataReaderTools = (function () {
         function Sdmx20DataReaderTools(s) {
             this.msg = null;
+            this.dw = new data.FlatDataSetWriter();
             var dom = parseXml(s);
             this.msg = this.toDataMessage(dom.documentElement);
         }
@@ -63,7 +64,52 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var msg = new message.DataMessage();
             var childNodes = dm.childNodes;
             msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+            var dss = this.toDataSets(this.searchNodeName("DataSet", childNodes));
+            for (var i = 0; i < dss.length; i++) {
+                msg.addDataSet(dss[i]);
+            }
             return msg;
+        };
+        Sdmx20DataReaderTools.prototype.toDataSets = function (dm) {
+            alert("datasets length=" + dm.length);
+            var dss = [];
+            for (var i = 0; i < dm.length; i++) {
+                dss.push(this.toDataSet(dm[i].childNodes));
+            }
+            return dss;
+        };
+        Sdmx20DataReaderTools.prototype.toDataSet = function (ds) {
+            alert("toDataSet");
+            this.dw.newDataSet();
+            var series = this.searchNodeName("Series", ds);
+            if (series.length == 0) {
+                var obsArray = this.searchNodeName("Obs", ds);
+                for (var i = 0; i < obsArray.length; i++) {
+                    this.dw.newObservation();
+                    var atts = obsArray[i].attributes;
+                    alert(JSON.stringify(atts));
+                }
+            }
+            else {
+                for (var i = 0; i < series.length; i++) {
+                    this.dw.newSeries();
+                    var satts = series[i].attributes;
+                    for (var av = 0; av < satts.length; av++) {
+                        this.dw.writeSeriesComponent(satts[av].nodeName, satts[av].value);
+                    }
+                    var obsArray = this.searchNodeName("Obs", series[i].childNodes);
+                    for (var j = 0; j < obsArray.length; j++) {
+                        this.dw.newObservation();
+                        var atts = obsArray[j].attributes;
+                        for (var av = 0; av < atts.length; av++) {
+                            this.dw.writeObservationComponent(atts[av].nodeName, atts[av].value);
+                        }
+                        this.dw.finishObservation();
+                    }
+                    this.dw.finishSeries();
+                }
+            }
+            return this.dw.finishDataSet();
         };
         Sdmx20DataReaderTools.prototype.toHeader = function (headerNode) {
             var header = new message.Header();
@@ -110,7 +156,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return names;
         };
         Sdmx20DataReaderTools.prototype.toDescription = function (node) {
-            alert(JSON.stringify(node));
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var desc = new common.Description(lang, text);
@@ -324,7 +369,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         Sdmx20StructureReaderTools.prototype.toVersion = function (node) {
             if (node == null)
                 return null;
-            alert("version=" + node.getAttribute("version"));
             if (node.getAttribute("version") == "" || node.getAttribute("version") == null) {
                 return commonreferences.Version.ONE;
             }

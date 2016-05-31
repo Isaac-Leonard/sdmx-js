@@ -1,3 +1,20 @@
+/*
+    This file is part of sdmx-js.
+
+    sdmx-js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sdmx-js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 James Gardner
+*/
 /// <amd-module name='sdmx/interfaces'/>
 ///<reference path="../es6-promise.d.ts"/>
 import message = require("sdmx/message");
@@ -6,9 +23,18 @@ import structure = require("sdmx/structure");
 import data = require("sdmx/data");
 
 export interface Queryable {
-    getRegistry(): RemoteRegistry;
+    getRemoteRegistry(): RemoteRegistry;
     getRepository(): Repository;
 }
+/*
+ * Sometimes i feel that i dont like the way this class works in javascript...
+ * really i would like only one 'Registry' interface, whether they return promises
+ * or concrete objects doesn't really matter just as long as there is only one
+ * type of Registry interface, and i think Promises fit in better with javascript...
+ * the only reason this class returns concrete objects, is because I need it for
+ * sdmx 2.0 parsing to access the codelists and conceptschemes while parsing the
+ * document.
+ */
 export interface LocalRegistry {
     // Registry
     listDataflows(): Array<structure.Dataflow>;

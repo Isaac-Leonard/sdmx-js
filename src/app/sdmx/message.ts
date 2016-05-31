@@ -1,11 +1,31 @@
+/*
+    This file is part of sdmx-js.
+
+    sdmx-js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sdmx-js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 James Gardner
+*/
 /// <amd-module name='sdmx/message'/>
+///<reference path="../collections.ts"/>
 import interfaces = require("sdmx/interfaces");
 import structure = require("sdmx/structure");
 import commonreferences = require("sdmx/commonreferences");
 import xml = require("sdmx/xml");
 import common = require("sdmx/common");
+import data = require("sdmx/data");
 export class DataMessage {
     private header: Header = null;
+    private dataSets: Array<data.FlatDataSet> = [];
 
     constructor() {
 
@@ -13,7 +33,15 @@ export class DataMessage {
 
     getHeader() { return this.header; }
     setHeader(h: Header) { this.header = h; }
-
+    getDataSet(i: number): data.FlatDataSet { return this.dataSets[i]; }
+    setDataSet(i: number, ds: data.FlatDataSet) { this.dataSets[i] = ds; }
+    addDataSet(ds: data.FlatDataSet): number {
+        this.dataSets.push(ds);
+        return collections.arrays.indexOf(this.dataSets, ds);
+    }
+    removeDataSet(ds: data.FlatDataSet) {
+        collections.arrays.remove(this.dataSets, ds);
+    }
 }
 
 export class DataQuery {

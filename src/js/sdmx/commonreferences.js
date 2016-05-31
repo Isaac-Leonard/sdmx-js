@@ -310,6 +310,17 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         };
         Reference.prototype.produce = function () {
         };
+        Reference.prototype.cloneRef = function () {
+            var ref2 = new Ref();
+            ref2.setAgencyId(this.agency);
+            ref2.setId(this.getId());
+            ref2.setMaintainableParentId(this.maintainedParentId);
+            ref2.setMaintainableParentVersion(this.maintainedParentVersion);
+            ref2.setRefClass(this.clazz);
+            ref2.setPackage(this.pack);
+            ref2.setVersion(this.version);
+            return ref2;
+        };
         return Reference;
     })();
     exports.Reference = Reference;

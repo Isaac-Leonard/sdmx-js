@@ -6,10 +6,8 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
         return xmlDoc;
     }
     exports.parseXml = parseXml;
-    var ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-     = (function () {
-        function ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-            (agency, service, options) {
+    var ABS = (function () {
+        function ABS(agency, service, options) {
             this.agency = "ABS";
             this.serviceURL = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
             this.options = "";
@@ -25,32 +23,25 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 this.options = options;
             }
         }
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.getRegistry = function () {
+        ABS.prototype.getRemoteRegistry = function () {
+            return this;
+        };
+        ABS.prototype.getRepository = function () {
             return null; //this;
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.getRepository = function () {
-            return null; //this;
-        };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.clear = function () {
+        ABS.prototype.clear = function () {
             this.local.clear();
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.query = function (s) {
+        ABS.prototype.query = function (s) {
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.load = function (struct) {
+        ABS.prototype.load = function (struct) {
             console.log("abs load");
             this.local.load(struct);
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.unload = function (struct) {
+        ABS.prototype.unload = function (struct) {
             this.local.unload(struct);
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.makeRequest = function (opts) {
+        ABS.prototype.makeRequest = function (opts) {
             return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(opts.method, opts.url);
@@ -87,8 +78,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 xhr.send(params);
             });
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.retrieve = function (urlString) {
+        ABS.prototype.retrieve = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -105,8 +95,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.retrieve2 = function (urlString) {
+        ABS.prototype.retrieve2 = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -122,12 +111,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return a;
             });
         };
-        /*
-          This function ignores the version argument!!!
-          ILO stat does not use version numbers.. simply take the latest
-         */
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.findDataStructure = function (ref) {
+        ABS.prototype.findDataStructure = function (ref) {
             var dst = this.local.findDataStructure(ref);
             if (dst != null) {
                 var promise = new Promise(function (resolve, reject) {
@@ -136,23 +120,10 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return promise;
             }
             else {
-                var geogIndex = ref.getMaintainableParentId().toString().lastIndexOf("_");
-                var geog = ref.getMaintainableParentId().toString().substring(geogIndex + 1, ref.getMaintainableParentId().toString().length);
-                var geography_string = "geography=" + geog;
-                if ("NOGEOG" == geog) {
-                    geography_string = "";
-                }
-                var id = ref.getMaintainableParentId().toString().substring(0, geogIndex);
-                return this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + ".structure.sdmx.xml?" + geography_string).then(function (a) {
-                    a.getStructures().getDataStructures().getDataStructures()[0].setId(ref.getMaintainableParentId());
-                    a.getStructures().getDataStructures().getDataStructures()[0].setVersion(ref.getVersion());
-                    this.load(a);
-                    return this.local.findDataStructure(ref);
-                }.bind(this));
+                return null;
             }
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.listDataflows = function () {
+        ABS.prototype.listDataflows = function () {
             if (this.dataflowList != null) {
                 var promise = new Promise(function (resolve, reject) {
                     resolve(this.dataflowList);
@@ -171,49 +142,17 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 }.bind(this));
             }
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.getServiceURL = function () {
+        ABS.prototype.getServiceURL = function () {
             return this.serviceURL;
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.parseGeography = function (doc, cubeId, cubeName) {
-            var geogList = [];
-            var tagContent = null;
-            var lastLang = null;
-            var xmlDoc = parseXml(doc);
-            var dimNode = this.findNodeName("Dimensions", xmlDoc.documentElement.childNodes);
-            var dimsNode = this.searchNodeName("Dimension", dimNode.childNodes);
-            var geogNode = null;
-            for (var i = 0; i < dimsNode.length; i++) {
-                if (dimsNode[i].getAttribute("concept") == "geography") {
-                    geogNode = dimsNode[i];
-                }
-            }
-            if (geogNode == null)
-                return geogList;
-            var typesNode = this.findNodeName("Types", geogNode.childNodes);
-            if (typesNode == null)
-                return geogList;
-            var typeArray = this.searchNodeName("Type", typesNode.childNodes);
-            if (typeArray.length == 0) {
-                return geogList;
-            }
-            for (var i = 0; i < typeArray.length; i++) {
-                var ng = new NOMISGeography(typeArray[i].getAttribute("value"), typeArray[i].getAttribute("name"), cubeName, cubeId);
-                geogList.push(ng);
-            }
-            return geogList;
-        };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.recurseDomChildren = function (start, output) {
+        ABS.prototype.recurseDomChildren = function (start, output) {
             var nodes;
             if (start.childNodes) {
                 nodes = start.childNodes;
                 this.loopNodeChildren(nodes, output);
             }
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.loopNodeChildren = function (nodes, output) {
+        ABS.prototype.loopNodeChildren = function (nodes, output) {
             var node;
             for (var i = 0; i < nodes.length; i++) {
                 node = nodes[i];
@@ -225,8 +164,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 }
             }
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.outputNode = function (node) {
+        ABS.prototype.outputNode = function (node) {
             var whitespace = /^\s+$/g;
             if (node.nodeType === 1) {
                 console.log("element: " + node.tagName);
@@ -239,8 +177,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 }
             }
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.findNodeName = function (s, childNodes) {
+        ABS.prototype.findNodeName = function (s, childNodes) {
             for (var i = 0; i < childNodes.length; i++) {
                 var nn = childNodes[i].nodeName;
                 //alert("looking for:"+s+": name="+childNodes[i].nodeName);
@@ -251,8 +188,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
             }
             return null;
         };
-        ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        .prototype.searchNodeName = function (s, childNodes) {
+        ABS.prototype.searchNodeName = function (s, childNodes) {
             var result = [];
             for (var i = 0; i < childNodes.length; i++) {
                 var nn = childNodes[i].nodeName;
@@ -266,36 +202,27 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
             }
             return result;
         };
-        return ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-        ;
+        ABS.prototype.findDataflow = function (ref) {
+            return null;
+        };
+        ABS.prototype.findCode = function (ref) { return null; };
+        ABS.prototype.findCodelist = function (ref) { return null; };
+        ABS.prototype.findItemType = function (item) { return null; };
+        ABS.prototype.findConcept = function (ref) { return null; };
+        ABS.prototype.findConceptScheme = function (ref) { return null; };
+        ABS.prototype.searchDataStructure = function (ref) { return null; };
+        ABS.prototype.searchDataflow = function (ref) { return null; };
+        ABS.prototype.searchCodelist = function (ref) { return null; };
+        ABS.prototype.searchItemType = function (item) { return null; };
+        ABS.prototype.searchConcept = function (ref) { return null; };
+        ABS.prototype.searchConceptScheme = function (ref) { return null; };
+        ABS.prototype.getLocalRegistry = function () {
+            return this.local;
+        };
+        ABS.prototype.save = function () { };
+        return ABS;
     })();
-    exports.ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-     = ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-    ;
-    var NOMISGeography = (function () {
-        function NOMISGeography(geography, geographyName, cubeName, cubeId) {
-            this.geography = "";
-            this.geographyName = "";
-            this.cubeName = "";
-            this.cubeId = "";
-            this.geography = geography;
-            this.geographyName = geographyName;
-            this.cubeName = cubeName;
-            this.cubeId = cubeId;
-        }
-        NOMISGeography.prototype.getGeography = function () {
-            return this.geography;
-        };
-        NOMISGeography.prototype.getCubeName = function () { return this.cubeName; };
-        NOMISGeography.prototype.getCubeId = function () {
-            return this.cubeId;
-        };
-        NOMISGeography.prototype.getGeographyName = function () {
-            return this.geographyName;
-        };
-        return NOMISGeography;
-    })();
-    exports.NOMISGeography = NOMISGeography;
+    exports.ABS = ABS;
 });
 
 //# sourceMappingURL=abs.js.map

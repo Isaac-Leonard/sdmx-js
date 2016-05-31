@@ -1,8 +1,21 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*
+    This file is part of sdmx-js.
+
+    sdmx-js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sdmx-js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 James Gardner
+*/
+///<reference path="../es6-promise.d.ts"/>
 import interfaces = require("sdmx/interfaces");
 import registry = require("sdmx/registry");
 import structure = require("sdmx/structure");
@@ -16,8 +29,7 @@ export function parseXml(s: string): any {
     var xmlDoc = parseXml.parseFromString(s, "text/xml");
     return xmlDoc;
 }
-export class ABS //implements interfaces.Registry, interfaces.Repository, interfaces.Queryable {
-{
+export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
     private agency: string = "ABS";
     private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
     private options: string = "";
@@ -25,8 +37,8 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
 
     private dataflowList: Array<structure.Dataflow> = null;
 
-    getRegistry(): interfaces.RemoteRegistry {
-        return null;//this;
+    getRemoteRegistry(): interfaces.RemoteRegistry {
+        return this;
     }
 
     getRepository(): interfaces.Repository {
@@ -41,9 +53,9 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
 
     }
     constructor(agency: string, service: string, options: string) {
-        if(service!=null){this.serviceURL = service;}
-        if(agency!=null){this.agency = agency;}
-        if(options!=null){this.options = options;}
+        if (service != null) { this.serviceURL = service; }
+        if (agency != null) { this.agency = agency; }
+        if (options != null) { this.options = options; }
     }
 
     load(struct: message.StructureType) {
@@ -121,10 +133,6 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
             return a;
         });
     }
-    /*
-      This function ignores the version argument!!!
-      ILO stat does not use version numbers.. simply take the latest
-     */
 
     public findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure> {
         var dst: structure.DataStructure = this.local.findDataStructure(ref);
@@ -134,21 +142,10 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
             }.bind(this));
             return promise;
         } else {
-            var geogIndex = ref.getMaintainableParentId().toString().lastIndexOf("_");
-            var geog: string = ref.getMaintainableParentId().toString().substring(geogIndex + 1, ref.getMaintainableParentId().toString().length);
-            var geography_string: string = "geography=" + geog;
-            if ("NOGEOG" == geog) {
-                geography_string = "";
-            }
-            var id: string = ref.getMaintainableParentId().toString().substring(0, geogIndex);
-            return this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + ".structure.sdmx.xml?" + geography_string).then(function(a: message.StructureType) {
-                a.getStructures().getDataStructures().getDataStructures()[0].setId(ref.getMaintainableParentId());
-                a.getStructures().getDataStructures().getDataStructures()[0].setVersion(ref.getVersion());
-                this.load(a);
-                return this.local.findDataStructure(ref);
-            }.bind(this));
+            return null;
         }
     }
+
     public listDataflows(): Promise<Array<structure.Dataflow>> {
         if (this.dataflowList != null) {
             var promise = new Promise(function(resolve, reject) {
@@ -158,8 +155,8 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
         } else {
             return this.retrieve(this.serviceURL + "GetDataStructure/ALL/ABS").then(function(st: message.StructureType) {
                 var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
-                var dfs:Array<structure.Dataflow> = [];
-                for (var i = 0; i < array.length;i++) {
+                var dfs: Array<structure.Dataflow> = [];
+                for (var i = 0; i < array.length; i++) {
                     dfs.push(array[i].asDataflow());
                 }
                 this.dataflowList = dfs;
@@ -170,32 +167,6 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
     }
     public getServiceURL(): string {
         return this.serviceURL;
-    }
-    public parseGeography(doc: string, cubeId: string, cubeName: string): Array<NOMISGeography> {
-        var geogList: Array<NOMISGeography> = [];
-        var tagContent: string = null;
-        var lastLang: string = null;
-        var xmlDoc = parseXml(doc);
-        var dimNode = this.findNodeName("Dimensions", xmlDoc.documentElement.childNodes);
-        var dimsNode = this.searchNodeName("Dimension", dimNode.childNodes);
-        var geogNode = null;
-        for (var i = 0; i < dimsNode.length; i++) {
-            if (dimsNode[i].getAttribute("concept") == "geography") {
-                geogNode = dimsNode[i];
-            }
-        }
-        if (geogNode == null) return geogList;
-        var typesNode = this.findNodeName("Types", geogNode.childNodes);
-        if (typesNode == null) return geogList;
-        var typeArray = this.searchNodeName("Type", typesNode.childNodes);
-        if (typeArray.length == 0) {
-            return geogList;
-        }
-        for (var i: number = 0; i < typeArray.length; i++) {
-            var ng: NOMISGeography = new NOMISGeography(typeArray[i].getAttribute("value"), typeArray[i].getAttribute("name"), cubeName, cubeId);
-            geogList.push(ng);
-        }
-        return geogList;
     }
     recurseDomChildren(start: any, output: any) {
         var nodes;
@@ -255,27 +226,22 @@ export class ABS //implements interfaces.Registry, interfaces.Repository, interf
         }
         return result;
     }
-}
-export class NOMISGeography {
-    private geography: string = "";
-    private geographyName: string = "";
-    private cubeName: string = "";
-    private cubeId: string = "";
-    constructor(geography: string, geographyName: string, cubeName: string, cubeId: string) {
-        this.geography = geography;
-        this.geographyName = geographyName;
-        this.cubeName = cubeName;
-        this.cubeId = cubeId;
-
+    findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow> {
+        return null;
     }
-    getGeography() {
-        return this.geography;
+    findCode(ref: commonreferences.Reference): Promise<structure.CodeType> { return null; }
+    findCodelist(ref: commonreferences.Reference): Promise<structure.Codelist> { return null; }
+    findItemType(item: commonreferences.Reference): Promise<structure.ItemType> { return null; }
+    findConcept(ref: commonreferences.Reference): Promise<structure.ConceptType> { return null; }
+    findConceptScheme(ref: commonreferences.Reference): Promise<structure.ConceptSchemeType> { return null; }
+    searchDataStructure(ref: commonreferences.Reference): Promise<Array<structure.DataStructure>> { return null; }
+    searchDataflow(ref: commonreferences.Reference): Promise<Array<structure.Dataflow>> { return null; }
+    searchCodelist(ref: commonreferences.Reference): Promise<Array<structure.Codelist>> { return null; }
+    searchItemType(item: commonreferences.Reference): Promise<Array<structure.ItemType>> { return null; }
+    searchConcept(ref: commonreferences.Reference): Promise<Array<structure.ConceptType>> { return null; }
+    searchConceptScheme(ref: commonreferences.Reference): Promise<Array<structure.ConceptSchemeType>> { return null; }
+    getLocalRegistry(): interfaces.LocalRegistry {
+        return this.local;
     }
-    getCubeName() { return this.cubeName; }
-    getCubeId() {
-        return this.cubeId;
-    }
-    getGeographyName() {
-        return this.geographyName;
-    }
+    save(): any { }
 }
