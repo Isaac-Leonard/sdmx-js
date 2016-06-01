@@ -37,7 +37,7 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/nomis"], 
             if (s == "ABS")
                 return new abs.ABS("ABS", "http://stat.abs.gov.au/restsdmx/sdmx.ashx/", "");
             if (s == "NOMIS")
-                return new nomis.NOMISRESTServiceRegistry("NOMIS", "https://www.nomisweb.co.uk/api", "uid=0xad235cca367972d98bd642ef04ea259da5de264f");
+                return new nomis.NOMISRESTServiceRegistry("NOMIS", "http://www.nomisweb.co.uk/api", "uid=0xad235cca367972d98bd642ef04ea259da5de264f");
         };
         SdmxIO.LOCALE = "en";
         SdmxIO.SANITISE_NAMES = false;

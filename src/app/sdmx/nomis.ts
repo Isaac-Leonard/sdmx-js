@@ -36,7 +36,7 @@ export function parseXml(s: string): any {
 export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, interfaces.Queryable {
 
     private agency: string = "NOMIS";
-    private serviceURL: string = "https://www.nomisweb.co.uk/api";
+    private serviceURL: string = "http://www.nomisweb.co.uk/api";
     private options: string = "uid=0xad235cca367972d98bd642ef04ea259da5de264f";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
 

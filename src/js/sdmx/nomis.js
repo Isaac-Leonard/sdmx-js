@@ -9,7 +9,7 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
     var NOMISRESTServiceRegistry = (function () {
         function NOMISRESTServiceRegistry(agency, service, options) {
             this.agency = "NOMIS";
-            this.serviceURL = "https://www.nomisweb.co.uk/api";
+            this.serviceURL = "http://www.nomisweb.co.uk/api";
             this.options = "uid=0xad235cca367972d98bd642ef04ea259da5de264f";
             this.local = new registry.LocalRegistry();
             this.dataflowList = null;
