@@ -15,7 +15,7 @@
     along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
     Copyright (C) 2016 James Gardner
 */
-import moment = require("moment");
+//<reference path="../moment.d.ts"/>
 
 export class TimeUtil {
     public static LONG_MONTH_NAMES: Array<string> = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

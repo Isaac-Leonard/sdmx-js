@@ -29,43 +29,45 @@ require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sd
             var reference = new commonreferences.Reference(ref, null);
             var dst = q.getRemoteRegistry().findDataStructure(reference);
             dst.then(function (struc) {
-                struc.dump();
                 var query = new data.Query(struc);
                 var names = query.getKeyNames();
                 for (var i = 0; i < names.length; i++) {
                     var n = names[i];
+                    if( n == "FREQ" ) {
+                        // Monthly
+                        query.getQueryKey(n).addValue("M");
+                        continue;
+                    }
                     var comp = struc.findComponentString(n);
-
                     var codelist = q.getLocalRegistry().findCodelist(comp.getLocalRepresentation().getEnumeration());
                     var size = codelist.size();
-                    var codes = Math.random() * 4;
+                    var codes = Math.random() * 4;  // 4 codes from each codelist
                     for (var c = 0; c < codes; c++) {
-                        var code = codelist.getItems()[parseInt(codelist.getItems().length*Math.random())];
+                        var code = codelist.getItems()[parseInt(codelist.getItems().length * Math.random())];
                         query.getQueryKey(n).addValue(code.getId().toString());
                     }
                 }
-                return query;
-            }).then(function (query) {
-                return q.query(ref, query,"2001-01","2010-12").then(function(dm){
-                var table = document.createElement("table");
-                var tr = document.createElement("tr");
-                for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
-                    var th = document.createElement("th");
-                    th.innerHTML = dm.getDataSet(0).getColumnName(j);
-                    tr.appendChild(th)
-                }
-                table.appendChild(tr);
-                for (var i = 0; i < dm.getDataSet(0).size(); i++) {
+                return q.query(ref, query, "2001-01", "2010-12").then(function (dm) {
+                    // dm is a message.DataMessage 
+                    var table = document.createElement("table");
                     var tr = document.createElement("tr");
-                    var obs = dm.getDataSet(0).getFlatObs(i);
                     for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
-                        var td = document.createElement("td");
-                        td.innerHTML = obs.getValue(j);
-                        tr.appendChild(td);
+                        var th = document.createElement("th");
+                        th.innerHTML = dm.getDataSet(0).getColumnName(j);
+                        tr.appendChild(th)
                     }
                     table.appendChild(tr);
-                }
-                document.getElementById("container").appendChild(table);
+                    for (var i = 0; i < dm.getDataSet(0).size(); i++) {
+                        var tr = document.createElement("tr");
+                        var obs = dm.getDataSet(0).getFlatObs(i);
+                        for (var j = 0; j < dm.getDataSet(0).getColumnSize(); j++) {
+                            var td = document.createElement("td");
+                            td.innerHTML = obs.getValue(j);
+                            tr.appendChild(td);
+                        }
+                        table.appendChild(tr);
+                    }
+                    document.getElementById("container").appendChild(table);
                 });
             });
 
