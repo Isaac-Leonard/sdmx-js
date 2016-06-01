@@ -82,8 +82,7 @@ export interface RemoteRegistry {
 }
 
 export interface Repository {
-    query(query: message.DataQuery): Promise<message.DataMessage>;
-    query(flow: structure.Dataflow, query: string): Promise<message.DataMessage>;
+    query(df: structure.Dataflow,query: data.Query): Promise<message.DataMessage>;
 }
 export interface SdmxParserProvider {
     getVersionIdentifier(): number;

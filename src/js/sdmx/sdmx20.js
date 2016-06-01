@@ -481,9 +481,13 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return dst;
         };
         Sdmx20StructureReaderTools.prototype.toDataStructureComponents = function (dsc) {
+            if (dsc == null)
+                return null;
             var components = new structure.DataStructureComponents();
             var dimensions = this.searchNodeName("Dimension", dsc.childNodes);
             var timedimension = this.findNodeName("TimeDimension", dsc.childNodes);
+            // TimeDimension gets stuck in dimensions sometimes :)
+            collections.arrays.remove(dimensions, timedimension);
             var primaryMeasure = this.findNodeName("PrimaryMeasure", dsc.childNodes);
             var attributes = this.searchNodeName("Attribute", dsc.childNodes);
             components.setDimensionList(this.toDimensionList(dimensions));
@@ -510,7 +514,11 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                     dimList.setMeasureDimension(this.toMeasureDimension(dims[i]));
                 }
                 else {
-                    dimArray.push(this.toDimension(dims[i]));
+                    // Sometimes Time Dimension seems to get mistakenly sucked
+                    // into this list too :(
+                    if (dims[i].nodeName != "structure:TimeDimension") {
+                        dimArray.push(this.toDimension(dims[i]));
+                    }
                 }
             }
             dimList.setDimensions(dimArray);

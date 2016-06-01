@@ -19,6 +19,65 @@
 ///<reference path="../collections.ts"/>
 import interfaces = require("sdmx/interfaces");
 import commonreferences = require("sdmx/commonreferences");
+import structure = require("sdmx/structure");
+
+export class Query {
+    private struct: structure.DataStructure = null;
+    private query: Array<QueryKey> = [];
+
+    constructor(struct: structure.DataStructure) {
+        this.struct=struct;
+        var kns = this.getKeyNames();
+        for (var i: number = 0; i < kns.length;i++) {
+            this.query.push(new QueryKey(kns[i]));
+        }
+    }
+    public getQueryKey(id: string) {
+        for (var i: number = 0; i < this.query.length; i++) {
+            if (this.query[i].getName() == id) return this.query[i];
+        }
+        return null;
+    }
+    public getKeyNames(): Array<string> {
+        var keynames = [];
+        for (var i: number = 0; i < this.struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+            var dim: structure.Dimension = this.struct.getDataStructureComponents().getDimensionList().getDimensions()[i];
+            keynames.push(dim.getId().toString());
+        }
+        if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+            var dim: structure.Dimension = this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+            keynames.push(dim.getId().toString());
+        }
+        return keynames;
+    }
+
+}
+export class QueryKey {
+    private name: string = null;
+    private values: Array<string> = [];
+    constructor(s: string) {
+        this.name = s;
+    }
+    public getName(): string { return this.name; }
+    public getValues(): Array<string> {
+        return this.values;
+    }
+    public setName(s: string) { this.name = s; }
+    public setValue(a: Array<string>) {
+        this.values = a;
+    }
+    public addValue(s:string) {
+        for (var i: number = 0; i < this.values.length;i++) {
+            // already in here
+            if( this.values[i]==s ) return;
+        }
+        this.values.push(s);
+    }
+    public removeValue(s:string) {
+        collections.arrays.remove(this.values,s);
+    }
+}
+
 export class FlatObs {
     private values: Array<string> = [];
     constructor(vals: Array<string>) {

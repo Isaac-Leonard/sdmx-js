@@ -1,15 +1,10 @@
 define(["require", "exports", "sdmx/registry", "sdmx"], function (require, exports, registry, sdmx) {
-    function parseXml(s) {
-        var parseXml;
-        parseXml = new DOMParser();
-        var xmlDoc = parseXml.parseFromString(s, "text/xml");
-        return xmlDoc;
-    }
-    exports.parseXml = parseXml;
     var ABS = (function () {
         function ABS(agency, service, options) {
-            this.agency = "ABS";
-            this.serviceURL = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
+            this.agency = "OECD";
+            //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
+            this.serviceURL = "http://stats.oecd.org/restsdmx/sdmx.ashx/";
+            //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
             this.options = "";
             this.local = new registry.LocalRegistry();
             this.dataflowList = null;
@@ -131,7 +126,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return promise;
             }
             else {
-                return this.retrieve(this.serviceURL + "GetDataStructure/ALL/ABS").then(function (st) {
+                return this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function (st) {
                     var array = st.getStructures().getDataStructures().getDataStructures();
                     var dfs = [];
                     for (var i = 0; i < array.length; i++) {
@@ -142,69 +137,8 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 }.bind(this));
             }
         };
-        ABS.prototype.getServiceURL = function () {
-            return this.serviceURL;
-        };
-        ABS.prototype.recurseDomChildren = function (start, output) {
-            var nodes;
-            if (start.childNodes) {
-                nodes = start.childNodes;
-                this.loopNodeChildren(nodes, output);
-            }
-        };
-        ABS.prototype.loopNodeChildren = function (nodes, output) {
-            var node;
-            for (var i = 0; i < nodes.length; i++) {
-                node = nodes[i];
-                if (output) {
-                    this.outputNode(node);
-                }
-                if (node.childNodes) {
-                    this.recurseDomChildren(node, output);
-                }
-            }
-        };
-        ABS.prototype.outputNode = function (node) {
-            var whitespace = /^\s+$/g;
-            if (node.nodeType === 1) {
-                console.log("element: " + node.tagName);
-            }
-            else if (node.nodeType === 3) {
-                //clear whitespace text nodes
-                node.data = node.data.replace(whitespace, "");
-                if (node.data) {
-                    console.log("text: " + node.data);
-                }
-            }
-        };
-        ABS.prototype.findNodeName = function (s, childNodes) {
-            for (var i = 0; i < childNodes.length; i++) {
-                var nn = childNodes[i].nodeName;
-                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
-                if (nn.indexOf(s) == 0) {
-                    //alert("found node:"+s);
-                    return childNodes[i];
-                }
-            }
-            return null;
-        };
-        ABS.prototype.searchNodeName = function (s, childNodes) {
-            var result = [];
-            for (var i = 0; i < childNodes.length; i++) {
-                var nn = childNodes[i].nodeName;
-                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
-                if (nn.indexOf(s) == 0) {
-                    //alert("found node:"+s);
-                    result.push(childNodes[i]);
-                }
-            }
-            if (result.length == 0) {
-            }
-            return result;
-        };
-        ABS.prototype.findDataflow = function (ref) {
-            return null;
-        };
+        ABS.prototype.getServiceURL = function () { return this.serviceURL; };
+        ABS.prototype.findDataflow = function (ref) { return null; };
         ABS.prototype.findCode = function (ref) { return null; };
         ABS.prototype.findCodelist = function (ref) { return null; };
         ABS.prototype.findItemType = function (item) { return null; };

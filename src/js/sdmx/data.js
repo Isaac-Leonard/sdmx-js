@@ -4,6 +4,66 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/data", ["require", "exports"], function (require, exports) {
+    var Query = (function () {
+        function Query(struct) {
+            this.struct = null;
+            this.query = [];
+            this.struct = struct;
+            var kns = this.getKeyNames();
+            for (var i = 0; i < kns.length; i++) {
+                this.query.push(new QueryKey(kns[i]));
+            }
+        }
+        Query.prototype.getQueryKey = function (id) {
+            for (var i = 0; i < this.query.length; i++) {
+                if (this.query[i].getName() == id)
+                    return this.query[i];
+            }
+            return null;
+        };
+        Query.prototype.getKeyNames = function () {
+            var keynames = [];
+            for (var i = 0; i < this.struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+                var dim = this.struct.getDataStructureComponents().getDimensionList().getDimensions()[i];
+                keynames.push(dim.getId().toString());
+            }
+            if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+                var dim = this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+                keynames.push(dim.getId().toString());
+            }
+            return keynames;
+        };
+        return Query;
+    })();
+    exports.Query = Query;
+    var QueryKey = (function () {
+        function QueryKey(s) {
+            this.name = null;
+            this.values = [];
+            this.name = s;
+        }
+        QueryKey.prototype.getName = function () { return this.name; };
+        QueryKey.prototype.getValues = function () {
+            return this.values;
+        };
+        QueryKey.prototype.setName = function (s) { this.name = s; };
+        QueryKey.prototype.setValue = function (a) {
+            this.values = a;
+        };
+        QueryKey.prototype.addValue = function (s) {
+            for (var i = 0; i < this.values.length; i++) {
+                // already in here
+                if (this.values[i] == s)
+                    return;
+            }
+            this.values.push(s);
+        };
+        QueryKey.prototype.removeValue = function (s) {
+            collections.arrays.remove(this.values, s);
+        };
+        return QueryKey;
+    })();
+    exports.QueryKey = QueryKey;
     var FlatObs = (function () {
         function FlatObs(vals) {
             this.values = [];

@@ -4,23 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define(["require", "exports"], function (require, exports) {
-    /*
-        This file is part of sdmx-js.
-    
-        sdmx-js is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-    
-        sdmx-js is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-    
-        You should have received a copy of the GNU General Public License
-        along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
-        Copyright (C) 2016 James Gardner
-    */
     var TimeUtil = (function () {
         function TimeUtil() {
         }
@@ -74,9 +57,9 @@ define(["require", "exports"], function (require, exports) {
                 rtd = Year.parseYear(s);
             }
             catch (e) {
-                if (rtd != null) {
-                    return rtd;
-                }
+            }
+            if (rtd != null) {
+                return rtd;
             }
             /*
             try {
@@ -92,9 +75,9 @@ define(["require", "exports"], function (require, exports) {
                 rtd = Month.parseMonth(s);
             }
             catch (e) {
-                if (rtd != null) {
-                    return rtd;
-                }
+            }
+            if (rtd != null) {
+                return rtd;
             }
             /*
             try {
@@ -705,6 +688,7 @@ define(["require", "exports"], function (require, exports) {
                 throw new Error("Can't evaluate the year.");
             }
             result = new Month(month, year.getYear());
+            console.log("Parse result=" + result);
             return result;
         };
         /**

@@ -16,6 +16,8 @@
     Copyright (C) 2016 James Gardner
 */
 ///<reference path="../es6-promise.d.ts"/>
+///<reference path="../moment.d.ts"/>
+import moment = require("moment");
 import interfaces = require("sdmx/interfaces");
 import registry = require("sdmx/registry");
 import structure = require("sdmx/structure");
@@ -23,6 +25,8 @@ import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
 import sdmx = require("sdmx");
+import data = require("sdmx/data");
+import time = require("sdmx/time");
 export function parseXml(s: string): any {
     var parseXml: DOMParser;
     parseXml = new DOMParser();
@@ -50,20 +54,60 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
     clear() {
         this.local.clear();
     }
-    query(flow:commonreferences.Reference, s: string):Promise<message.DataMessage> {
-        var geogIndex: number = flow.getMaintainableParentId().getString().lastIndexOf("_");
+    query(flow: commonreferences.Reference, q: data.Query, startTime: string, endTime: string): Promise<message.DataMessage> {
+        var geogIndex: number = flow.getMaintainableParentId().toString().lastIndexOf("_");
         var geog: string = flow.getMaintainableParentId().toString().substring(geogIndex + 1, flow.getMaintainableParentId().toString().length);
-        var geography_string:string = "&geography="+geog;
-        if( "NOGEOG"==geog){
-            geography_string="";
+        var geography_string: string = "&geography=" + geog;
+        if ("NOGEOG" == geog) {
+            geography_string = "";
         }
-        var id:string = flow.getMaintainableParentId().toString().substring(0,geogIndex);
-        var dst_ref: commonreferences.Ref = flow.cloneRef();
+        var id: string = flow.getMaintainableParentId().toString().substring(0, geogIndex);
+        var dst_ref: commonreferences.Ref = new commonreferences.Ref();
+        dst_ref.setAgencyId(flow.getAgencyId());
         dst_ref.setId(new commonreferences.ID(id));
-        var dst_reference = new commonreferences.Reference(dst_ref,null);
-        var dst: Promise<structure.DataStructure> = this.findDataStructure(dst_reference);
-        return dst.then(function(struc){
-            return this.retrieveData("http://www.nomisweb.co.uk/api/v01/dataset/NM_1_1.compact.sdmx.xml?GEOGRAPHY=8388609&SEX=5&ITEM=1&MEASURES=20100&FREQ=M&time=2008-01,2008-02,2008-03,2008-04,2008-05,2008-06,2008-07,2008-08,2008-09,2008-10,2008-11,2008-12,2009-01,2009-02,2009-03,2009-04,2009-05,2009-06,2009-07,2009-08,2009-09,2009-10,2009-11,2009-12,2010-01,2010-02,2010-03,2010-04,2010-05,2010-06,2010-07,2010-08,2010-09,2010-10,2010-11,2010-12,2011-01,2011-02,2011-03,2011-04,2011-05,2011-06,2011-07,2011-08,2011-09,2011-10,2011-11,2011-12,2012-01,2012-02,2012-03,2012-04,2012-05,2012-06,2012-07,2012-08,2012-09,2012-10,2012-11,2012-12,2013-01,2013-02,2013-03,2013-04,2013-05,2013-06,2013-07,2013-08,2013-09,2013-10,2013-11,2013-12,2014-01,2014-02,2014-03,2014-04,2014-05,2014-06,2014-07,2014-08,2014-09,2014-10,2014-11,2014-12&"+this.options);
+        dst_ref.setVersion(flow.getVersion());
+        var dst_reference = new commonreferences.Reference(dst_ref, null);
+        var st: Promise<message.StructureType> = this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + "/time/def.sdmx.xml");
+        return st.then(function(struc: message.StructureType) {
+            var times: string = "&TIME=";
+            var timeCL: structure.Codelist = struc.getStructures().getCodeLists().getCodelists()[0];
+            var rtpStart: time.RegularTimePeriod = time.TimeUtil.parseTime("", startTime);
+            var rtpEnd: time.RegularTimePeriod = time.TimeUtil.parseTime("", endTime);
+            var comma: boolean = true;
+            for (var i: number = 0; i < timeCL.size(); i++) {
+                var rtp: time.RegularTimePeriod = time.TimeUtil.parseTime("", timeCL.getItems()[i].getId().toString());
+                var ts = moment(rtp.getStart());
+                var te = moment(rtp.getEnd());
+                var startMoment = moment(rtpStart.getStart());
+                var endMoment = moment(rtpEnd.getEnd());
+                if (ts.isBetween(startMoment, endMoment)) {
+                    if (!comma) {
+                        times += ",";
+                        comma = true;
+                    }
+                    times += timeCL.getItem(i).getId().toString();
+                    comma = false;
+                }
+            }
+            var queryString: string = "";
+            var kns = q.getKeyNames();
+            for (var i: number = 0; i < kns.length; i++) {
+                var name: string = kns[i];
+                var values = q.getQueryKey(kns[i]).getValues();
+                if (i == 0) {
+                    queryString += "?";
+                } else {
+                    queryString += "&";
+                }
+                queryString += name + "=";
+                for (var j: number = 0; j < values.length; j++) {
+                    queryString += values[j];
+                    if (j < values.length - 1) {
+                        queryString += ",";
+                    }
+                }
+            }
+            return this.retrieveData("http://www.nomisweb.co.uk/api/v01/dataset/" + dst_ref.getId() + ".compact.sdmx.xml" + queryString + times + "&"+this.options);
         }.bind(this));
         /*
         StringBuilder q = new StringBuilder();
@@ -88,25 +132,6 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
             }
             addedParam = false;
         }
-        StringBuilder times = new StringBuilder();
-        try {
-            StructureType st = retrieve3(getServiceURL() + "/v01/dataset/" + id + "/time/def.sdmx.xml");
-            CodelistType timesCL = st.getStructures().getCodelists().getCodelists().get(0);
-            String startTime = message.getQuery().getDataWhere().getAnd().get(0).getTimeDimensionValue().get(0).getStart().toString();
-            String endTime = message.getQuery().getDataWhere().getAnd().get(0).getTimeDimensionValue().get(0).getEnd().toString();
-            RegularTimePeriod rtpStart = TimeUtil.parseTime("", startTime);
-            RegularTimePeriod rtpEnd = TimeUtil.parseTime("", endTime);
-            boolean comma = true;
-            for (int i = 0; i < timesCL.size(); i++) {
-                RegularTimePeriod rtp = TimeUtil.parseTime("", timesCL.getCode(i).getId().toString());
-                if ((rtp.getStart().getTime() == rtpStart.getStart().getTime() || rtp.getStart().after(rtpStart.getStart())) && (rtp.getEnd().before(rtpEnd.getEnd()) || rtp.getEnd().getTime() == rtpEnd.getEnd().getTime())) {
-                    if (!comma) {
-                        times.append(",");
-                    }
-                    times.append(timesCL.getCode(i).getId().toString());
-                    comma = false;
-                }
-            }
         DataMessage msg = null;
         msg = query(pparams, getServiceURL() + "/v01/dataset/" + id + ".compact.sdmx.xml?" + q + "&time=" + times.toString() + geography_string +"&" + options);
         */
@@ -115,8 +140,8 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
     constructor(agency: string, service: string, options: string) {
         if (service != null) {
             this.serviceURL = service;
-        }else{
-            
+        } else {
+
         }
         if (agency != null) {
             this.agency = agency;
@@ -179,10 +204,10 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
             s = "&" + s + "&random=" + new Date().getTime();
         }
         var opts: any = {};
-        opts.url = urlString+s;
+        opts.url = urlString + s;
         opts.method = "GET";
         return this.makeRequest(opts).then(function(a) {
-              return sdmx.SdmxIO.parseStructure(a);
+            return sdmx.SdmxIO.parseStructure(a);
         });
     }
     public retrieveData(urlString: string): Promise<message.DataMessage> {
@@ -193,10 +218,10 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
             s = "&" + s + "&random=" + new Date().getTime();
         }
         var opts: any = {};
-        opts.url = urlString+s;
+        opts.url = urlString + s;
         opts.method = "GET";
         return this.makeRequest(opts).then(function(a) {
-              return sdmx.SdmxIO.parseData(a);
+            return sdmx.SdmxIO.parseData(a);
         });
     }
     public retrieve2(urlString: string): Promise<string> {

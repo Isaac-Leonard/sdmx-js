@@ -499,9 +499,12 @@ export class Sdmx20StructureReaderTools {
         return dst;
     }
     toDataStructureComponents(dsc: any): structure.DataStructureComponents {
+        if (dsc == null) return null;
         var components: structure.DataStructureComponents = new structure.DataStructureComponents();
         var dimensions = this.searchNodeName("Dimension", dsc.childNodes);
         var timedimension = this.findNodeName("TimeDimension", dsc.childNodes);
+        // TimeDimension gets stuck in dimensions sometimes :)
+        collections.arrays.remove(dimensions, timedimension);
         var primaryMeasure = this.findNodeName("PrimaryMeasure", dsc.childNodes);
         var attributes = this.searchNodeName("Attribute", dsc.childNodes);
         components.setDimensionList(this.toDimensionList(dimensions));
@@ -527,7 +530,11 @@ export class Sdmx20StructureReaderTools {
             if (dims[i].getAttribute("isMeasureDimension") == "true") {
                 dimList.setMeasureDimension(this.toMeasureDimension(dims[i]));
             } else {
-                dimArray.push(this.toDimension(dims[i]));
+                // Sometimes Time Dimension seems to get mistakenly sucked
+                // into this list too :(
+                if (dims[i].nodeName != "structure:TimeDimension") {
+                    dimArray.push(this.toDimension(dims[i]));
+                }
             }
         }
         dimList.setDimensions(dimArray);

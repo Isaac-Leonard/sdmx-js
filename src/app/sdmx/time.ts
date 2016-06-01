@@ -15,6 +15,8 @@
     along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
     Copyright (C) 2016 James Gardner
 */
+import moment = require("moment");
+
 export class TimeUtil {
     public static LONG_MONTH_NAMES: Array<string> = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     public static SHORT_MONTH_NAMES: Array<string> = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -70,9 +72,9 @@ export class TimeUtil {
         try {
             rtd = Year.parseYear(s);
         } catch (e) {
-            if (rtd != null) {
-                return rtd;
-            }
+        }
+        if (rtd != null) {
+            return rtd;
         }
         /*
         try {
@@ -87,10 +89,11 @@ export class TimeUtil {
         try {
             rtd = Month.parseMonth(s);
         } catch (e) {
-            if (rtd != null) {
-                return rtd;
-            }
         }
+        if (rtd != null) {
+            return rtd;
+        }
+
         /*
         try {
             rtd = Quarter.parseQuarter(s);
@@ -852,6 +855,7 @@ export class Month extends AbstractRegularTimePeriod {
             throw new Error("Can't evaluate the year.");
         }
         result = new Month(month, year.getYear());
+        console.log("Parse result="+result);
         return result;
     }
 

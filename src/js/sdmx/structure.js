@@ -315,8 +315,13 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         MaintainableType.prototype.identifiesMe = function (agency2, id2, vers2) {
             //System.out.println("Left=" + this.agencyID + "." + this.getId() + "." + this.getVersion());
             //System.out.println("Right=" + agency2 + "." + id2 + "." + vers2);
+            //console.log("myAg:" + this.getAgencyID() + " compare:" + agency2.toString());
+            //console.log("myId:" + this.getId() + " compare:" + id2.toString());
+            //if (this.getVersion()!=null&&vers2!=null){
+            //console.log("myv:" + this.getVersion() + " compare:" + vers2.toString());
+            //}
             if (vers2 == null || this.getVersion() == null) {
-                if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsID(id2)) {
+                if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsNestedID(id2)) {
                     return true;
                 }
                 else {
@@ -325,7 +330,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
                 }
             }
             else {
-                if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsID(id2) && this.getVersion().equalsVersion(vers2)) {
+                if (this.agencyID.equalsNestedNCNameID(agency2) && this.getId().equalsNestedID(id2) && this.getVersion().equalsVersion(vers2)) {
                     return true;
                 }
                 else {
@@ -714,30 +719,32 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return this.findComponent(new commonreferences.ID(col));
         };
         DataStructure.prototype.findComponent = function (col) {
-            /*
-            for (DimensionType dim : components.getDimensionList().getDimensions()) {
-                if (dim.identifiesMe(col)) {
+            for (var i = 0; i < this.components.getDimensionList().getDimensions().length; i++) {
+                var dim = this.components.getDimensionList().getDimensions()[i];
+                if (dim.getId().equalsID(col)) {
                     return dim;
                 }
             }
-            for (AttributeType dim : components.getAttributeList().getAttributes()) {
-                if (dim.identifiesMe(col)) {
+            for (var i = 0; i < this.components.getAttributeList().getAttributes().length; i++) {
+                var dim = this.components.getAttributeList().getAttributes()[i];
+                if (dim.getId().equalsID(col)) {
                     return dim;
                 }
             }
-            //System.out.println("Measure3="+components.getMeasureList().getMeasures().size());
-            if (components.getDimensionList().getMeasureDimension() != null && components.getDimensionList().getMeasureDimension().identifiesMe(col)) {
-                return components.getDimensionList().getMeasureDimension();
+            if (this.components.getDimensionList().getMeasureDimension() != null) {
+                var dim = this.components.getDimensionList().getMeasureDimension();
+                if (dim.getId().equalsID(col)) {
+                    return dim;
+                }
             }
-            TimeDimensionType dim = components.getDimensionList().getTimeDimension();
-            if (dim.identifiesMe(col)) {
-                return dim;
+            var time = this.components.getDimensionList().getTimeDimension();
+            if (time.getId().equalsID(col)) {
+                return time;
             }
-            PrimaryMeasure dim2 = components.getMeasureList().getPrimaryMeasure();
-            if (dim2.identifiesMe(col)) {
+            var dim2 = this.components.getMeasureList().getPrimaryMeasure();
+            if (dim2.getId().equalsID(col)) {
                 return dim2;
             }
-            */
             return null;
         };
         DataStructure.prototype.asReference = function () {
@@ -878,7 +885,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return cl;
         };
         CodeLists.prototype.findCodelistReference = function (ref) {
-            return this.findCodelist(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+            return this.findCodelist(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
         };
         CodeLists.prototype.merge = function (codelists) {
             if (codelists == null)

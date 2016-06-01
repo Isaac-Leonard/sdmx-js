@@ -58,6 +58,11 @@ export class LocalRegistry implements interfaces.LocalRegistry {
         return null;
     }
     findCodelist(ref: commonreferences.Reference): structure.Codelist {
+        for (var i: number = 0; i < this.structures.length;i++){
+            if (this.structures[i].findCodelist(ref)!=null){
+                return this.structures[i].findCodelist(ref);
+            }
+        }
         return null;
     }
     findItemType(item: commonreferences.Reference): structure.ItemType {

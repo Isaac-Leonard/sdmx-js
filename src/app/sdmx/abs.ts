@@ -23,15 +23,11 @@ import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
 import sdmx = require("sdmx");
-export function parseXml(s: string): any {
-    var parseXml: DOMParser;
-    parseXml = new DOMParser();
-    var xmlDoc = parseXml.parseFromString(s, "text/xml");
-    return xmlDoc;
-}
 export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
-    private agency: string = "ABS";
-    private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
+    private agency: string = "OECD";
+    //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
+    private serviceURL: string = "http://stats.oecd.org/restsdmx/sdmx.ashx/";
+    //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
 
@@ -153,7 +149,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return this.retrieve(this.serviceURL + "GetDataStructure/ALL/ABS").then(function(st: message.StructureType) {
+            return this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
                 var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
                 var dfs: Array<structure.Dataflow> = [];
                 for (var i = 0; i < array.length; i++) {
@@ -165,70 +161,8 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             );
         }
     }
-    public getServiceURL(): string {
-        return this.serviceURL;
-    }
-    recurseDomChildren(start: any, output: any) {
-        var nodes;
-        if (start.childNodes) {
-            nodes = start.childNodes;
-            this.loopNodeChildren(nodes, output);
-        }
-    }
-
-    loopNodeChildren(nodes: Array<any>, output: any) {
-        var node;
-        for (var i = 0; i < nodes.length; i++) {
-            node = nodes[i];
-            if (output) {
-                this.outputNode(node);
-            }
-            if (node.childNodes) {
-                this.recurseDomChildren(node, output);
-            }
-        }
-    }
-    outputNode(node: any) {
-        var whitespace = /^\s+$/g;
-        if (node.nodeType === 1) {
-            console.log("element: " + node.tagName);
-        } else if (node.nodeType === 3) {
-            //clear whitespace text nodes
-            node.data = node.data.replace(whitespace, "");
-            if (node.data) {
-                console.log("text: " + node.data);
-            }
-        }
-    }
-    findNodeName(s: string, childNodes: any) {
-        for (var i: number = 0; i < childNodes.length; i++) {
-            var nn: string = childNodes[i].nodeName;
-            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
-            if (nn.indexOf(s) == 0) {
-                //alert("found node:"+s);
-                return childNodes[i];
-            }
-        }
-        return null;
-    }
-    searchNodeName(s: string, childNodes: any): Array<any> {
-        var result: Array<any> = [];
-        for (var i: number = 0; i < childNodes.length; i++) {
-            var nn: string = childNodes[i].nodeName;
-            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
-            if (nn.indexOf(s) == 0) {
-                //alert("found node:"+s);
-                result.push(childNodes[i]);
-            }
-        }
-        if (result.length == 0) {
-            //alert("cannot find any " + s + " in node");
-        }
-        return result;
-    }
-    findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow> {
-        return null;
-    }
+    public getServiceURL(): string { return this.serviceURL;    }
+    findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow> { return null; }
     findCode(ref: commonreferences.Reference): Promise<structure.CodeType> { return null; }
     findCodelist(ref: commonreferences.Reference): Promise<structure.Codelist> { return null; }
     findItemType(item: commonreferences.Reference): Promise<structure.ItemType> { return null; }

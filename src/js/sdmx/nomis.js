@@ -1,4 +1,4 @@
-define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonreferences", "sdmx/common", "sdmx"], function (require, exports, registry, structure, commonreferences, common, sdmx) {
+define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx/commonreferences", "sdmx/common", "sdmx", "sdmx/time"], function (require, exports, moment, registry, structure, commonreferences, common, sdmx, time) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -34,20 +34,61 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
         NOMISRESTServiceRegistry.prototype.clear = function () {
             this.local.clear();
         };
-        NOMISRESTServiceRegistry.prototype.query = function (flow, s) {
-            var geogIndex = flow.getMaintainableParentId().getString().lastIndexOf("_");
+        NOMISRESTServiceRegistry.prototype.query = function (flow, q, startTime, endTime) {
+            var geogIndex = flow.getMaintainableParentId().toString().lastIndexOf("_");
             var geog = flow.getMaintainableParentId().toString().substring(geogIndex + 1, flow.getMaintainableParentId().toString().length);
             var geography_string = "&geography=" + geog;
             if ("NOGEOG" == geog) {
                 geography_string = "";
             }
             var id = flow.getMaintainableParentId().toString().substring(0, geogIndex);
-            var dst_ref = flow.cloneRef();
+            var dst_ref = new commonreferences.Ref();
+            dst_ref.setAgencyId(flow.getAgencyId());
             dst_ref.setId(new commonreferences.ID(id));
+            dst_ref.setVersion(flow.getVersion());
             var dst_reference = new commonreferences.Reference(dst_ref, null);
-            var dst = this.findDataStructure(dst_reference);
-            return dst.then(function (struc) {
-                return this.retrieveData("http://www.nomisweb.co.uk/api/v01/dataset/NM_1_1.compact.sdmx.xml?GEOGRAPHY=8388609&SEX=5&ITEM=1&MEASURES=20100&FREQ=M&time=2008-01,2008-02,2008-03,2008-04,2008-05,2008-06,2008-07,2008-08,2008-09,2008-10,2008-11,2008-12,2009-01,2009-02,2009-03,2009-04,2009-05,2009-06,2009-07,2009-08,2009-09,2009-10,2009-11,2009-12,2010-01,2010-02,2010-03,2010-04,2010-05,2010-06,2010-07,2010-08,2010-09,2010-10,2010-11,2010-12,2011-01,2011-02,2011-03,2011-04,2011-05,2011-06,2011-07,2011-08,2011-09,2011-10,2011-11,2011-12,2012-01,2012-02,2012-03,2012-04,2012-05,2012-06,2012-07,2012-08,2012-09,2012-10,2012-11,2012-12,2013-01,2013-02,2013-03,2013-04,2013-05,2013-06,2013-07,2013-08,2013-09,2013-10,2013-11,2013-12,2014-01,2014-02,2014-03,2014-04,2014-05,2014-06,2014-07,2014-08,2014-09,2014-10,2014-11,2014-12&" + this.options);
+            var st = this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + "/time/def.sdmx.xml");
+            return st.then(function (struc) {
+                var times = "&TIME=";
+                var timeCL = struc.getStructures().getCodeLists().getCodelists()[0];
+                var rtpStart = time.TimeUtil.parseTime("", startTime);
+                var rtpEnd = time.TimeUtil.parseTime("", endTime);
+                var comma = true;
+                for (var i = 0; i < timeCL.size(); i++) {
+                    var rtp = time.TimeUtil.parseTime("", timeCL.getItems()[i].getId().toString());
+                    var ts = moment(rtp.getStart());
+                    var te = moment(rtp.getEnd());
+                    var startMoment = moment(rtpStart.getStart());
+                    var endMoment = moment(rtpEnd.getEnd());
+                    if (ts.isBetween(startMoment, endMoment)) {
+                        if (!comma) {
+                            times += ",";
+                            comma = true;
+                        }
+                        times += timeCL.getItem(i).getId().toString();
+                        comma = false;
+                    }
+                }
+                var queryString = "";
+                var kns = q.getKeyNames();
+                for (var i = 0; i < kns.length; i++) {
+                    var name = kns[i];
+                    var values = q.getQueryKey(kns[i]).getValues();
+                    if (i == 0) {
+                        queryString += "?";
+                    }
+                    else {
+                        queryString += "&";
+                    }
+                    queryString += name + "=";
+                    for (var j = 0; j < values.length; j++) {
+                        queryString += values[j];
+                        if (j < values.length - 1) {
+                            queryString += ",";
+                        }
+                    }
+                }
+                return this.retrieveData("http://www.nomisweb.co.uk/api/v01/dataset/" + dst_ref.getId() + ".compact.sdmx.xml" + queryString + times + "&" + this.options);
             }.bind(this));
             /*
             StringBuilder q = new StringBuilder();
@@ -72,25 +113,6 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 }
                 addedParam = false;
             }
-            StringBuilder times = new StringBuilder();
-            try {
-                StructureType st = retrieve3(getServiceURL() + "/v01/dataset/" + id + "/time/def.sdmx.xml");
-                CodelistType timesCL = st.getStructures().getCodelists().getCodelists().get(0);
-                String startTime = message.getQuery().getDataWhere().getAnd().get(0).getTimeDimensionValue().get(0).getStart().toString();
-                String endTime = message.getQuery().getDataWhere().getAnd().get(0).getTimeDimensionValue().get(0).getEnd().toString();
-                RegularTimePeriod rtpStart = TimeUtil.parseTime("", startTime);
-                RegularTimePeriod rtpEnd = TimeUtil.parseTime("", endTime);
-                boolean comma = true;
-                for (int i = 0; i < timesCL.size(); i++) {
-                    RegularTimePeriod rtp = TimeUtil.parseTime("", timesCL.getCode(i).getId().toString());
-                    if ((rtp.getStart().getTime() == rtpStart.getStart().getTime() || rtp.getStart().after(rtpStart.getStart())) && (rtp.getEnd().before(rtpEnd.getEnd()) || rtp.getEnd().getTime() == rtpEnd.getEnd().getTime())) {
-                        if (!comma) {
-                            times.append(",");
-                        }
-                        times.append(timesCL.getCode(i).getId().toString());
-                        comma = false;
-                    }
-                }
             DataMessage msg = null;
             msg = query(pparams, getServiceURL() + "/v01/dataset/" + id + ".compact.sdmx.xml?" + q + "&time=" + times.toString() + geography_string +"&" + options);
             */

@@ -38,6 +38,11 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
             return null;
         };
         LocalRegistry.prototype.findCodelist = function (ref) {
+            for (var i = 0; i < this.structures.length; i++) {
+                if (this.structures[i].findCodelist(ref) != null) {
+                    return this.structures[i].findCodelist(ref);
+                }
+            }
             return null;
         };
         LocalRegistry.prototype.findItemType = function (item) {
