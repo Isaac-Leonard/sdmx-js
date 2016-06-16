@@ -10,8 +10,8 @@ require.config({
         }
     }
 });
-require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/topComponent", "components/services"],
-        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, topComponent, Services) {
+require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/topComponent"],
+        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, topComponent) {
 
             var topComponent = React.createElement(topComponent)
             ReactDOM.render(topComponent, document.getElementById('container'));
