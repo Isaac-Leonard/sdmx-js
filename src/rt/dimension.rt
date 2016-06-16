@@ -1,7 +1,0 @@
-<div>
-     <select value="one" onChange="{changeNumber}" >
-       <option value="all">All</option>
-       <option value="one">One</option>
-       <option value="many">Many</option>
-     </select>
-</div>

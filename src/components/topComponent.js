@@ -1,4 +1,4 @@
-define("components/topComponent", ["require", "react", "templates/topComponent.rt", "sdmx", "components/services", "components/dataflows","components/structure"], function (require, React, rt, sdmx, Services, Dataflows,Structure) {
+define("components/topComponent", ["require", "react", "sdmx", "components/services", "components/dataflows","components/structure"], function (require, React, sdmx, Services, Dataflows,Structure) {
     return React.createClass({
         queryable: null,
         getInitialState: function () {

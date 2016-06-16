@@ -1,4 +1,4 @@
-define("components/dataflows", ["require", "react", "sdmx/structure", "templates/services.rt"], function (require, React, structure, servicesRT) {
+define("components/dataflows", ["require", "react", "sdmx/structure"], function (require, React, structure) {
     var a = React.createClass({
         getInitialState: function () {
             return {

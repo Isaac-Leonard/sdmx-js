@@ -1,7 +1,0 @@
-<rt-require dependency="./services.rt" as="Services"/>
-<rt-require dependency="./dataflows.rt" as="Dataflows"/>
-<div>
-    <Services onConnect="{this.onConnect}" ref="services"/>
-    <Dataflows onSelectDataflow="{this.onSelectDataflow}" ref="dataflows"/>
-    <Structure ref="structure"/>
-</div>
