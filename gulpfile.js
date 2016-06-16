@@ -10,7 +10,9 @@ var gulp = require('gulp'),
         Config = require('./gulpfile.config'),
         tsProject = tsc.createProject('tsconfig.json'),
         browserSync = require('browser-sync'),
-        superstatic = require('superstatic');
+        superstatic = require('superstatic'),
+        rt = require('gulp-react-templates');
+        var rjs = require('gulp-requirejs');
 
 var config = new Config();
 
@@ -56,15 +58,17 @@ gulp.task('compile-ts', function () {
 /**
  * Remove all generated JavaScript files from TypeScript compilation.
  */
-gulp.task('clean-ts', function (cb) {
-    var typeScriptGenFiles = [
-        config.tsOutputPath + '/**/*.js', // path to all JS files auto gen'd by editor
-        config.tsOutputPath + '/**/*.js.map', // path to all sourcemap files auto gen'd by editor
-        '!' + config.tsOutputPath + '/lib'
-    ];
-    // delete the files
-    del(typeScriptGenFiles, cb);
-});
+
+//gulp.task('clean-ts', function (cb) {
+//    var typeScriptGenFiles = [
+//        config.tsOutputPath + '/**/*.js', // path to all JS files auto gen'd by editor
+//        config.tsOutputPath + '/**/*.js.map', // path to all sourcemap files auto gen'd by editor
+//        '!' + config.tsOutputPath + '/lib'
+//    ];
+//    // delete the files
+//    del(typeScriptGenFiles, cb);
+//});
+
 gulp.task('watch', function () {
     gulp.watch([config.allTypeScript], ['ts-lint', 'compile-ts']);
 });
@@ -85,10 +89,31 @@ gulp.task('serve', ['compile-ts', 'watch'], function () {
         }
     });
 });
+gulp.task('requirejsBuild', function () {
+    rjs({
+        name: "main",
+        baseUrl: './src/',
+        out: 'bundle.js',
+        shim: {
+            // standard require.js shim options 
+        },
+        // ... more require.js options 
+    }).pipe(gulp.dest('./deploy/')); // pipe it to the output DIR 
+});
+
+
+gulp.task('rt', function () {
+    gulp.src('src/rt/**/*.rt')
+            .pipe(rt({modules: 'amd'}))
+            .pipe(gulp.dest('src/templates/'));
+});
+
 var concat = require('gulp-concat');
 gulp.task('scripts1', function () {
     return gulp.src(['./lib/*.js', './src/js/*.js', './src/js/*/*.js', './src/js/*/*/*.js', './src/js/*/*/*/*.js'])
-            .pipe(concat('all.js'))
+            .pipe(concat('sdmx.js'))
             .pipe(gulp.dest('./dist/'));
 });
 gulp.task('default', ['ts-lint', 'compile-ts']);
+
+

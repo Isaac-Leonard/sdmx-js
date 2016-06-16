@@ -1,0 +1,5 @@
+<div>
+      Structure: {structure.NameableType.toString(this.state.structure)}
+      <ul>
+      </ul>
+</div>

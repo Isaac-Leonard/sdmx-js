@@ -1,0 +1,5 @@
+<div>
+     <select value="{this.state.selected}">
+        <option rt-repeat="item in this.state.services">{item}</option>
+    </select>
+</div>

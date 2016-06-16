@@ -1,0 +1,5 @@
+<div>
+     <select value="{this.state.selected}" onChange="()=>this.load();">
+        <option rt-repeat="item in this.state.dataflows">{item}</option>
+    </select>
+</div>
