@@ -16,6 +16,7 @@
     Copyright (C) 2016 James Gardner
 */
 /// <amd-module name='sdmx/sdmx20'/>
+///<reference path="../collections.ts"/>
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
 import message = require("sdmx/message");
