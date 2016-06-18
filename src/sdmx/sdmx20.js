@@ -56,7 +56,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         function Sdmx20DataReaderTools(s) {
             this.msg = null;
             this.dw = new data.FlatDataSetWriter();
+            //console.log("sdmx20 parsing data");
             var dom = parseXml(s);
+            //console.log("sdmx20 creating DataMessage");
             this.msg = this.toDataMessage(dom.documentElement);
         }
         Sdmx20DataReaderTools.prototype.getDataMessage = function () { return this.msg; };

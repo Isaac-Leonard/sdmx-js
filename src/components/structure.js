@@ -1,4 +1,4 @@
-define("components/structure", ["require", "react", "sdmx/structure", "lodash", "components/dimension"], function (require, React, structure, _, Dimension) {
+define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data", "lodash", "components/dimension"], function (require, React, structure, data, _, Dimension) {
     return React.createClass({
         getInitialState: function () {
             return {
@@ -9,11 +9,11 @@ define("components/structure", ["require", "react", "sdmx/structure", "lodash", 
             };
         },
         load: function (queryable, dataflow) {
-            if( dataflow == null ) {
+            if (dataflow == null) {
                 this.setState({
-                    queryable:null,
-                    dataflow:null,
-                    structure:null
+                    queryable: null,
+                    dataflow: null,
+                    structure: null
                 });
                 return;
             }
@@ -35,10 +35,10 @@ define("components/structure", ["require", "react", "sdmx/structure", "lodash", 
             }.bind(this));
         },
         render: function () {
-            if (this.state.structure==null) {
+            if (this.state.structure == null) {
                 return React.createElement("div", null, "Load a Structure");
             }
-            
+
             var dims = this.state.dimensions;
             if (dims == null) {
                 dims = [];
@@ -49,10 +49,21 @@ define("components/structure", ["require", "react", "sdmx/structure", "lodash", 
                     dims.map(function (result) {
                         return React.createElement(
                                 Dimension,
-                                {key:result.getId().toString(), queryable:this.state.queryable,conceptRef:result.getId().toString(),dataflow:this.state.dataflow, structure:this.state.structure}
-                                );
+                                {ref: result.getId().toString(), key: result.getId().toString(), queryable: this.state.queryable, conceptRef: result.getId().toString(), dataflow: this.state.dataflow, structure: this.state.structure}
+                        );
                     }.bind(this)
-                    ));
+                            ), React.createElement("button", {onClick: this.query}, "Query"));
+        },
+        query: function () {
+            var query = new data.Query(this.state.dataflow, this.state.queryable.getRemoteRegistry().getLocalRegistry());
+            var keys = Object.keys(this.refs);
+            for (var i = 0; i < keys.length; i++) {
+                var dim = this.refs[keys[i]];
+                dim.putQueryParameters(query);
+            }
+            this.state.queryable.query(query).then(function (dm) {
+                this.props.onQuery(dm);
+            }.bind(this));
         }
     });
 });

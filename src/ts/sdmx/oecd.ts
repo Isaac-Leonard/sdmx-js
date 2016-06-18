@@ -23,6 +23,7 @@ import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
 import sdmx = require("sdmx");
+import data = require("sdmx/data");
 export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
     private agency: string = "OECD";
     //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
@@ -45,8 +46,10 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
     clear() {
         this.local.clear();
     }
-    query(s: string) {
-
+    query(q:data.Query) {
+        var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear()+"&format=compact_v2";
+        return this.retrieveData(url);
+//http://stats.oecd.org/restsdmx/sdmx.ashx/GetData/QNA/AUS+AUT.GDP+B1_GE.CUR+VOBARSA.Q/all?startTime=2009-Q2&endTime=2011-Q4&format=compact_v2
     }
     constructor(agency: string, service: string, options: string) {
         if (service != null) { this.serviceURL = service; }
@@ -112,6 +115,23 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
         opts.headers = {};
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
+        });
+    }
+    public retrieveData(urlString: string): Promise<message.DataMessage> {
+        console.log("oecd retrieveData:" + urlString);
+        var s: string = this.options;
+        if (urlString.indexOf("?") == -1) {
+            s = "?" + s + "&random=" + new Date().getTime();
+        } else {
+            s = "&" + s + "&random=" + new Date().getTime();
+        }
+        var opts: any = {};
+        opts.url = urlString;
+        opts.method = "GET";
+        opts.headers = {};
+        return this.makeRequest(opts).then(function(a) {
+            console.log("Got Response:"+a);
+            return sdmx.SdmxIO.parseData(a);
         });
     }
     public retrieve2(urlString: string): Promise<string> {

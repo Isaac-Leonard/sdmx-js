@@ -45,9 +45,19 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "s
             if (s == "OECD")
                 return new oecd.OECD("OECD", "http://stats.oecd.org/restsdmx/sdmx.ashx/", "");
         };
+        SdmxIO.setTruncateNames = function (n) {
+            SdmxIO.TRUNCATE_NAMES = n;
+        };
+        SdmxIO.truncateName = function (s) {
+            if (SdmxIO.TRUNCATE_NAMES) {
+                return s.substring(0, SdmxIO.TRUNCATE_NAMES);
+            }
+            return s;
+        };
         SdmxIO.LOCALE = "en";
         SdmxIO.SANITISE_NAMES = false;
         SdmxIO.PARSER = [];
+        SdmxIO.TRUNCATE_NAMES = 100;
         return SdmxIO;
     })();
     exports.SdmxIO = SdmxIO;

@@ -26,6 +26,7 @@ export class SdmxIO {
     public static LOCALE: string = "en";
     public static SANITISE_NAMES: boolean = false;
     public static PARSER: Array<interfaces.SdmxParserProvider> = [];
+    public static TRUNCATE_NAMES:number = 100;
     public static getLocale(): string {
         return SdmxIO.LOCALE;
     }
@@ -63,6 +64,15 @@ export class SdmxIO {
         if (s == "ABS") return new abs.ABS("ABS","http://stat.abs.gov.au/restsdmx/sdmx.ashx/","");
         if (s == "NOMIS") return new nomis.NOMISRESTServiceRegistry("NOMIS", "http://www.nomisweb.co.uk/api", "uid=0xad235cca367972d98bd642ef04ea259da5de264f");
         if (s == "OECD") return new oecd.OECD("OECD","http://stats.oecd.org/restsdmx/sdmx.ashx/","");
+    }
+    public static setTruncateNames(n:number) {
+        SdmxIO.TRUNCATE_NAMES=n;
+    }
+    public static truncateName(s:string) {
+        if (SdmxIO.TRUNCATE_NAMES){
+            return s.substring(0, SdmxIO.TRUNCATE_NAMES);
+        }
+        return s;
     }
 }
 SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());

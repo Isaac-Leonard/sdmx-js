@@ -77,10 +77,10 @@ export class Sdmx20DataReaderTools {
     private dw: data.FlatDataSetWriter = new data.FlatDataSetWriter();
 
     constructor(s: string) {
+        //console.log("sdmx20 parsing data");
         var dom: any = parseXml(s);
+        //console.log("sdmx20 creating DataMessage");
         this.msg = this.toDataMessage(dom.documentElement);
-
-
     }
 
     getDataMessage(): message.DataMessage { return this.msg; }

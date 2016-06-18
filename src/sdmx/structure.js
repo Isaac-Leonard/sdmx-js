@@ -113,11 +113,11 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             var loc = sdmx.SdmxIO.getLocale();
             var name = this.findName(loc);
             if (name != null) {
-                return name.toString();
+                return sdmx.SdmxIO.truncateName(name.toString());
             }
             var desc = this.findDescription(loc);
             if (desc != null) {
-                return desc.getText();
+                return sdmx.SdmxIO.truncateName(desc.getText());
             }
             return "NameableType";
         };
@@ -145,9 +145,9 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
                 if (name == null) {
                     return named.getId().toString();
                 }
-                return name.getText();
+                return sdmx.SdmxIO.truncateName(name.getText());
             }
-            return desc.getText();
+            return sdmx.SdmxIO.truncateName(desc.getText());
         };
         NameableType.toStringWithLocale = function (named, loc) {
             //if (concept.equals("FREQ")) {
@@ -163,9 +163,9 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
                 if (desc == null) {
                     return named.getId().toString();
                 }
-                return desc.getText();
+                return sdmx.SdmxIO.truncateName(desc.getText());
             }
-            return name.getText();
+            return sdmx.SdmxIO.truncateName(name.getText());
         };
         NameableType.toIDString = function (named) {
             return named.getId().toString();

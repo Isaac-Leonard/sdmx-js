@@ -27,7 +27,10 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
         OECD.prototype.clear = function () {
             this.local.clear();
         };
-        OECD.prototype.query = function (s) {
+        OECD.prototype.query = function (q) {
+            var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear() + "&format=compact_v2";
+            return this.retrieveData(url);
+            //http://stats.oecd.org/restsdmx/sdmx.ashx/GetData/QNA/AUS+AUT.GDP+B1_GE.CUR+VOBARSA.Q/all?startTime=2009-Q2&endTime=2011-Q4&format=compact_v2
         };
         OECD.prototype.load = function (struct) {
             console.log("oecd load");
@@ -88,6 +91,24 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
             opts.headers = {};
             return this.makeRequest(opts).then(function (a) {
                 return sdmx.SdmxIO.parseStructure(a);
+            });
+        };
+        OECD.prototype.retrieveData = function (urlString) {
+            console.log("oecd retrieveData:" + urlString);
+            var s = this.options;
+            if (urlString.indexOf("?") == -1) {
+                s = "?" + s + "&random=" + new Date().getTime();
+            }
+            else {
+                s = "&" + s + "&random=" + new Date().getTime();
+            }
+            var opts = {};
+            opts.url = urlString;
+            opts.method = "GET";
+            opts.headers = {};
+            return this.makeRequest(opts).then(function (a) {
+                console.log("Got Response:" + a);
+                return sdmx.SdmxIO.parseData(a);
             });
         };
         OECD.prototype.retrieve2 = function (urlString) {

@@ -20,14 +20,14 @@
 import interfaces = require("sdmx/interfaces");
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
-
+import moment = require("moment");
 export class Query {
     private flow: structure.Dataflow = null;
     private structRef: commonreferences.Reference = null;
     private registry: interfaces.LocalRegistry = null;
     private query: Array<QueryKey> = [];
-    private startDate:Date = new Date();
-    private endDate:Date = new Date();
+    private startDate: Date = new Date();
+    private endDate: Date = new Date();
 
     constructor(flow: structure.Dataflow, registry: interfaces.LocalRegistry) {
         this.flow = flow;
@@ -37,6 +37,8 @@ export class Query {
         for (var i: number = 0; i < kns.length; i++) {
             this.query.push(new QueryKey(this.structRef, registry, kns[i]));
         }
+        this.startDate.setFullYear(2000);
+        this.endDate.setFullYear(2016);
     }
     public getQueryKey(id: string) {
         for (var i: number = 0; i < this.query.length; i++) {
@@ -60,19 +62,31 @@ export class Query {
     getDataflow(): structure.Dataflow {
         return this.flow;
     }
-    getRegistry():interfaces.LocalRegistry{
+    getRegistry(): interfaces.LocalRegistry {
         return this.registry;
     }
-    getStartDate():Date {
-        return this.startDate;}
-    getEndDate():Date {
-        return this.endDate;
-        }
-    setStartDate(d:Date) {
-        this.startDate=d;
+    getStartDate(): Date {
+        return this.startDate;
     }
-    setEndDate(d:Date) {
-        this.endDate=d;
+    getEndDate(): Date {
+        return this.endDate;
+    }
+    setStartDate(d: Date) {
+        this.startDate = d;
+    }
+    setEndDate(d: Date) {
+        this.endDate = d;
+    }
+    getQueryString() {
+        var qString: string = "";
+        var keyNames = this.getKeyNames();
+        for (var i: number = 0; i < keyNames.length; i++) {
+            qString += this.getQueryKey(keyNames[i]).getQueryString();
+            if (i < (keyNames.length-1)) {
+                qString += ".";
+            }
+        }
+        return qString;
     }
 }
 export class QueryKey {
@@ -127,6 +141,16 @@ export class QueryKey {
             result.push(itm.getId().toString());
         }
         return result;;
+    }
+    getQueryString() {
+        var s: string = "";
+        for (var i: number = 0; i < this.values.length; i++) {
+            s += this.values[i];
+            if (i < (this.values.length-1)) {
+                s += "+";
+            }
+        }
+        return s;
     }
 }
 
@@ -445,6 +469,9 @@ export class FlatDataSet implements interfaces.DataSet {
         collections.arrays.remove(this.observations, o);
     }
 
+    getObservations() {
+        return this.observations;
+    }
     size(): number {
         return this.observations.length;
     }

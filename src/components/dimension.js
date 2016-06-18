@@ -9,8 +9,8 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
                 dimension: this.props.structure.findComponentString(this.props.conceptRef),
                 codelist: this.props.queryable.getLocalRegistry().findCodelist(this.props.structure.findComponentString(this.props.conceptRef).getLocalRepresentation().getEnumeration()),
                 number: "one",
-                oneObject: null,
-                oneString: null,
+                oneObject: this.props.queryable.getLocalRegistry().findCodelist(this.props.structure.findComponentString(this.props.conceptRef).getLocalRepresentation().getEnumeration()).getItems()[0],
+                oneString: structure.NameableType.toString(this.props.queryable.getLocalRegistry().findCodelist(this.props.structure.findComponentString(this.props.conceptRef).getLocalRepresentation().getEnumeration()).getItems()[0]),
                 manyArrayObject: [],
                 manyArrayString: []
             };
@@ -49,16 +49,27 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
             var str = structure.NameableType.toString(code);
             return React.createElement('button', {key: str, onClick: this.click, value: str, disabled: this.state.number == "all"}, s + structure.NameableType.toString(code));
         },
+        getCode: function(s) {
+            for(var i=0;i<this.state.codelist.getItems().length;i++) {
+                var c = this.state.codelist.getItems()[i];
+                if( structure.NameableType.toString(c)==s ) return c;
+            }
+            return null;
+        },
         click: function (s) {
             //alert(JSON.stringify(s));
             if (this.contains(s.target.value)) {
                 var ary = this.state.manyArrayString;
+                var aryObj = this.state.manyArrayObject;
                 collections.arrays.remove(ary, s.target.value);
-                this.setState({manyArrayString: ary});
+                collections.arrays.remove(aryObj,this.getCode(s.target.value));
+                this.setState({manyArrayString: ary, manyArrayObject:aryObj});
             } else {
                 var ary = this.state.manyArrayString;
+                var aryObj = this.state.manyArrayObject;
                 ary.push(s.target.value);
-                this.setState({manyArrayString: ary});
+                aryObj.push(this.getCode(s.target.value));
+                this.setState({manyArrayString: ary, manyArrayObject:aryObj});
             }
         },
         contains: function (s) {
@@ -108,6 +119,16 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
                         _.map(this.state.codelist.getItems(), this.repeatButton));
             } else {
                 return React.createElement("p", null, "No Dimension");
+            }
+        },
+        putQueryParameters:function(q) {
+            if( this.state.number == "one" ) {
+                q.getQueryKey(this.state.conceptRef).addValue(this.state.oneObject.getId().toString());
+            }
+            if( this.state.number = "many"||this.state.number=="all") {
+                for(var i=0;i<this.state.manyArrayObject.length;i++) {
+                    q.getQueryKey(this.state.conceptRef).addValue(this.state.manyArrayObject[i].getId().toString());
+                }
             }
         }
     });

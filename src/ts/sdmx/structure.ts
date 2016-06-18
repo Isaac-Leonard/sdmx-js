@@ -137,11 +137,11 @@ export class NameableType extends IdentifiableType {
         var loc: string = sdmx.SdmxIO.getLocale();
         var name: common.Name = this.findName(loc);
         if (name != null) {
-            return name.toString();
+            return sdmx.SdmxIO.truncateName(name.toString());
         }
         var desc: common.Description = this.findDescription(loc);
         if (desc != null) {
-            return desc.getText();
+            return sdmx.SdmxIO.truncateName(desc.getText());
         }
         return "NameableType";
     }
@@ -170,9 +170,9 @@ export class NameableType extends IdentifiableType {
             if (name == null) {
                 return named.getId().toString();
             }
-            return name.getText();
+            return sdmx.SdmxIO.truncateName(name.getText());
         }
-        return desc.getText();
+        return sdmx.SdmxIO.truncateName(desc.getText());
     }
 
     public static toStringWithLocale(named: NameableType, loc: string): string {
@@ -189,9 +189,9 @@ export class NameableType extends IdentifiableType {
             if (desc == null) {
                 return named.getId().toString();
             }
-            return desc.getText();
+            return sdmx.SdmxIO.truncateName(desc.getText());
         }
-        return name.getText();
+        return sdmx.SdmxIO.truncateName(name.getText());
 
     }
 

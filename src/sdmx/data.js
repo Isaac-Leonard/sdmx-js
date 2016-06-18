@@ -19,6 +19,8 @@ define("sdmx/data", ["require", "exports"], function (require, exports) {
             for (var i = 0; i < kns.length; i++) {
                 this.query.push(new QueryKey(this.structRef, registry, kns[i]));
             }
+            this.startDate.setFullYear(2000);
+            this.endDate.setFullYear(2016);
         }
         Query.prototype.getQueryKey = function (id) {
             for (var i = 0; i < this.query.length; i++) {
@@ -57,6 +59,17 @@ define("sdmx/data", ["require", "exports"], function (require, exports) {
         };
         Query.prototype.setEndDate = function (d) {
             this.endDate = d;
+        };
+        Query.prototype.getQueryString = function () {
+            var qString = "";
+            var keyNames = this.getKeyNames();
+            for (var i = 0; i < keyNames.length; i++) {
+                qString += this.getQueryKey(keyNames[i]).getQueryString();
+                if (i < (keyNames.length - 1)) {
+                    qString += ".";
+                }
+            }
+            return qString;
         };
         return Query;
     })();
@@ -116,6 +129,16 @@ define("sdmx/data", ["require", "exports"], function (require, exports) {
             }
             return result;
             ;
+        };
+        QueryKey.prototype.getQueryString = function () {
+            var s = "";
+            for (var i = 0; i < this.values.length; i++) {
+                s += this.values[i];
+                if (i < (this.values.length - 1)) {
+                    s += "+";
+                }
+            }
+            return s;
         };
         return QueryKey;
     })();
@@ -418,6 +441,9 @@ define("sdmx/data", ["require", "exports"], function (require, exports) {
         };
         FlatDataSet.prototype.removeObservation = function (o) {
             collections.arrays.remove(this.observations, o);
+        };
+        FlatDataSet.prototype.getObservations = function () {
+            return this.observations;
         };
         FlatDataSet.prototype.size = function () {
             return this.observations.length;
