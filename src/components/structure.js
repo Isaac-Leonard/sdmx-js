@@ -1,4 +1,4 @@
-define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data", "lodash", "components/dimension"], function (require, React, structure, data, _, Dimension) {
+define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data", "lodash", "components/dimension", "components/time"], function (require, React, structure, data, _, Dimension, Time) {
     return React.createClass({
         getInitialState: function () {
             return {
@@ -25,13 +25,13 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
             queryable.getRemoteRegistry().findDataStructure(dataflow.getStructure()).then(function (struct) {
                 var components = [];
                 var dims = struct.getDataStructureComponents().getDimensionList().getDimensions();
-                for(var i=0;i<dims.length;i++) {
+                for (var i = 0; i < dims.length; i++) {
                     components.push(dims[i]);
                 }
-                if( struct.getDataStructureComponents().getDimensionList().getMeasureDimension()!=null) {
+                if (struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
                     components.push(struct.getDataStructureComponents().getDimensionList().getMeasureDimension());
                 }
-                
+
                 this.setState({
                     structure: struct,
                     components: components
@@ -51,22 +51,24 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
             if (dims == null) {
                 dims = [];
             }
+            var elements = dims.map(function (result) {
+                return React.createElement(
+                        Dimension,
+                        {ref: result.getId().toString(), key: result.getId().toString(), queryable: this.state.queryable, conceptRef: result.getId().toString(), dataflow: this.state.dataflow, structure: this.state.structure},"");
+            }.bind(this));
+            elements.push(React.createElement(Time, {ref: "time", addTime: this.addTime}, ""));
+            elements.push(React.createElement("button", {onClick: this.query}, "Query"));
             return React.createElement(
                     "div",
-                    null,
-                    dims.map(function (result) {
-                        return React.createElement(
-                                Dimension,
-                                {ref: result.getId().toString(), key: result.getId().toString(), queryable: this.state.queryable, conceptRef: result.getId().toString(), dataflow: this.state.dataflow, structure: this.state.structure}
-                        );
-                    }.bind(this)
-                            ), React.createElement("button", {onClick: this.query}, "Query"));
+                    {},
+                    elements);
         },
         query: function () {
             this.props.onQuery(null); // clear data table
-            
             var query = new data.Query(this.state.dataflow, this.state.queryable.getRemoteRegistry().getLocalRegistry());
+            this.refs.time.addTime(query);
             var keys = Object.keys(this.refs);
+            collections.arrays.remove(keys,"time");
             for (var i = 0; i < keys.length; i++) {
                 var dim = this.refs[keys[i]];
                 dim.putQueryParameters(query);
@@ -74,6 +76,6 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
             this.state.queryable.query(query).then(function (dm) {
                 this.props.onQuery(dm);
             }.bind(this));
-        }
+        },
     });
 });

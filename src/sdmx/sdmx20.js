@@ -267,7 +267,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
             structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
             structures.setDataflows(this.toDataflows(null));
-            console.log("concepts:" + JSON.stringify(this.struct.getStructures().getConcepts()));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
@@ -898,7 +897,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                     return childNodes[i];
                 }
             }
-            console.log("can't find node:" + s);
+            //console.log("can't find node:"+s);
             return null;
         };
         Sdmx20StructureReaderTools.prototype.searchNodeName = function (s, childNodes) {
@@ -912,8 +911,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 }
             }
             if (result.length == 0) {
-                //alert("cannot find any " + s + " in node");
-                console.log("can't search node:" + s);
             }
             return result;
         };

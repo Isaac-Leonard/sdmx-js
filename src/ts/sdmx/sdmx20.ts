@@ -290,7 +290,6 @@ export class Sdmx20StructureReaderTools {
         structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
         structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
         structures.setDataflows(this.toDataflows(null));
-        console.log("concepts:" + JSON.stringify(this.struct.getStructures().getConcepts()));
         return this.struct;
     }
     toHeader(headerNode: any) {
@@ -884,7 +883,7 @@ export class Sdmx20StructureReaderTools {
                 return childNodes[i];
             }
         }
-        console.log("can't find node:"+s);
+        //console.log("can't find node:"+s);
         return null;
     }
     searchNodeName(s: string, childNodes: any): Array<any> {
@@ -899,7 +898,7 @@ export class Sdmx20StructureReaderTools {
         }
         if (result.length == 0) {
             //alert("cannot find any " + s + " in node");
-            console.log("can't search node:"+s);
+            //console.log("can't search node:"+s);
         }
         return result;
     }
