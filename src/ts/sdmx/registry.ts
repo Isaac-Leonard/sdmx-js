@@ -77,6 +77,11 @@ export class LocalRegistry implements interfaces.LocalRegistry {
         return null;
     }
     findConceptScheme(ref: commonreferences.Reference): structure.ConceptSchemeType {
+        for (var i: number = 0; i < this.structures.length;i++){
+            if (this.structures[i].findConceptScheme(ref)!=null){
+                return this.structures[i].findConceptScheme(ref);
+            }
+        }
         return null;
     }
     searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {

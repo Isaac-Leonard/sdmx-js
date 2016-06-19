@@ -1,16 +1,16 @@
-define("components/data", ["require", "react", "sdmx/structure", "sdmx/data","lodash"], function (require, React, structure, data,_) {
+define("components/data", ["require", "react", "sdmx/structure", "sdmx/data", "lodash"], function (require, React, structure, data, _) {
     return React.createClass({
         getInitialState: function () {
             return {
-                dataMessage: null
+                structuredDataMessage: null
             };
         },
-        load: function (dataMessage) {
-            this.setState({dataMessage: dataMessage});
+        load: function (structuredDataMessage) {
+            this.setState({structuredDataMessage: structuredDataMessage});
         },
         render: function render() {
-            if( this.state.dataMessage==null ) {
-                return React.createElement("p",{},"No Data");
+            if (this.state.structuredDataMessage == null) {
+                return React.createElement("p", {}, "No Data");
             }
             var headerComponents = this.generateHeaders(),
                     rowComponents = this.generateRows();
@@ -34,44 +34,46 @@ define("components/data", ["require", "react", "sdmx/structure", "sdmx/data","lo
                     );
         },
         generateHeaders: function generateHeaders() {
-            var cols = this.state.dataMessage.getDataSet(0).getColumnMapper().getAllColumns(); // [{key, label}]
-
-            // generate our header (th) cell components
-            return cols.map(function (colData) {
-                return React.createElement(
+            var result = [];
+            var ds = this.state.structuredDataMessage.getStructuredDataSet(0);
+            for (var i = 0; i < ds.getColumnCount(); i++) {
+                result.push(React.createElement(
                         'th',
-                        {key: colData},
+                        {key: i},
                         ' ',
-                        colData,
+                        ds.getColumnName(i),
                         ' '
-                        );
-            });
+                        )
+                        )
+            }
+            return result;
         },
         generateRows: function generateRows() {
-            var cols = this.state.dataMessage.getDataSet(0).getColumnMapper().getAllColumns(); // [{key, label}]
-                    // [{key, label}]
-
-            return this.state.dataMessage.getDataSet(0).getObservations().map(function (item) {
-                // handle the column data within each row
-                var cells = cols.map(function (colData) {
-
-                    // colData.key might be "firstName"
-                    return React.createElement(
+            // [{key, label}]
+            var rows = [];
+            var ds = this.state.structuredDataMessage.getStructuredDataSet(0);
+            for (var i = 0; i < ds.size(); i++) {
+                var cells = [];
+                for (var j = 0; j < ds.getColumnCount(); j++) {
+                    var item = ds.getStructuredValue(i, j);
+                    cells.push(React.createElement(
                             'td',
                             null,
                             ' ',
-                            item.getValue(this.state.dataMessage.getDataSet(0).getColumnMapper().getColumnIndex(colData)),
+                            structure.NameableType.toString(item.getCode()),
                             ' '
-                            );
-                }.bind(this));
-                return React.createElement(
+                            ));
+                }
+                rows.push(React.createElement(
                         'tr',
-                        {key: _.indexOf(this.state.dataMessage.getDataSet(0).getObservations(),item)},
+                        {key: i},
                         ' ',
                         cells,
                         ' '
-                        );
-            }.bind(this));
+                        ));
+            }
+            return rows;
         }
+
     });
 });

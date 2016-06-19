@@ -1,4 +1,4 @@
-define(["require", "exports", "sdmx/registry", "sdmx"], function (require, exports, registry, sdmx) {
+define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
     var OECD = (function () {
         function OECD(agency, service, options) {
             this.agency = "OECD";
@@ -22,14 +22,14 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
             return this;
         };
         OECD.prototype.getRepository = function () {
-            return null; //this;
+            return this; //this;
         };
         OECD.prototype.clear = function () {
             this.local.clear();
         };
         OECD.prototype.query = function (q) {
             var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear() + "&format=compact_v2";
-            return this.retrieveData(url);
+            return this.retrieveData(q.getDataflow(), url);
             //http://stats.oecd.org/restsdmx/sdmx.ashx/GetData/QNA/AUS+AUT.GDP+B1_GE.CUR+VOBARSA.Q/all?startTime=2009-Q2&endTime=2011-Q4&format=compact_v2
         };
         OECD.prototype.load = function (struct) {
@@ -93,7 +93,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        OECD.prototype.retrieveData = function (urlString) {
+        OECD.prototype.retrieveData = function (dataflow, urlString) {
             console.log("oecd retrieveData:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -107,8 +107,12 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
             opts.method = "GET";
             opts.headers = {};
             return this.makeRequest(opts).then(function (a) {
-                console.log("Got Response:" + a);
-                return sdmx.SdmxIO.parseData(a);
+                console.log("Got Data Response");
+                var dm = sdmx.SdmxIO.parseData(a);
+                var payload = new common.PayloadStructureType();
+                payload.setStructure(dataflow.getStructure());
+                dm.getHeader().setStructures([payload]);
+                return dm;
             });
         };
         OECD.prototype.retrieve2 = function (urlString) {

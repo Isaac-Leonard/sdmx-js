@@ -39,7 +39,7 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
     }
 
     getRepository(): interfaces.Repository {
-        return null;//this;
+        return this;//this;
         
     }
 
@@ -48,7 +48,7 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
     }
     query(q:data.Query) {
         var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear()+"&format=compact_v2";
-        return this.retrieveData(url);
+        return this.retrieveData(q.getDataflow(),url);
 //http://stats.oecd.org/restsdmx/sdmx.ashx/GetData/QNA/AUS+AUT.GDP+B1_GE.CUR+VOBARSA.Q/all?startTime=2009-Q2&endTime=2011-Q4&format=compact_v2
     }
     constructor(agency: string, service: string, options: string) {
@@ -117,7 +117,7 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
             return sdmx.SdmxIO.parseStructure(a);
         });
     }
-    public retrieveData(urlString: string): Promise<message.DataMessage> {
+    public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
         console.log("oecd retrieveData:" + urlString);
         var s: string = this.options;
         if (urlString.indexOf("?") == -1) {
@@ -130,8 +130,12 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
         opts.method = "GET";
         opts.headers = {};
         return this.makeRequest(opts).then(function(a) {
-            console.log("Got Response:"+a);
-            return sdmx.SdmxIO.parseData(a);
+            console.log("Got Data Response");
+            var dm = sdmx.SdmxIO.parseData(a);
+            var payload = new common.PayloadStructureType();
+            payload.setStructure(dataflow.getStructure());
+            dm.getHeader().setStructures([payload]);
+            return dm;
         });
     }
     public retrieve2(urlString: string): Promise<string> {

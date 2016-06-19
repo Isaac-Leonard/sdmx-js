@@ -57,6 +57,11 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
             return null;
         };
         LocalRegistry.prototype.findConceptScheme = function (ref) {
+            for (var i = 0; i < this.structures.length; i++) {
+                if (this.structures[i].findConceptScheme(ref) != null) {
+                    return this.structures[i].findConceptScheme(ref);
+                }
+            }
             return null;
         };
         LocalRegistry.prototype.searchDataStructure = function (ref) {

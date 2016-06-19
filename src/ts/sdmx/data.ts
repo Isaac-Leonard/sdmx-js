@@ -18,9 +18,12 @@
 /// <amd-module name='sdmx/data'/>
 ///<reference path="../collections.ts"/>
 import interfaces = require("sdmx/interfaces");
+import common = require("sdmx/common");
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
+import message = require("sdmx/message");
 import moment = require("moment");
+import sdmx = require("sdmx");
 export class Query {
     private flow: structure.Dataflow = null;
     private structRef: commonreferences.Reference = null;
@@ -82,7 +85,7 @@ export class Query {
         var keyNames = this.getKeyNames();
         for (var i: number = 0; i < keyNames.length; i++) {
             qString += this.getQueryKey(keyNames[i]).getQueryString();
-            if (i < (keyNames.length-1)) {
+            if (i < (keyNames.length - 1)) {
                 qString += ".";
             }
         }
@@ -146,7 +149,7 @@ export class QueryKey {
         var s: string = "";
         for (var i: number = 0; i < this.values.length; i++) {
             s += this.values[i];
-            if (i < (this.values.length-1)) {
+            if (i < (this.values.length - 1)) {
                 s += "+";
             }
         }
@@ -653,4 +656,331 @@ export class FlatDataSetWriter implements interfaces.DataSetWriter {
         }
         this.groups.push(group);
     }
+}
+export class StructuredDataMessage {
+
+    private dataMessage: message.DataMessage = null;
+    private registry: interfaces.LocalRegistry = null;
+    private dataflow: structure.Dataflow = null;
+
+    private list: Array<StructuredDataSet> = [];
+
+    constructor(dm: message.DataMessage, reg: interfaces.LocalRegistry) {
+        this.dataMessage = dm;
+        this.registry = reg;
+        for (var i: number = 0; i < this.dataMessage.size(); i++) {
+            this.list.push(this.buildStructuredDataSet(i));
+        }
+    }
+
+    public size(): number {
+        return this.getDataMessage().size();
+    }
+
+    public getStructuredDataSet(i: number): StructuredDataSet {
+        return this.list[i];
+    }
+
+    public buildStructuredDataSet(i: number): StructuredDataSet {
+        //dataMessage.getHeader().getStructures().get(0).getStructure().dump();
+        //NestedNCNameID agency = dataMessage.getHeader().getStructures().get(0).getStructure().getAgencyId();
+        //IDType id = dataMessage.getHeader().getStructures().get(0).getStructure().getMaintainableParentId();
+        //Version vers = dataMessage.getHeader().getStructures().get(0).getStructure().getMaintainedParentVersion();
+        //System.out.println("Ref="+agency+":"+id+":"+vers);
+        var structure: structure.DataStructure = this.getRegistry().findDataStructure(this.getDataMessage().getHeader().getStructures()[0].getStructure());
+        //System.out.println("Structure="+structure);
+        if (this.dataflow == null) {
+            this.setDataflow(structure.asDataflow());
+        }
+        return new StructuredDataSet(this.getDataMessage().getDataSet(i), this.getRegistry(), structure);
+    }
+
+    /**
+     * @return the dataMessage
+     */
+    public getDataMessage(): message.DataMessage {
+        return this.dataMessage;
+    }
+
+    /**
+     * @return the registry
+     */
+    public getRegistry(): interfaces.LocalRegistry {
+        return this.registry;
+    }
+
+    /**
+     * @return the dataflow
+     */
+    public getDataflow(): structure.Dataflow {
+        return this.dataflow;
+    }
+
+    /**
+     * @param dataflow the dataflow to set
+     */
+    public setDataflow(dataflow: structure.Dataflow) {
+        this.dataflow = dataflow;
+    }
+}
+export class StructuredDataSet {
+    private dataSet: interfaces.DataSet = null;
+    private registry: interfaces.LocalRegistry = null;
+    private structure: structure.DataStructure = null;
+
+    constructor(ds: interfaces.DataSet, reg: interfaces.LocalRegistry, struct: structure.DataStructure) {
+        this.dataSet = ds;
+        this.registry = reg;
+        this.structure = struct;
+    }
+
+    public getStructuredValue(row: number, column: number): StructuredValue {
+        return new StructuredValue(this.getDataSet().getColumnName(column), this.getDataSet().getValue(row, column), this.registry, this.getStructure());
+    }
+
+    public getColumnName(i: number): string {
+        var conceptString: string = this.getDataSet().getColumnName(i);
+        //System.out.println("Concept="+conceptString);
+        //System.out.println("ds="+getStructure());
+        var c: structure.Component = this.getStructure().findComponentString(conceptString);
+        if (c == null && conceptString == "type") {
+            // "type" represents sdmx 2.0 cross sectional document 
+            c = this.getStructure().getDataStructureComponents().getDimensionList().getMeasureDimension();
+        }
+        if (c == null) {
+            console.log("Component is null conceptRef:" + conceptString);
+            return conceptString;
+        }
+        var conceptRef = c.getConceptIdentity();
+        var concept: structure.ConceptType = null;
+        if (conceptRef != null) {
+            concept = this.registry.findConcept(conceptRef);
+            return structure.NameableType.toString(concept);
+        } else {
+            throw new Error("Can't find Concept:" + conceptString);
+        }
+    }
+
+    public size(): number {
+        return this.getDataSet().size();
+    }
+
+    public getColumnCount(): number {
+        return this.getDataSet().getColumnSize();
+    }
+
+    /**
+     * @return the dataSet
+     */
+    public getDataSet(): interfaces.DataSet {
+        return this.dataSet;
+    }
+
+    /**
+     * @return the structure
+     */
+    public getStructure(): structure.DataStructure {
+        return this.structure;
+    }
+    public getColumnIndexes(): Array<number> {
+        var result = [];
+        for (var i: number = 0; i < this.getColumnCount(); i++) {
+            result.push(i);
+        }
+        return result;
+    }
+}
+export class StructuredValue {
+    public getRepresentation(reg: interfaces.LocalRegistry, c: structure.Component): structure.RepresentationType {
+        var rep: structure.RepresentationType = c.getLocalRepresentation();
+        if (rep == null) {
+            var concept: structure.ConceptType = reg.findConcept(c.getConceptIdentity());
+            //return concept.getCoreRepresentation();
+        }
+        return c.getLocalRepresentation();
+    }
+    public getLocalRepresentation(c: structure.Component): structure.RepresentationType {
+        if (c == null) return null;
+        return c.getLocalRepresentation();
+    }
+    private concept: string = null;
+    private value: string = null;
+    private registry: interfaces.LocalRegistry = null;
+    private structure: structure.DataStructure = null;
+
+    public constructor(concept: string, value: string, registry: interfaces.LocalRegistry, struct: structure.DataStructure) {
+        this.concept = concept;
+        this.value = value;
+        this.registry = registry;
+        this.structure = struct;
+    }
+
+    public isCoded(): boolean {
+        var comp: structure.Component = this.structure.findComponentString(this.concept);
+        if ("type" == this.concept) {
+            comp = this.structure.getDataStructureComponents().getDimensionList().getMeasureDimension();
+        }
+        if (comp == null) {
+            console.log("Comp is NUll!" + this.concept);
+            return false;
+        }
+        var localRep: structure.RepresentationType = this.getRepresentation(this.registry, comp);
+        if (localRep.getEnumeration() != null) {
+            return true;
+        }
+        else return false;
+    }
+
+    public getCode(): structure.ItemType {
+        //System.out.println("Concept:"+ concept+" Value:" + value);
+        //Locale loc = Locale.getDefault();
+        //ItemType item = ValueTypeResolver.resolveCode(registry, structure, concept, value);
+        //System.out.println("Item=" + item.toString());
+        //System.out.println("Item=" + item.findName(loc.getLanguage()));
+        return ValueTypeResolver.resolveCode(this.registry, this.structure, this.concept, this.getValue());
+    }
+
+    public getCodelist(): structure.ItemSchemeType {
+        return ValueTypeResolver.getPossibleCodes(this.registry, this.structure, this.concept);
+    }
+
+    public toString(): string {
+        if (this.isCoded()) {
+            var code: structure.ItemType = this.getCode();
+            if (code == null) {
+                return this.getValue();
+            }
+            return structure.NameableType.toString(code);
+        }
+        return this.getValue();
+    }
+
+    /**
+     * @return the concept
+     */
+    public getConcept(): structure.ConceptType {
+        return this.registry.findConcept(this.structure.findComponentString(this.concept).getConceptIdentity());
+    }
+
+    /**
+     * @return the value
+     */
+    public getValue(): string {
+        return this.value;
+    }
+}
+export class ValueTypeResolver {
+
+    public static resolveCode(registry: interfaces.LocalRegistry, struct: structure.DataStructure, column: string, value: string): structure.ItemType {
+        if (value == null) {
+            return null;
+        }
+        var dim: structure.Component = struct.findComponentString(column);
+        if (dim == null || "type" == column) {
+            dim = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+        }
+        var conceptRef = dim.getConceptIdentity();
+        var rep: structure.RepresentationType = null;
+        var concept: structure.ConceptType = null;
+        if (conceptRef != null) {
+            concept = registry.findConcept(conceptRef);
+            if (concept == null) {
+                console.log("Cant find concept:" + dim.getConceptIdentity().getId());
+                console.log(conceptRef.getAgencyId() + ":" + conceptRef.getMaintainableParentId() + ":" + conceptRef.getId() + ":" + conceptRef.getVersion());
+                var ct: structure.CodeType = new structure.CodeType();
+                ct.setId(new commonreferences.ID(value));
+                var name: common.Name = new common.Name("en", value);
+                ct.setNames([name]);
+                return ct;
+            }
+            rep = dim.getLocalRepresentation();
+        }
+        if (rep != null) {
+            if (rep.getEnumeration() != null) {
+                if (rep.getEnumeration().getRefClass().toInt() == commonreferences.ObjectTypeCodelistType.CODELIST.toInt()) {
+                    var codelist: structure.Codelist = registry.findCodelist(rep.getEnumeration());
+                    var id: commonreferences.ID = null;
+                    try {
+                        id = new commonreferences.ID(value);
+                    } catch (err) {
+                        // Ignore
+                    }
+                    if (codelist == null) {
+                        throw new Error("Codelist is null Representation=" + rep.getEnumeration().toString());
+                    }
+                    var ct: structure.CodeType = null;
+                    if (id != null) {
+                        ct = codelist.findItemId(id);
+                    }
+                    if (ct == null) {
+                        var ct2: structure.CodeType = new structure.CodeType();
+                        ct2.setId(id);
+                        var name: common.Name = new common.Name("en", "Missing Code:" + value);
+                        var names: Array<common.Name> = [];
+                        names.push(name);
+                        ct2.setNames(names);
+                        return ct2;
+                    } else {
+                        return ct;
+                    }
+                } else {
+                    var cs: structure.ConceptSchemeType = registry.findConceptScheme(rep.getEnumeration());
+                    var conceptMeasure: structure.ConceptType = null;
+                    for (var i: number = 0; i < cs.size() && conceptMeasure == null; i++) {
+                        var tempConcept: structure.ConceptType = cs.getItem(i);
+                        if (tempConcept.getId() != null && tempConcept.getId().toString() == value) {
+                            conceptMeasure = cs.getItem(i);
+                        } else if (tempConcept.getId().toString() == value) {
+                            conceptMeasure = tempConcept;
+                        }
+                    }
+                    if (conceptMeasure != null) {
+                        //System.out.println("ConceptMeasure:"+conceptMeasure);
+                        return conceptMeasure;
+
+                    }
+                    return null;
+                }
+            }
+            else {
+                var itm: structure.CodeType = new structure.CodeType();
+                var name: common.Name = new common.Name(sdmx.SdmxIO.getLocale(), value);
+                var names: Array<common.Name> = [name];
+                itm.setNames(names);
+                return itm;
+            }
+        }
+        var itm: structure.CodeType = new structure.CodeType();
+        var name: common.Name = new common.Name(sdmx.SdmxIO.getLocale(), value);
+        var names: Array<common.Name> = [name];
+        itm.setNames(names);
+        return itm;
+    }
+
+    public static getPossibleCodes(registry: interfaces.LocalRegistry, struct: structure.DataStructure, column: string): structure.ItemSchemeType {
+        var dim: structure.Component = struct.findComponentString(column);
+        if (dim == null || "type" == column) {
+            dim = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+        }
+        var conceptRef = dim.getConceptIdentity();
+        var rep: structure.RepresentationType = null;
+        var concept: structure.ConceptType = null;
+        if (conceptRef != null) {
+            concept = registry.findConcept(conceptRef);
+            rep = dim.getLocalRepresentation();
+        }
+        if (rep != null) {
+            if (rep.getEnumeration() != null) {
+                if (rep.getEnumeration().getRefClass().toInt() == commonreferences.ObjectTypeCodelistType.CODELIST.toInt()) {
+                    var codelist: structure.Codelist = registry.findCodelist(rep.getEnumeration());
+                    return codelist;
+                } else {
+                    var cs: structure.ConceptSchemeType = registry.findConceptScheme(rep.getEnumeration());
+                    return cs;
+                }
+            }
+        }
+        return null;
+    }
+
 }

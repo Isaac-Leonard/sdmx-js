@@ -18,6 +18,7 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
         changeOne: function (e) {
             var code = this.state.codelist.findItemString(e.target.value);
             this.setState({
+                number: "one",
                 oneString: e.target.value,
                 oneObject: code
             })
@@ -125,7 +126,7 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
             if( this.state.number == "one" ) {
                 q.getQueryKey(this.state.conceptRef).addValue(this.state.oneObject.getId().toString());
             }
-            if( this.state.number = "many"||this.state.number=="all") {
+            if( this.state.number == "many"||this.state.number=="all") {
                 for(var i=0;i<this.state.manyArrayObject.length;i++) {
                     q.getQueryKey(this.state.conceptRef).addValue(this.state.manyArrayObject[i].getId().toString());
                 }

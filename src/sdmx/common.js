@@ -158,6 +158,10 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             this.serviceURL = null;
             this.structureURL = null;
         }
+        PayloadStructureType.prototype.setStructure = function (ref) {
+            this.structure = ref;
+        };
+        PayloadStructureType.prototype.getStructure = function () { return this.structure; };
         return PayloadStructureType;
     })();
     exports.PayloadStructureType = PayloadStructureType;

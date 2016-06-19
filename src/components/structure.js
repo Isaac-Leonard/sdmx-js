@@ -5,7 +5,7 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
                 queryable: null,
                 dataflow: null,
                 structure: null,
-                dimensions: null
+                components: null
             };
         },
         load: function (queryable, dataflow) {
@@ -23,10 +23,18 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
                 structure: null
             });
             queryable.getRemoteRegistry().findDataStructure(dataflow.getStructure()).then(function (struct) {
+                var components = [];
                 var dims = struct.getDataStructureComponents().getDimensionList().getDimensions();
+                for(var i=0;i<dims.length;i++) {
+                    components.push(dims[i]);
+                }
+                if( struct.getDataStructureComponents().getDimensionList().getMeasureDimension()!=null) {
+                    components.push(struct.getDataStructureComponents().getDimensionList().getMeasureDimension());
+                }
+                
                 this.setState({
                     structure: struct,
-                    dimensions: dims
+                    components: components
                 });
                 //for (var i = 0; i < dims.length; i++) {
                 //    console.log(JSON.stringify(this.state.queryable.getLocalRegistry().findConcept(dims[i].getConceptIdentity())));
@@ -39,7 +47,7 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
                 return React.createElement("div", null, "Load a Structure");
             }
 
-            var dims = this.state.dimensions;
+            var dims = this.state.components;
             if (dims == null) {
                 dims = [];
             }

@@ -255,11 +255,17 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         Reference.prototype.getPack = function () {
             return this.pack;
         };
+        Reference.prototype.setPack = function (pack) {
+            this.pack = pack;
+        };
         /**
          * @return the clazz
          */
         Reference.prototype.getRefClass = function () {
             return this.clazz;
+        };
+        Reference.prototype.setRefClass = function (clazz) {
+            this.clazz = clazz;
         };
         /**
          * @return the clazz

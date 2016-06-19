@@ -20,6 +20,9 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
         DataMessage.prototype.removeDataSet = function (ds) {
             collections.arrays.remove(this.dataSets, ds);
         };
+        DataMessage.prototype.size = function () {
+            return this.dataSets.length;
+        };
         return DataMessage;
     })();
     exports.DataMessage = DataMessage;

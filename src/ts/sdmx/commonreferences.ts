@@ -273,6 +273,9 @@ export class Reference {
     public getPack(): PackageTypeCodelistType {
         return this.pack;
     }
+    public setPack(pack: PackageTypeCodelistType) {
+        this.pack=pack;
+    }
 
     /**
      * @return the clazz
@@ -281,6 +284,9 @@ export class Reference {
         return this.clazz;
     }
 
+    public setRefClass(clazz: ObjectTypeCodelistType) {
+        this.clazz = clazz;
+    }
     /**
      * @return the clazz
      */

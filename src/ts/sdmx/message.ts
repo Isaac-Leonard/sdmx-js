@@ -42,6 +42,9 @@ export class DataMessage {
     removeDataSet(ds: data.FlatDataSet) {
         collections.arrays.remove(this.dataSets, ds);
     }
+    size():number {
+        return this.dataSets.length;
+    }
 }
 
 export class DataQuery {

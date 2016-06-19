@@ -153,9 +153,13 @@ export class PayloadStructureType {
     private structureURL: xml.anyURI = null;
 
     // Choice of 1
-    private provisionAgreement: commonreferences.ProvisionAgreementReference;
-    private structureUsage: commonreferences.StructureUsageReferenceBase;
-    private structure: commonreferences.StructureReferenceBase;
+    private provisionAgreement: commonreferences.Reference;
+    private structureUsage: commonreferences.Reference;
+    private structure: commonreferences.Reference;
+    public setStructure(ref:commonreferences.Reference) {
+        this.structure=ref;
+    }
+    public getStructure():commonreferences.Reference { return this.structure; }
 }
 
 export class ObservationalTimePeriodType {

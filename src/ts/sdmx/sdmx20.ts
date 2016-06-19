@@ -290,6 +290,7 @@ export class Sdmx20StructureReaderTools {
         structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
         structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
         structures.setDataflows(this.toDataflows(null));
+        console.log("concepts:" + JSON.stringify(this.struct.getStructures().getConcepts()));
         return this.struct;
     }
     toHeader(headerNode: any) {
@@ -507,7 +508,9 @@ export class Sdmx20StructureReaderTools {
         var primaryMeasure = this.findNodeName("PrimaryMeasure", dsc.childNodes);
         var attributes = this.searchNodeName("Attribute", dsc.childNodes);
         components.setDimensionList(this.toDimensionList(dimensions));
-        this.toTimeDimension(components, timedimension);
+        if (timedimension != null) {
+            this.toTimeDimension(components, timedimension);
+        }
         this.toPrimaryMeasure(components, primaryMeasure);
         components.setAttributeList(this.toAttributeList(attributes));
         /*
@@ -678,6 +681,23 @@ export class Sdmx20StructureReaderTools {
             ref.setMaintainableParentId(codelist.getId());
             ref.setVersion(codelist.getVersion());
             var reference = new commonreferences.Reference(ref, null);
+            reference.setPack(commonreferences.PackageTypeCodelistType.CODELIST);
+            reference.setRefClass(commonreferences.ObjectTypeCodelistType.CODELIST);
+            lr2.setEnumeration(reference);
+        }
+        return lr2;
+    }
+    toLocalRepresentationConceptScheme(conceptScheme: structure.ConceptSchemeType, ttf: structure.TextFormatType): structure.RepresentationType {
+        var lr2: structure.RepresentationType = new structure.RepresentationType();
+        lr2.setTextFormat(ttf);
+        if (conceptScheme != null) {
+            var ref: commonreferences.Ref = new commonreferences.Ref();
+            ref.setAgencyId(conceptScheme.getAgencyId());
+            ref.setMaintainableParentId(conceptScheme.getId());
+            ref.setVersion(conceptScheme.getVersion());
+            var reference = new commonreferences.Reference(ref, null);
+            reference.setPack(commonreferences.PackageTypeCodelistType.CONCEPTSCHEME);
+            reference.setRefClass(commonreferences.ObjectTypeCodelistType.CONCEPTSCHEME)
             lr2.setEnumeration(reference);
         }
         return lr2;
@@ -807,7 +827,7 @@ export class Sdmx20StructureReaderTools {
     toMeasureDimension(dim: any): structure.MeasureDimension {
         var dim2: structure.MeasureDimension = new structure.MeasureDimension();
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
-        var cl: structure.Codelist = this.getCodelist(dim);
+        var cl: structure.ConceptSchemeType = this.getCodelist(dim);
         var con: structure.ConceptType = this.getConcept(cs, dim);
         if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
@@ -818,9 +838,33 @@ export class Sdmx20StructureReaderTools {
             var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
         }
+        // Sdmx 2.1 files have concept schemes
+        // for cross sectional measures...
+        var createdConceptScheme: structure.ConceptSchemeType = new structure.ConceptSchemeType();
+        createdConceptScheme.setAgencyId(cl.getAgencyId());
+        createdConceptScheme.setId(cl.getId());
+        createdConceptScheme.setVersion(cl.getVersion());
+        createdConceptScheme.setNames(cl.getNames());
+        createdConceptScheme.setDescriptions(cl.getDescriptions());
+        for (var i: number = 0; i < cl.size();i++) {
+            var code: structure.ItemType = cl.getItem(i);
+            var concept: structure.ConceptType = new structure.ConceptType();
+            concept.setId(code.getId());
+            concept.setParent(code.getParent());
+            concept.setURN(code.getURN());
+            concept.setURI(code.getURI());
+            concept.setNames(code.getNames());
+            concept.setDescriptions(code.getDescriptions());
+            concept.setAnnotations(code.getAnnotations());
+            createdConceptScheme.addItem(concept);
+        }
+        if (this.struct.getStructures().getConcepts()==null) {
+            this.struct.getStructures().setConcepts(new structure.Concepts());
+        }
+        this.struct.getStructures().getConcepts().getConceptSchemes().push(createdConceptScheme);
         if (cl != null) {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
-            dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf))
+            dim2.setLocalRepresentation(this.toLocalRepresentationConceptScheme(cl, ttf))
         } else {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
             dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf))
@@ -840,6 +884,7 @@ export class Sdmx20StructureReaderTools {
                 return childNodes[i];
             }
         }
+        console.log("can't find node:"+s);
         return null;
     }
     searchNodeName(s: string, childNodes: any): Array<any> {
@@ -854,6 +899,7 @@ export class Sdmx20StructureReaderTools {
         }
         if (result.length == 0) {
             //alert("cannot find any " + s + " in node");
+            console.log("can't search node:"+s);
         }
         return result;
     }
