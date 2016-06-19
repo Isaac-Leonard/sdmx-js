@@ -48256,6 +48256,8 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
                             ), React.createElement("button", {onClick: this.query}, "Query"));
         },
         query: function () {
+            this.props.onQuery(null); // clear data table
+            
             var query = new data.Query(this.state.dataflow, this.state.queryable.getRemoteRegistry().getLocalRegistry());
             var keys = Object.keys(this.refs);
             for (var i = 0; i < keys.length; i++) {
@@ -48363,7 +48365,6 @@ define("components/SimpleSdmxQuery", ["require", "react", "sdmx", "components/se
         },
         onQuery: function (dataMessage) {
             if (dataMessage == null) {
-                console.log("null dm");
                 this.refs.data.load(null);
             } else {
                 var sdm = new data.StructuredDataMessage(dataMessage, this.queryable.getRemoteRegistry().getLocalRegistry());
