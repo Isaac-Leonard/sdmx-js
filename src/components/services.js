@@ -16,6 +16,7 @@ define("components/services", ["require", "react", "sdmx", "lodash"], function (
         connect: function () {
             this.queryable = sdmx.SdmxIO.connect(this.state.selected);
             this.props.onConnect(this.queryable);
+            this.props.onQuery(null);
         },
         onChange: function (e) {
             this.setState({

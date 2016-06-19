@@ -1,4 +1,4 @@
-define("components/topComponent", ["require", "react", "sdmx", "components/services", "components/dataflows", "components/structure", "components/data","sdmx/data"], function (require, React, sdmx, Services, Dataflows, Structure, Data,data) {
+define("components/SimpleSdmxQuery", ["require", "react", "sdmx", "components/services", "components/dataflows", "components/structure", "components/data", "sdmx/data"], function (require, React, sdmx, Services, Dataflows, Structure, Data, data) {
     return React.createClass({
         queryable: null,
         getInitialState: function () {
@@ -12,17 +12,23 @@ define("components/topComponent", ["require", "react", "sdmx", "components/servi
             this.refs.structure.load(this.queryable, dataflow);
         },
         onQuery: function (dataMessage) {
-            var sdm = new data.StructuredDataMessage(dataMessage,this.queryable.getRemoteRegistry().getLocalRegistry());
-            this.refs.data.load(sdm);
+            if (dataMessage == null) {
+                this.refs.data.load(null);
+            } else {
+                var sdm = new data.StructuredDataMessage(dataMessage, this.queryable.getRemoteRegistry().getLocalRegistry());
+                this.refs.data.load(sdm);
+            }
         },
         render: function () {
             return React.createElement('div', {}, React.createElement(Services, {
                 'onConnect': this.onConnect,
+                'onQuery': this.onQuery,
                 'ref': 'services'
             }), React.createElement(Dataflows, {
                 'onSelectDataflow': this.onSelectDataflow,
+                'onQuery': this.onQuery,
                 'ref': 'dataflows'
-            }), React.createElement(Structure, {'ref': 'structure', 'onQuery':this.onQuery}),
+            }), React.createElement(Structure, {'ref': 'structure', 'onQuery': this.onQuery}),
                     React.createElement(Data, {'ref': 'data'}));
         }
     });

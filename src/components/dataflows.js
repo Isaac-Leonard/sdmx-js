@@ -16,6 +16,7 @@ define("components/dataflows", ["require", "react", "sdmx/structure"], function 
             });
             this.forceUpdate();
             this.props.onSelectDataflow(object);
+            
         },
         change: function (s) {
             var object = null;
@@ -30,6 +31,7 @@ define("components/dataflows", ["require", "react", "sdmx/structure"], function 
             });
             this.forceUpdate();
             this.props.onSelectDataflow(object);
+            this.props.onQuery(null);
         },
         repeatItem2: function (item, itemIndex) {
             return React.createElement('option', {}, structure.NameableType.toString(item));

@@ -47973,6 +47973,7 @@ define("components/services", ["require", "react", "sdmx", "lodash"], function (
         connect: function () {
             this.queryable = sdmx.SdmxIO.connect(this.state.selected);
             this.props.onConnect(this.queryable);
+            this.props.onQuery(null);
         },
         onChange: function (e) {
             this.setState({
@@ -48019,6 +48020,7 @@ define("components/dataflows", ["require", "react", "sdmx/structure"], function 
             });
             this.forceUpdate();
             this.props.onSelectDataflow(object);
+            
         },
         change: function (s) {
             var object = null;
@@ -48033,6 +48035,7 @@ define("components/dataflows", ["require", "react", "sdmx/structure"], function 
             });
             this.forceUpdate();
             this.props.onSelectDataflow(object);
+            this.props.onQuery(null);
         },
         repeatItem2: function (item, itemIndex) {
             return React.createElement('option', {}, structure.NameableType.toString(item));
@@ -48345,7 +48348,7 @@ define("components/data", ["require", "react", "sdmx/structure", "sdmx/data", "l
     });
 });
 
-define("components/topComponent", ["require", "react", "sdmx", "components/services", "components/dataflows", "components/structure", "components/data","sdmx/data"], function (require, React, sdmx, Services, Dataflows, Structure, Data,data) {
+define("components/SimpleSdmxQuery", ["require", "react", "sdmx", "components/services", "components/dataflows", "components/structure", "components/data", "sdmx/data"], function (require, React, sdmx, Services, Dataflows, Structure, Data, data) {
     return React.createClass({
         queryable: null,
         getInitialState: function () {
@@ -48359,17 +48362,24 @@ define("components/topComponent", ["require", "react", "sdmx", "components/servi
             this.refs.structure.load(this.queryable, dataflow);
         },
         onQuery: function (dataMessage) {
-            var sdm = new data.StructuredDataMessage(dataMessage,this.queryable.getRemoteRegistry().getLocalRegistry());
-            this.refs.data.load(sdm);
+            if (dataMessage == null) {
+                console.log("null dm");
+                this.refs.data.load(null);
+            } else {
+                var sdm = new data.StructuredDataMessage(dataMessage, this.queryable.getRemoteRegistry().getLocalRegistry());
+                this.refs.data.load(sdm);
+            }
         },
         render: function () {
             return React.createElement('div', {}, React.createElement(Services, {
                 'onConnect': this.onConnect,
+                'onQuery': this.onQuery,
                 'ref': 'services'
             }), React.createElement(Dataflows, {
                 'onSelectDataflow': this.onSelectDataflow,
+                'onQuery': this.onQuery,
                 'ref': 'dataflows'
-            }), React.createElement(Structure, {'ref': 'structure', 'onQuery':this.onQuery}),
+            }), React.createElement(Structure, {'ref': 'structure', 'onQuery': this.onQuery}),
                     React.createElement(Data, {'ref': 'data'}));
         }
     });
@@ -51861,11 +51871,10 @@ require.config({
         }
     }
 });
-require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/topComponent","collections","es6-promise","moment"],
-        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, topComponent,collections,promise,moment) {
-
-            var topComponent = React.createElement(topComponent)
-            ReactDOM.render(topComponent, document.getElementById('container'));
+require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/SimpleSdmxQuery","collections","es6-promise","moment"],
+        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, SimpleSdmxQuery,collections,promise,moment) {
+            var q = React.createElement(SimpleSdmxQuery)
+            ReactDOM.render(q, document.getElementById('container'));
             //var svcs = React.createElement(Services)
             //ReactDOM.render(svcs, document.getElementById('container2'));
             //var servicesElement = React.createElement(services)

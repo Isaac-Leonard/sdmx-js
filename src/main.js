@@ -10,11 +10,10 @@ require.config({
         }
     }
 });
-require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/topComponent","collections","es6-promise","moment"],
-        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, topComponent,collections,promise,moment) {
-
-            var topComponent = React.createElement(topComponent)
-            ReactDOM.render(topComponent, document.getElementById('container'));
+require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/SimpleSdmxQuery","collections","es6-promise","moment"],
+        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, SimpleSdmxQuery,collections,promise,moment) {
+            var q = React.createElement(SimpleSdmxQuery)
+            ReactDOM.render(q, document.getElementById('container'));
             //var svcs = React.createElement(Services)
             //ReactDOM.render(svcs, document.getElementById('container2'));
             //var servicesElement = React.createElement(services)
