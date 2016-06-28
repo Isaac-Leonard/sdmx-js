@@ -343,6 +343,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                         var cubeName2: string = pack.cubeName;
                         var url2: string = pack.url;
                         var doc: string = pack.string;
+                        var parsedDataflows = [];
                         try {
                             var geogList: Array<NOMISGeography> = th.parseGeography(doc, cubeId2, cubeName2);
                             for (var j = 0; j < geogList.length; j++) {
@@ -359,7 +360,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                                 ref.setVersion(commonreferences.Version.ONE);
                                 var reference = new commonreferences.Reference(ref, null);
                                 dataFlow.setStructure(reference);
-                                dfs.push(dataFlow);
+                                parsedDataflows.push(dataFlow);
                             }
                             if (geogList.length == 0) {
                                 var dataFlow: structure.Dataflow = new structure.Dataflow();
@@ -375,16 +376,22 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                                 ref.setVersion(commonreferences.Version.ONE);
                                 var reference = new commonreferences.Reference(ref, null);
                                 dataFlow.setStructure(reference);
-                                dfs.push(dataFlow);
+                                parsedDataflows.push(dataFlow);
                             }
                         } catch (error) {
                             console.log("error!:" + error);
                         }
-                        return dataFlow;
+                        return parsedDataflows;
                     });
                 })).then(function(dfs2) {
-                    this.dataflowList = dfs2;
-                    return dfs2;
+                    var dfs = [];
+                    for (var i: number = 0; i < dfs2.length;i++) {
+                        for (var j: number = 0; j < dfs2[i].length;j++) {
+                            dfs.push(dfs2[i][j]);
+                        }
+                    }
+                    this.dataflowList = dfs
+                    return dfs;
                 });
             });
         }

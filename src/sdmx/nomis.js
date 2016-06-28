@@ -314,6 +314,7 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
                             var cubeName2 = pack.cubeName;
                             var url2 = pack.url;
                             var doc = pack.string;
+                            var parsedDataflows = [];
                             try {
                                 var geogList = th.parseGeography(doc, cubeId2, cubeName2);
                                 for (var j = 0; j < geogList.length; j++) {
@@ -330,7 +331,7 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
                                     ref.setVersion(commonreferences.Version.ONE);
                                     var reference = new commonreferences.Reference(ref, null);
                                     dataFlow.setStructure(reference);
-                                    dfs.push(dataFlow);
+                                    parsedDataflows.push(dataFlow);
                                 }
                                 if (geogList.length == 0) {
                                     var dataFlow = new structure.Dataflow();
@@ -346,17 +347,23 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
                                     ref.setVersion(commonreferences.Version.ONE);
                                     var reference = new commonreferences.Reference(ref, null);
                                     dataFlow.setStructure(reference);
-                                    dfs.push(dataFlow);
+                                    parsedDataflows.push(dataFlow);
                                 }
                             }
                             catch (error) {
                                 console.log("error!:" + error);
                             }
-                            return dataFlow;
+                            return parsedDataflows;
                         });
                     })).then(function (dfs2) {
-                        this.dataflowList = dfs2;
-                        return dfs2;
+                        var dfs = [];
+                        for (var i = 0; i < dfs2.length; i++) {
+                            for (var j = 0; j < dfs2[i].length; j++) {
+                                dfs.push(dfs2[i][j]);
+                            }
+                        }
+                        this.dataflowList = dfs;
+                        return dfs;
                     });
                 });
             }
