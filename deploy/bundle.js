@@ -7397,7 +7397,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
             structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
             structures.setDataflows(this.toDataflows(null));
-            console.log("concepts:" + JSON.stringify(this.struct.getStructures().getConcepts()));
             return this.struct;
         };
         Sdmx20StructureReaderTools.prototype.toHeader = function (headerNode) {
@@ -8028,7 +8027,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                     return childNodes[i];
                 }
             }
-            console.log("can't find node:" + s);
+            //console.log("can't find node:"+s);
             return null;
         };
         Sdmx20StructureReaderTools.prototype.searchNodeName = function (s, childNodes) {
@@ -8042,8 +8041,6 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 }
             }
             if (result.length == 0) {
-                //alert("cannot find any " + s + " in node");
-                console.log("can't search node:" + s);
             }
             return result;
         };
@@ -9302,7 +9299,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
                         }
                     }
                 }
-                return this.retrieveData("http://www.nomisweb.co.uk/api/v01/dataset/" + dst_ref.getId() + ".compact.sdmx.xml" + queryString + times + "&" + this.options);
+                return this.retrieveData(flow, "http://www.nomisweb.co.uk/api/v01/dataset/" + dst_ref.getId() + ".compact.sdmx.xml" + queryString + times + "&" + this.options);
             }.bind(this));
             /*
             StringBuilder q = new StringBuilder();
@@ -9377,6 +9374,42 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
                 xhr.send(params);
             });
         };
+        /*
+         * Modified to always resolve
+         *
+         */
+        NOMISRESTServiceRegistry.prototype.makeRequest2 = function (opts) {
+            return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                console.log("nomis retrieve:" + opts.url);
+                xhr.open(opts.method, opts.url);
+                xhr.onload = function () {
+                    if (this.status >= 200 && this.status < 300) {
+                        resolve(xhr.responseText);
+                    }
+                    else {
+                        resolve("");
+                    }
+                };
+                xhr.onerror = function () {
+                    resolve("");
+                };
+                if (opts.headers) {
+                    Object.keys(opts.headers).forEach(function (key) {
+                        xhr.setRequestHeader(key, opts.headers[key]);
+                    });
+                }
+                var params = opts.params;
+                // We'll need to stringify if we've been given an object
+                // If we have a string, this is skipped.
+                if (params && typeof params === 'object') {
+                    params = Object.keys(params).map(function (key) {
+                        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+                    }).join('&');
+                }
+                xhr.send(params);
+            });
+        };
         NOMISRESTServiceRegistry.prototype.retrieve = function (urlString) {
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -9392,7 +9425,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        NOMISRESTServiceRegistry.prototype.retrieveData = function (urlString) {
+        NOMISRESTServiceRegistry.prototype.retrieveData = function (dataflow, urlString) {
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
                 s = "?" + s + "&random=" + new Date().getTime();
@@ -9404,10 +9437,14 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             opts.url = urlString + s;
             opts.method = "GET";
             return this.makeRequest(opts).then(function (a) {
-                return sdmx.SdmxIO.parseData(a);
+                var dm = sdmx.SdmxIO.parseData(a);
+                var payload = new common.PayloadStructureType();
+                payload.setStructure(dataflow.getStructure());
+                dm.getHeader().setStructures([payload]);
+                return dm;
             });
         };
-        NOMISRESTServiceRegistry.prototype.retrieve2 = function (urlString) {
+        NOMISRESTServiceRegistry.prototype.retrieve2 = function (urlString, vals) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -9419,8 +9456,13 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
-            return this.makeRequest(opts).then(function (a) {
-                return a;
+            return this.makeRequest2(opts).then(function (a) {
+                var pack = { string: a };
+                for (var i = 0; i < Object.keys(vals).length; i++) {
+                    var k = Object.keys(vals)[i];
+                    pack[k] = vals[k];
+                }
+                return pack;
             });
         };
         /*
@@ -9453,61 +9495,80 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
         };
         NOMISRESTServiceRegistry.prototype.listDataflows = function () {
             if (this.dataflowList != null) {
-                var promise = new Promise(function (resolve, reject) {
+                var promise1 = new Promise(function (resolve, reject) {
                     resolve(this.dataflowList);
                 }.bind(this));
-                return promise;
+                return promise1;
             }
             else {
                 var dfs = [];
                 var th = this;
-                return this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml").then(function (st) {
+                var promise = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml").then(function (st) {
+                    var packArray = [];
                     var list = st.getStructures().getDataStructures().getDataStructures();
                     for (var i = 0; i < list.length; i++) {
                         var dst = list[i];
                         var cubeId = structure.NameableType.toIDString(dst);
                         var cubeName = dst.findName("en").getText();
                         var url = th.serviceURL + "/v01/dataset/" + cubeId + ".overview.xml";
-                        th.retrieve2(url).then(function (doc) {
-                            var geogList = th.parseGeography(doc, cubeId, cubeName);
-                            for (var j = 0; j < geogList.length; j++) {
-                                var dataFlow = new structure.Dataflow();
-                                dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
-                                dataFlow.setId(new commonreferences.ID(cubeId + "_" + geogList[j].getGeography()));
-                                var name = new common.Name("en", cubeName + " " + geogList[j].getGeographyName());
-                                var names = [];
-                                names.push(name);
-                                dataFlow.setNames(names);
-                                var ref = new commonreferences.Ref();
-                                ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
-                                ref.setMaintainableParentId(dataFlow.getId());
-                                ref.setVersion(commonreferences.Version.ONE);
-                                var reference = new commonreferences.Reference(ref, null);
-                                dataFlow.setStructure(reference);
-                                dfs.push(dataFlow);
-                            }
-                            if (geogList.length == 0) {
-                                var dataFlow = new structure.Dataflow();
-                                dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
-                                dataFlow.setId(new commonreferences.ID(cubeId + "_NOGEOG"));
-                                var name = new common.Name("en", cubeName);
-                                var names = [];
-                                names.push(name);
-                                dataFlow.setNames(names);
-                                var ref = new commonreferences.Ref();
-                                ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
-                                ref.setMaintainableParentId(dataFlow.getId());
-                                ref.setVersion(commonreferences.Version.ONE);
-                                var reference = new commonreferences.Reference(ref, null);
-                                dataFlow.setStructure(reference);
-                                dfs.push(dataFlow);
-                            }
-                        });
+                        var pack = { cubeId: cubeId, cubeName: cubeName, url: url };
+                        packArray.push(pack);
                     }
-                }.bind(this)).then(function () {
-                    this.dataflowList = dfs;
-                    return dfs;
-                }.bind(this));
+                    return packArray;
+                });
+                return promise.then(function (pArray) {
+                    var promiseArray = [];
+                    return Promise.all(pArray.map(function (pack) {
+                        return th.retrieve2(pack.url, pack).then(function (pack) {
+                            var cubeId2 = pack.cubeId;
+                            var cubeName2 = pack.cubeName;
+                            var url2 = pack.url;
+                            var doc = pack.string;
+                            try {
+                                var geogList = th.parseGeography(doc, cubeId2, cubeName2);
+                                for (var j = 0; j < geogList.length; j++) {
+                                    var dataFlow = new structure.Dataflow();
+                                    dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
+                                    dataFlow.setId(new commonreferences.ID(cubeId2 + "_" + geogList[j].getGeography()));
+                                    var name = new common.Name("en", cubeName2 + " " + geogList[j].getGeographyName());
+                                    var names = [];
+                                    names.push(name);
+                                    dataFlow.setNames(names);
+                                    var ref = new commonreferences.Ref();
+                                    ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
+                                    ref.setMaintainableParentId(dataFlow.getId());
+                                    ref.setVersion(commonreferences.Version.ONE);
+                                    var reference = new commonreferences.Reference(ref, null);
+                                    dataFlow.setStructure(reference);
+                                    dfs.push(dataFlow);
+                                }
+                                if (geogList.length == 0) {
+                                    var dataFlow = new structure.Dataflow();
+                                    dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
+                                    dataFlow.setId(new commonreferences.ID(cubeId2 + "_NOGEOG"));
+                                    var name = new common.Name("en", cubeName2);
+                                    var names = [];
+                                    names.push(name);
+                                    dataFlow.setNames(names);
+                                    var ref = new commonreferences.Ref();
+                                    ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
+                                    ref.setMaintainableParentId(dataFlow.getId());
+                                    ref.setVersion(commonreferences.Version.ONE);
+                                    var reference = new commonreferences.Reference(ref, null);
+                                    dataFlow.setStructure(reference);
+                                    dfs.push(dataFlow);
+                                }
+                            }
+                            catch (error) {
+                                console.log("error!:" + error);
+                            }
+                            return dataFlow;
+                        });
+                    })).then(function (dfs2) {
+                        this.dataflowList = dfs2;
+                        return dfs2;
+                    });
+                });
             }
         };
         NOMISRESTServiceRegistry.prototype.getServiceURL = function () {
@@ -9519,7 +9580,13 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             var lastLang = null;
             var xmlDoc = parseXml(doc);
             var dimNode = this.findNodeName("Dimensions", xmlDoc.documentElement.childNodes);
+            if (dimNode == null) {
+                return geogList;
+            }
             var dimsNode = this.searchNodeName("Dimension", dimNode.childNodes);
+            if (dimsNode == null || dimsNode.length == 0) {
+                return geogList;
+            }
             var geogNode = null;
             for (var i = 0; i < dimsNode.length; i++) {
                 if (dimsNode[i].getAttribute("concept") == "geography") {
@@ -9683,8 +9750,9 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "s
             SdmxIO.PARSER.push(p);
         };
         SdmxIO.listServices = function () {
-            //return ["NOMIS","ABS","OECD"];
-            return ["OECD"];
+            return ["NOMIS",
+                "OECD"];
+            //return ["OECD"];
         };
         SdmxIO.connect = function (s) {
             if (s == "ABS")
@@ -48191,7 +48259,37 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
     });
 });
 
-define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data", "lodash", "components/dimension"], function (require, React, structure, data, _, Dimension) {
+define("components/time", ["require", "react", "sdmx/structure"], function (require, React, structure) {
+    return React.createClass({
+        getInitialState: function () {
+            return {
+                start: "2001",
+                end: "2016",
+            };
+        },
+        load: function (dataflows) {
+        },
+        onChangeStart: function (s) {
+            this.setState({start: s.target.value});
+        },
+        onChangeEnd: function (s) {
+            this.setState({end: s.target.value});
+        },
+        render: function () {
+            return React.createElement("div",{},[React.createElement("label", "", "StartTime"), React.createElement('input', {onChange: this.onChangeStart, value: this.state.start}), React.createElement("label", "", "EndTime"), React.createElement('input', {onChange: this.onChangeEnd, value: this.state.end})]);
+        },
+        addTime: function (q) {
+            var start = new Date();
+            start.setYear(parseInt(this.state.start));
+            var end = new Date();
+            end.setYear(parseInt(this.state.end));
+            q.setStartDate(start);
+            q.setEndDate(end);
+        }
+    });
+});
+
+define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data", "lodash", "components/dimension", "components/time"], function (require, React, structure, data, _, Dimension, Time) {
     return React.createClass({
         getInitialState: function () {
             return {
@@ -48218,13 +48316,13 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
             queryable.getRemoteRegistry().findDataStructure(dataflow.getStructure()).then(function (struct) {
                 var components = [];
                 var dims = struct.getDataStructureComponents().getDimensionList().getDimensions();
-                for(var i=0;i<dims.length;i++) {
+                for (var i = 0; i < dims.length; i++) {
                     components.push(dims[i]);
                 }
-                if( struct.getDataStructureComponents().getDimensionList().getMeasureDimension()!=null) {
+                if (struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
                     components.push(struct.getDataStructureComponents().getDimensionList().getMeasureDimension());
                 }
-                
+
                 this.setState({
                     structure: struct,
                     components: components
@@ -48244,22 +48342,24 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
             if (dims == null) {
                 dims = [];
             }
+            var elements = dims.map(function (result) {
+                return React.createElement(
+                        Dimension,
+                        {ref: result.getId().toString(), key: result.getId().toString(), queryable: this.state.queryable, conceptRef: result.getId().toString(), dataflow: this.state.dataflow, structure: this.state.structure},"");
+            }.bind(this));
+            elements.push(React.createElement(Time, {ref: "time", addTime: this.addTime}, ""));
+            elements.push(React.createElement("button", {onClick: this.query}, "Query"));
             return React.createElement(
                     "div",
-                    null,
-                    dims.map(function (result) {
-                        return React.createElement(
-                                Dimension,
-                                {ref: result.getId().toString(), key: result.getId().toString(), queryable: this.state.queryable, conceptRef: result.getId().toString(), dataflow: this.state.dataflow, structure: this.state.structure}
-                        );
-                    }.bind(this)
-                            ), React.createElement("button", {onClick: this.query}, "Query"));
+                    {},
+                    elements);
         },
         query: function () {
             this.props.onQuery(null); // clear data table
-            
             var query = new data.Query(this.state.dataflow, this.state.queryable.getRemoteRegistry().getLocalRegistry());
+            this.refs.time.addTime(query);
             var keys = Object.keys(this.refs);
+            collections.arrays.remove(keys,"time");
             for (var i = 0; i < keys.length; i++) {
                 var dim = this.refs[keys[i]];
                 dim.putQueryParameters(query);
@@ -48267,7 +48367,7 @@ define("components/structure", ["require", "react", "sdmx/structure", "sdmx/data
             this.state.queryable.query(query).then(function (dm) {
                 this.props.onQuery(dm);
             }.bind(this));
-        }
+        },
     });
 });
 define("components/data", ["require", "react", "sdmx/structure", "sdmx/data", "lodash"], function (require, React, structure, data, _) {

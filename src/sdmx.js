@@ -34,8 +34,9 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "s
             SdmxIO.PARSER.push(p);
         };
         SdmxIO.listServices = function () {
-            //return ["NOMIS","ABS","OECD"];
-            return ["OECD"];
+            return ["NOMIS",
+                "OECD"];
+            //return ["OECD"];
         };
         SdmxIO.connect = function (s) {
             if (s == "ABS")

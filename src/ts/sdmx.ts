@@ -57,8 +57,9 @@ export class SdmxIO {
 
     }
     public static listServices():Array<string> {
-        //return ["NOMIS","ABS","OECD"];
-        return ["OECD"];
+        return ["NOMIS",//"ABS",
+        "OECD"];
+        //return ["OECD"];
     }
     public static connect(s: string): interfaces.Queryable {
         if (s == "ABS") return new abs.ABS("ABS","http://stat.abs.gov.au/restsdmx/sdmx.ashx/","");
