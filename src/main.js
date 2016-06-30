@@ -10,8 +10,8 @@ require.config({
         }
     }
 });
-require(["PromiseSeries","sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/SimpleSdmxQuery","collections","moment",],
-        function (PromiseSeries,sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, SimpleSdmxQuery,collections,moment) {
+require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/SimpleSdmxQuery","collections","moment",],
+        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, SimpleSdmxQuery,collections,moment) {
             var q = React.createElement(SimpleSdmxQuery)
             ReactDOM.render(q, document.getElementById('container'));
             
