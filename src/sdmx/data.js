@@ -810,8 +810,17 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                 return null;
             }
             var dim = struct.findComponentString(column);
-            if (dim == null || "type" == column) {
+            // Cross Sectional Measures somtimes come in a a 'type' column..
+            // see SDMX 2.0 example cross sectional file
+            if ("type" == column) {
                 dim = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+            }
+            if (dim == null) {
+                var itm = new structure.CodeType();
+                var name = new common.Name(sdmx.SdmxIO.getLocale(), value);
+                var names = [name];
+                itm.setNames(names);
+                return itm;
             }
             var conceptRef = dim.getConceptIdentity();
             var rep = null;

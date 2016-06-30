@@ -876,8 +876,17 @@ export class ValueTypeResolver {
             return null;
         }
         var dim: structure.Component = struct.findComponentString(column);
-        if (dim == null || "type" == column) {
+        // Cross Sectional Measures somtimes come in a a 'type' column..
+        // see SDMX 2.0 example cross sectional file
+        if ("type" == column) {
             dim = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+        }
+        if (dim == null) {
+            var itm: structure.CodeType = new structure.CodeType();
+            var name: common.Name = new common.Name(sdmx.SdmxIO.getLocale(), value);
+            var names: Array<common.Name> = [name];
+            itm.setNames(names);
+            return itm;
         }
         var conceptRef = dim.getConceptIdentity();
         var rep: structure.RepresentationType = null;
