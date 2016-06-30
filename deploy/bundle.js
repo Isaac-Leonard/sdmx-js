@@ -7140,7 +7140,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         function Sdmx20StructureParser() {
         }
         Sdmx20StructureParser.prototype.getVersionIdentifier = function () {
-            return 2.1;
+            return 2.0;
         };
         Sdmx20StructureParser.prototype.canParse = function (input) {
             if (input == null)
@@ -8095,6 +8095,973 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
 
 //# sourceMappingURL=sdmx20.js.map
 ;
+define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data"], function (require, exports, commonreferences, structure, message, registry, xml, common, data) {
+    function parseXml(s) {
+        var parseXml;
+        parseXml = new DOMParser();
+        var xmlDoc = parseXml.parseFromString(s, "text/xml");
+        return xmlDoc;
+    }
+    exports.parseXml = parseXml;
+    var Sdmx21StructureParser = (function () {
+        function Sdmx21StructureParser() {
+        }
+        Sdmx21StructureParser.prototype.getVersionIdentifier = function () {
+            return 2.1;
+        };
+        Sdmx21StructureParser.prototype.canParse = function (input) {
+            if (input == null)
+                return false;
+            if (this.isStructure(input))
+                return true;
+            if (this.isData(input))
+                return true;
+        };
+        Sdmx21StructureParser.prototype.isStructure = function (input) {
+            if (input.indexOf("Structure") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
+                return true;
+            }
+            else
+                return false;
+        };
+        Sdmx21StructureParser.prototype.isData = function (input) {
+            if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
+                return true;
+            }
+            else
+                return false;
+        };
+        Sdmx21StructureParser.prototype.isMetadata = function (header) {
+            return false;
+        };
+        Sdmx21StructureParser.prototype.parseStructureWithRegistry = function (input, reg) {
+            var srt = new Sdmx21StructureReaderTools(input, reg);
+            return srt.getStructureType();
+        };
+        Sdmx21StructureParser.prototype.parseStructure = function (input) {
+            var srt = new Sdmx21StructureReaderTools(input, null);
+            return srt.getStructureType();
+        };
+        Sdmx21StructureParser.prototype.parseData = function (input) {
+            var parser = new Sdmx21DataReaderTools(input);
+            return parser.getDataMessage();
+        };
+        return Sdmx21StructureParser;
+    })();
+    exports.Sdmx21StructureParser = Sdmx21StructureParser;
+    var Sdmx21DataReaderTools = (function () {
+        function Sdmx21DataReaderTools(s) {
+            this.msg = null;
+            this.dw = new data.FlatDataSetWriter();
+            //console.log("sdmx20 parsing data");
+            var dom = parseXml(s);
+            //console.log("sdmx20 creating DataMessage");
+            this.msg = this.toDataMessage(dom.documentElement);
+        }
+        Sdmx21DataReaderTools.prototype.getDataMessage = function () { return this.msg; };
+        Sdmx21DataReaderTools.prototype.toDataMessage = function (dm) {
+            var msg = new message.DataMessage();
+            var childNodes = dm.childNodes;
+            msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+            var dss = this.toDataSets(this.searchNodeName("DataSet", childNodes));
+            for (var i = 0; i < dss.length; i++) {
+                msg.addDataSet(dss[i]);
+            }
+            return msg;
+        };
+        Sdmx21DataReaderTools.prototype.toDataSets = function (dm) {
+            var dss = [];
+            for (var i = 0; i < dm.length; i++) {
+                dss.push(this.toDataSet(dm[i].childNodes));
+            }
+            return dss;
+        };
+        Sdmx21DataReaderTools.prototype.toDataSet = function (ds) {
+            this.dw.newDataSet();
+            var series = this.searchNodeName("Series", ds);
+            if (series.length == 0) {
+                var obsArray = this.searchNodeName("Obs", ds);
+                for (var i = 0; i < obsArray.length; i++) {
+                    this.dw.newObservation();
+                    var atts = obsArray[i].attributes;
+                }
+            }
+            else {
+                for (var i = 0; i < series.length; i++) {
+                    this.dw.newSeries();
+                    var satts = series[i].attributes;
+                    for (var av = 0; av < satts.length; av++) {
+                        this.dw.writeSeriesComponent(satts[av].nodeName, satts[av].value);
+                    }
+                    var obsArray = this.searchNodeName("Obs", series[i].childNodes);
+                    for (var j = 0; j < obsArray.length; j++) {
+                        this.dw.newObservation();
+                        var atts = obsArray[j].attributes;
+                        for (var av = 0; av < atts.length; av++) {
+                            this.dw.writeObservationComponent(atts[av].nodeName, atts[av].value);
+                        }
+                        this.dw.finishObservation();
+                    }
+                    this.dw.finishSeries();
+                }
+            }
+            return this.dw.finishDataSet();
+        };
+        Sdmx21DataReaderTools.prototype.toHeader = function (headerNode) {
+            var header = new message.Header();
+            header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+            var test = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+            header.setTest(test == "true");
+            // truncated not in sdmx 2.1
+            //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+            //header.setTruncated(truncated=="true");
+            var prepared = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
+            var prepDate = xml.DateTime.fromString(prepared);
+            header.setPrepared(new message.HeaderTimeType(prepDate));
+            header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+            return header;
+        };
+        Sdmx21DataReaderTools.prototype.toSender = function (senderNode) {
+            var sender = senderNode.childNodes[0].nodeValue;
+            var senderType = new message.Sender();
+            var senderId = senderNode.getAttribute("id");
+            var senderID = new commonreferences.ID(senderId);
+            senderType.setId(senderID);
+            return senderType;
+        };
+        Sdmx21DataReaderTools.prototype.toNames = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Name", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toName(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx21DataReaderTools.prototype.toName = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var name = new common.Name(lang, text);
+            return name;
+        };
+        Sdmx21DataReaderTools.prototype.toDescriptions = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Description", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toDescription(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx21DataReaderTools.prototype.toDescription = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var desc = new common.Description(lang, text);
+            return desc;
+        };
+        Sdmx21DataReaderTools.prototype.toTextType = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var textType = new common.TextType(lang, text);
+            return textType;
+        };
+        Sdmx21DataReaderTools.prototype.toPartyType = function (node) {
+            var pt = new message.PartyType();
+            return pt;
+        };
+        Sdmx21DataReaderTools.prototype.findNodeName = function (s, childNodes) {
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    return childNodes[i];
+                }
+            }
+            return null;
+        };
+        Sdmx21DataReaderTools.prototype.searchNodeName = function (s, childNodes) {
+            var result = [];
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    result.push(childNodes[i]);
+                }
+            }
+            if (result.length == 0) {
+            }
+            return result;
+        };
+        Sdmx21DataReaderTools.prototype.findTextNode = function (node) {
+            if (node == null)
+                return "";
+            var childNodes = node.childNodes;
+            for (var i = 0; i < childNodes.length; i++) {
+                var nodeType = childNodes[i].nodeType;
+                if (nodeType == 3) {
+                    return childNodes[i].nodeValue;
+                }
+            }
+            return "";
+        };
+        Sdmx21DataReaderTools.prototype.recurseDomChildren = function (start, output) {
+            var nodes;
+            if (start.childNodes) {
+                nodes = start.childNodes;
+                this.loopNodeChildren(nodes, output);
+            }
+        };
+        Sdmx21DataReaderTools.prototype.loopNodeChildren = function (nodes, output) {
+            var node;
+            for (var i = 0; i < nodes.length; i++) {
+                node = nodes[i];
+                if (output) {
+                    this.outputNode(node);
+                }
+                if (node.childNodes) {
+                    this.recurseDomChildren(node, output);
+                }
+            }
+        };
+        Sdmx21DataReaderTools.prototype.outputNode = function (node) {
+            var whitespace = /^\s+$/g;
+            if (node.nodeType === 1) {
+                console.log("element: " + node.tagName);
+            }
+            else if (node.nodeType === 3) {
+                //clear whitespace text nodes
+                node.data = node.data.replace(whitespace, "");
+                if (node.data) {
+                    console.log("text: " + node.data);
+                }
+            }
+        };
+        return Sdmx21DataReaderTools;
+    })();
+    exports.Sdmx21DataReaderTools = Sdmx21DataReaderTools;
+    var Sdmx21StructureReaderTools = (function () {
+        function Sdmx21StructureReaderTools(s, reg) {
+            this.registry = null;
+            this.struct = null;
+            this.currentKeyFamilyAgency = null;
+            this.registry = reg;
+            var dom = parseXml(s);
+            this.struct = this.toStructureType(dom.documentElement);
+        }
+        Sdmx21StructureReaderTools.prototype.toStructureType = function (structureNode) {
+            this.struct = new message.StructureType();
+            var structures = new structure.Structures();
+            this.struct.setStructures(structures);
+            if (this.registry == null) {
+                this.registry = this.struct;
+            }
+            else {
+                this.registry = new registry.DoubleRegistry(this.registry, this.struct);
+            }
+            var childNodes = structureNode.childNodes;
+            this.struct.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+            structures.setCodeLists(this.toCodelists(this.findNodeName("CodeLists", childNodes)));
+            structures.setConcepts(this.toConcepts(this.findNodeName("Concepts", childNodes)));
+            structures.setDataStructures(this.toKeyFamilies(this.findNodeName("KeyFamilies", childNodes)));
+            structures.setDataflows(this.toDataflows(null));
+            return this.struct;
+        };
+        Sdmx21StructureReaderTools.prototype.toHeader = function (headerNode) {
+            var header = new message.Header();
+            header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+            var test = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+            header.setTest(test == "true");
+            // truncated not in sdmx 2.1
+            //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+            //header.setTruncated(truncated=="true");
+            var prepared = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
+            var prepDate = xml.DateTime.fromString(prepared);
+            header.setPrepared(new message.HeaderTimeType(prepDate));
+            header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+            return header;
+        };
+        Sdmx21StructureReaderTools.prototype.toSender = function (senderNode) {
+            var sender = senderNode.childNodes[0].nodeValue;
+            var senderType = new message.Sender();
+            var senderId = senderNode.getAttribute("id");
+            var senderID = new commonreferences.ID(senderId);
+            senderType.setId(senderID);
+            return senderType;
+        };
+        Sdmx21StructureReaderTools.prototype.toNames = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Name", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toName(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx21StructureReaderTools.prototype.toName = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var name = new common.Name(lang, text);
+            return name;
+        };
+        Sdmx21StructureReaderTools.prototype.toDescriptions = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Description", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toDescription(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx21StructureReaderTools.prototype.toDescription = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            if (node.childNodes.length == 0) {
+                // <structure:Description xml:lang="en" />
+                return new common.Description(lang, "");
+            }
+            var text = node.childNodes[0].nodeValue;
+            var desc = new common.Description(lang, text);
+            return desc;
+        };
+        Sdmx21StructureReaderTools.prototype.toTextType = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var textType = new common.TextType(lang, text);
+            return textType;
+        };
+        Sdmx21StructureReaderTools.prototype.toPartyType = function (node) {
+            var pt = new message.PartyType();
+            return pt;
+        };
+        Sdmx21StructureReaderTools.prototype.toDataflows = function (dataflowsNode) {
+            var dl = new structure.DataflowList();
+            return dl;
+        };
+        Sdmx21StructureReaderTools.prototype.toDataflow = function (dataflowNode) {
+            var df = new structure.Dataflow();
+            df.setNames(this.toNames(dataflowNode));
+            df.setId(this.toID(dataflowNode));
+            df.setAgencyId(this.toNestedNCNameID(dataflowNode));
+            df.setVersion(this.toVersion(dataflowNode));
+            return df;
+        };
+        Sdmx21StructureReaderTools.prototype.toCodelists = function (codelistsNode) {
+            if (codelistsNode == null)
+                return null;
+            var codelists = new structure.CodeLists();
+            var codes = this.searchNodeName("CodeList", codelistsNode.childNodes);
+            for (var i = 0; i < codes.length; i++) {
+                codelists.getCodelists().push(this.toCodelist(codes[i]));
+            }
+            return codelists;
+        };
+        Sdmx21StructureReaderTools.prototype.toID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.ID(node.getAttribute("id"));
+        };
+        Sdmx21StructureReaderTools.prototype.toNestedNCNameID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.NestedNCNameID(node.getAttribute("agencyID"));
+        };
+        Sdmx21StructureReaderTools.prototype.toVersion = function (node) {
+            if (node == null)
+                return null;
+            if (node.getAttribute("version") == "" || node.getAttribute("version") == null) {
+                return commonreferences.Version.ONE;
+            }
+            return new commonreferences.Version(node.getAttribute("version"));
+        };
+        Sdmx21StructureReaderTools.prototype.toCodelist = function (codelistNode) {
+            var cl = new structure.Codelist();
+            cl.setNames(this.toNames(codelistNode));
+            cl.setId(this.toID(codelistNode));
+            cl.setAgencyId(this.toNestedNCNameID(codelistNode));
+            cl.setVersion(this.toVersion(codelistNode));
+            var codeNodes = this.searchNodeName("Code", codelistNode.childNodes);
+            for (var i = 0; i < codeNodes.length; i++) {
+                cl.getItems().push(this.toCode(codeNodes[i]));
+            }
+            return cl;
+        };
+        Sdmx21StructureReaderTools.prototype.toCode = function (codeNode) {
+            var c = new structure.CodeType();
+            c.setDescriptions(this.toDescriptions(codeNode));
+            c.setId(this.toValue(codeNode));
+            if (codeNode.getAttribute("parentCode") != null) {
+                var ref = new commonreferences.Ref();
+                ref.setMaintainableParentId(new commonreferences.ID(codeNode.getAttribute("parentCode")));
+                var reference = new commonreferences.Reference(ref, null);
+                c.setParent(reference);
+            }
+            return c;
+        };
+        Sdmx21StructureReaderTools.prototype.getParentCode = function (codeNode) {
+            var id = codeNode.getAttribute("parentCode");
+            if (id == null) {
+                return null;
+            }
+            else {
+                return new commonreferences.ID(id);
+            }
+        };
+        Sdmx21StructureReaderTools.prototype.toValue = function (codeNode) {
+            if (codeNode == null)
+                return null;
+            var id = codeNode.getAttribute("value");
+            return new commonreferences.ID(id);
+        };
+        Sdmx21StructureReaderTools.prototype.toConcepts = function (conceptsNode) {
+            if (conceptsNode == null)
+                return null;
+            var concepts = new structure.Concepts();
+            this.struct.getStructures().setConcepts(concepts);
+            var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
+            for (var i = 0; i < conNodes.length; i++) {
+                var conceptScheme = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
+                this.toConcept(conceptScheme, conNodes[i]);
+            }
+            return concepts;
+        };
+        Sdmx21StructureReaderTools.prototype.findStandaloneConceptScheme = function (ag) {
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(ag);
+            ref.setMaintainableParentId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+            ref.setVersion(null);
+            var reference = new commonreferences.Reference(ref, null);
+            var cs = this.struct.findConceptScheme(reference);
+            if (cs == null) {
+                cs = new structure.ConceptSchemeType();
+                cs.setAgencyId(ag);
+                cs.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+                cs.setVersion(commonreferences.Version.ONE);
+                var name = new common.Name("en", "Standalone Concept Scheme");
+                cs.setNames([name]);
+                this.struct.getStructures().getConcepts().getConceptSchemes().push(cs);
+            }
+            return cs;
+        };
+        Sdmx21StructureReaderTools.prototype.toConceptScheme = function (conceptSchemeNode) {
+            if (conceptSchemeNode == null)
+                return null;
+            var cs = new structure.ConceptSchemeType();
+            cs.setNames(this.toNames(conceptSchemeNode));
+            cs.setAgencyId(this.toNestedNCNameID(conceptSchemeNode));
+            cs.setVersion(this.toVersion(conceptSchemeNode));
+            return cs;
+        };
+        Sdmx21StructureReaderTools.prototype.toConcept = function (conceptScheme, conceptNode) {
+            if (conceptNode == null) {
+                return null;
+            }
+            var con = new structure.ConceptType();
+            con.setNames(this.toNames(conceptNode));
+            con.setDescriptions(this.toDescriptions(conceptNode));
+            con.setId(this.toID(conceptNode));
+            conceptScheme.getItems().push(con);
+        };
+        Sdmx21StructureReaderTools.prototype.toKeyFamilies = function (keyFamiliesNode) {
+            if (keyFamiliesNode == null)
+                return null;
+            var dst = new structure.DataStructures();
+            var kfNodes = this.searchNodeName("KeyFamily", keyFamiliesNode.childNodes);
+            for (var i = 0; i < kfNodes.length; i++) {
+                dst.getDataStructures().push(this.toDataStructure(kfNodes[i]));
+            }
+            return dst;
+        };
+        Sdmx21StructureReaderTools.prototype.toDataStructure = function (keyFamilyNode) {
+            var dst = new structure.DataStructure();
+            dst.setNames(this.toNames(keyFamilyNode));
+            dst.setId(this.toID(keyFamilyNode));
+            this.currentKeyFamilyAgency = keyFamilyNode.getAttribute("agencyID");
+            dst.setAgencyId(this.toNestedNCNameID(keyFamilyNode));
+            dst.setVersion(this.toVersion(keyFamilyNode));
+            dst.setDataStructureComponents(this.toDataStructureComponents(this.findNodeName("Components", keyFamilyNode.childNodes)));
+            //this.recurseDomChildren(keyFamilyNode, true);
+            return dst;
+        };
+        Sdmx21StructureReaderTools.prototype.toDataStructureComponents = function (dsc) {
+            if (dsc == null)
+                return null;
+            var components = new structure.DataStructureComponents();
+            var dimensions = this.searchNodeName("Dimension", dsc.childNodes);
+            var timedimension = this.findNodeName("TimeDimension", dsc.childNodes);
+            // TimeDimension gets stuck in dimensions sometimes :)
+            collections.arrays.remove(dimensions, timedimension);
+            var primaryMeasure = this.findNodeName("PrimaryMeasure", dsc.childNodes);
+            var attributes = this.searchNodeName("Attribute", dsc.childNodes);
+            components.setDimensionList(this.toDimensionList(dimensions));
+            if (timedimension != null) {
+                this.toTimeDimension(components, timedimension);
+            }
+            this.toPrimaryMeasure(components, primaryMeasure);
+            components.setAttributeList(this.toAttributeList(attributes));
+            /*
+            for (var i: number = 0; i < dimensions.length; i++) {
+                this.recurseDomChildren(dimensions[i].childNodes, true);
+            }
+            this.recurseDomChildren(timedimension.childNodes, true);
+            this.recurseDomChildren(primaryMeasure.childNodes, true);
+            for (var i: number = 0; i < attributes.length; i++) {
+                this.recurseDomChildren(attributes[i].childNodes, true);
+            }
+            */
+            return components;
+        };
+        Sdmx21StructureReaderTools.prototype.toDimensionList = function (dims) {
+            var dimList = new structure.DimensionList();
+            var dimArray = [];
+            for (var i = 0; i < dims.length; i++) {
+                if (dims[i].getAttribute("isMeasureDimension") == "true") {
+                    dimList.setMeasureDimension(this.toMeasureDimension(dims[i]));
+                }
+                else {
+                    // Sometimes Time Dimension seems to get mistakenly sucked
+                    // into this list too :(
+                    if (dims[i].nodeName != "structure:TimeDimension") {
+                        dimArray.push(this.toDimension(dims[i]));
+                    }
+                }
+            }
+            dimList.setDimensions(dimArray);
+            return dimList;
+        };
+        Sdmx21StructureReaderTools.prototype.toAttributeList = function (dims) {
+            var dimList = new structure.AttributeList();
+            var dimArray = [];
+            for (var i = 0; i < dims.length; i++) {
+                dimArray.push(this.toAttribute(dims[i]));
+            }
+            dimList.setAttributes(dimArray);
+            return dimList;
+        };
+        Sdmx21StructureReaderTools.prototype.toTimeDimension = function (comps, dim) {
+            var dim2 = new structure.TimeDimension();
+            var cs = this.getConceptScheme(dim);
+            var cl = this.getCodelist(dim);
+            var con = this.getConcept(cs, dim);
+            if (con != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(cs.getAgencyId());
+                ref.setMaintainableParentId(cs.getId());
+                ref.setVersion(cs.getVersion());
+                ref.setId(con.getId());
+                var reference = new commonreferences.Reference(ref, null);
+                dim2.setConceptIdentity(reference);
+            }
+            if (cl != null) {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
+            }
+            else {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
+            }
+            comps.getDimensionList().setTimeDimension(dim2);
+        };
+        Sdmx21StructureReaderTools.prototype.toPrimaryMeasure = function (comps, dim) {
+            var dim2 = new structure.PrimaryMeasure();
+            var cs = this.getConceptScheme(dim);
+            var cl = this.getCodelist(dim);
+            var con = this.getConcept(cs, dim);
+            if (con != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(cs.getAgencyId());
+                ref.setMaintainableParentId(cs.getId());
+                ref.setVersion(cs.getVersion());
+                ref.setId(con.getId());
+                var reference = new commonreferences.Reference(ref, null);
+                dim2.setConceptIdentity(reference);
+            }
+            if (cl != null) {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
+            }
+            else {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
+            }
+            comps.getMeasureList().setPrimaryMeasure(dim2);
+        };
+        Sdmx21StructureReaderTools.prototype.toDimension = function (dim) {
+            var dim2 = new structure.Dimension();
+            var cs = this.getConceptScheme(dim);
+            var cl = this.getCodelist(dim);
+            var con = this.getConcept(cs, dim);
+            if (con != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(cs.getAgencyId());
+                ref.setMaintainableParentId(cs.getId());
+                ref.setVersion(cs.getVersion());
+                ref.setId(con.getId());
+                var reference = new commonreferences.Reference(ref, null);
+                dim2.setConceptIdentity(reference);
+            }
+            if (cl != null) {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
+            }
+            else {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
+            }
+            return dim2;
+        };
+        Sdmx21StructureReaderTools.prototype.toAttribute = function (dim) {
+            var dim2 = new structure.Attribute();
+            var cs = this.getConceptScheme(dim);
+            var cl = this.getCodelist(dim);
+            var con = this.getConcept(cs, dim);
+            if (con != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(cs.getAgencyId());
+                ref.setMaintainableParentId(cs.getId());
+                ref.setVersion(cs.getVersion());
+                ref.setId(con.getId());
+                var reference = new commonreferences.Reference(ref, null);
+                dim2.setConceptIdentity(reference);
+            }
+            if (cl != null) {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(cl, ttf));
+            }
+            else {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
+            }
+            return dim2;
+        };
+        Sdmx21StructureReaderTools.prototype.toTextFormatType = function (tft) {
+            if (tft == null) {
+                return null;
+            }
+            var tft2 = new structure.TextFormatType();
+            if (tft.getAttribute("decimals") != null) {
+                tft2.setDecimals(parseInt(tft.getAttribute("decimals")));
+            }
+            if (tft.getAttribute("endValue") != null) {
+                tft2.setEndValue(parseInt(tft.getAttribute("endValue")));
+            }
+            if (tft.getAttribute("isSequence") != null) {
+                tft2.setIsSequence(tft.getAttribute("isSequence") == "true");
+                if (tft.getAttribute("interval") != null) {
+                    tft2.setInterval(parseInt(tft.getAttribute("interval")));
+                }
+            }
+            if (tft.getAttribute("maxLength") != null) {
+                tft2.setMaxLength(parseInt(tft.getAttribute("maxLength")));
+            }
+            if (tft.getAttribute("pattern") != null) {
+                tft2.setPattern(tft.getAttribute("pattern"));
+            }
+            if (tft.getAttribute("startValue")) {
+                tft2.setStartValue(parseInt(tft.getAttribute("startValue")));
+            }
+            if (tft.getAttribute("textType") != null) {
+                tft2.setTextType(common.DataType.fromStringWithException(tft.getAttribute("textType")));
+            }
+            if (tft.getAttribute("timeInterval") != null) {
+                // DO ME!!!!
+                tft2.setTimeInterval(null);
+            }
+            return tft2;
+        };
+        Sdmx21StructureReaderTools.prototype.toLocalRepresentation = function (codelist, ttf) {
+            var lr2 = new structure.RepresentationType();
+            lr2.setTextFormat(ttf);
+            if (codelist != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(codelist.getAgencyId());
+                ref.setMaintainableParentId(codelist.getId());
+                ref.setVersion(codelist.getVersion());
+                var reference = new commonreferences.Reference(ref, null);
+                reference.setPack(commonreferences.PackageTypeCodelistType.CODELIST);
+                reference.setRefClass(commonreferences.ObjectTypeCodelistType.CODELIST);
+                lr2.setEnumeration(reference);
+            }
+            return lr2;
+        };
+        Sdmx21StructureReaderTools.prototype.toLocalRepresentationConceptScheme = function (conceptScheme, ttf) {
+            var lr2 = new structure.RepresentationType();
+            lr2.setTextFormat(ttf);
+            if (conceptScheme != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(conceptScheme.getAgencyId());
+                ref.setMaintainableParentId(conceptScheme.getId());
+                ref.setVersion(conceptScheme.getVersion());
+                var reference = new commonreferences.Reference(ref, null);
+                reference.setPack(commonreferences.PackageTypeCodelistType.CONCEPTSCHEME);
+                reference.setRefClass(commonreferences.ObjectTypeCodelistType.CONCEPTSCHEME);
+                lr2.setEnumeration(reference);
+            }
+            return lr2;
+        };
+        Sdmx21StructureReaderTools.prototype.getCodelist = function (dim) {
+            if (dim.getAttribute("codelist") == null) {
+                return null;
+            }
+            var code = null;
+            if (dim.getAttribute("codelistAgency") == null && dim.getAttribute("codelistVersion") == null) {
+                // All we have is a codelist name
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency));
+                ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
+                ref.setVersion(null);
+                var reference = new commonreferences.Reference(ref, null);
+                code = this.registry.findCodelist(reference);
+            }
+            else if (dim.getAttribute("codelistAgency") != null && dim.getAttribute("codelistVersion") != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(new commonreferences.NestedNCNameID(dim.getAttribute("codelistAgency")));
+                ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
+                ref.setVersion(new commonreferences.Version(dim.getAttribute("codelistVersion")));
+                var reference = new commonreferences.Reference(ref, null);
+                code = this.registry.findCodelist(reference);
+            }
+            else if (dim.getAttribute("codelistAgency") != null && dim.getAttribute("codelistVersion") == null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(new commonreferences.NestedNCNameID(dim.getAttribute("codelistAgency")));
+                ref.setMaintainableParentId(new commonreferences.ID(dim.getAttribute("codelist")));
+                ref.setVersion(null);
+                var reference = new commonreferences.Reference(ref, null);
+                code = this.registry.findCodelist(reference);
+            }
+            return code;
+        };
+        Sdmx21StructureReaderTools.prototype.getConceptScheme = function (dim) {
+            if ((dim.getAttribute("conceptSchemeAgency") != null || dim.getAttribute("conceptAgency") != null) && dim.getAttribute("conceptSchemeRef") != null && dim.getAttribute("conceptRef") != null) {
+                var csa = new commonreferences.NestedNCNameID(dim.getAttribute("conceptSchemeAgency") == null ? dim.getAttribute("conceptAgency") : dim.getAttribute("conceptSchemeAgency"));
+                var csi = new commonreferences.ID(dim.getAttribute("conceptSchemeRef"));
+                var vers = dim.getAttribute("conceptVersion") == null ? null : new commonreferences.Version(dim.getAttribute("conceptVersion"));
+                var csref = new commonreferences.Ref();
+                csref.setAgencyId(csa);
+                csref.setMaintainableParentId(csi);
+                csref.setVersion(vers);
+                var reference = new commonreferences.Reference(csref, null);
+                var cst = null;
+                cst = this.struct.findConceptScheme(reference);
+                if (cst != null)
+                    return cst;
+                cst = this.registry.findConceptScheme(reference);
+                if (cst != null)
+                    return cst;
+            }
+            else if (dim.getAttribute("conceptSchemeRef") != null && dim.getAttribute("conceptRef") != null) {
+                var csa = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
+                var csi = new commonreferences.ID(dim.getAttribute("conceptSchemeRef"));
+                var vers = dim.getAttribute("conceptVersion") == null ? null : new commonreferences.Version(dim.getAttribute("conceptVersion"));
+                var csref = new commonreferences.Ref();
+                csref.setAgencyId(csa);
+                csref.setMaintainableParentId(csi);
+                csref.setVersion(vers);
+                var reference = new commonreferences.Reference(csref, null);
+                var cst = null;
+                cst = this.struct.findConceptScheme(reference);
+                if (cst != null)
+                    return cst;
+                cst = this.registry.findConceptScheme(reference);
+                if (cst != null)
+                    return cst;
+            }
+            else if (dim.getAttribute("conceptRef") != null && dim.getAttribute("conceptAgency") == null) {
+                var csa = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
+                var csi = new commonreferences.ID("STANDALONE_CONCEPT_SCHEME");
+                var vers = dim.getAttribute("conceptVersion") == null ? null : new commonreferences.Version(dim.getAttribute("conceptVersion"));
+                var csref = new commonreferences.Ref();
+                csref.setAgencyId(csa);
+                csref.setMaintainableParentId(csi);
+                csref.setVersion(vers);
+                var reference = new commonreferences.Reference(csref, null);
+                var cst = null;
+                cst = this.struct.findConceptScheme(reference);
+                if (cst != null)
+                    return cst;
+                cst = this.registry.findConceptScheme(reference);
+                if (cst != null)
+                    return cst;
+                var ct = cst != null ? cst.findItemString(dim.getAttribute("conceptRef")) : null;
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency));
+                ref.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
+                var ref2 = new commonreferences.Reference(ref, null);
+                var cst = null;
+                cst = this.struct.findConceptScheme(ref2);
+                if (cst != null)
+                    return cst;
+                cst = this.registry.findConceptScheme(ref2);
+                if (cst != null)
+                    return cst;
+                return cst;
+            }
+            else if (dim.getAttribute("conceptRef")() != null && dim.getAttribute("conceptAgency") != null) {
+                var csa = new commonreferences.NestedNCNameID(dim.getAttribute("conceptAgency"));
+                var csi = new commonreferences.ID("STANDALONE_CONCEPT_SCHEME");
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(csa);
+                ref.setId(csi);
+                ref.setVersion(commonreferences.Version.ONE);
+                var ref2 = new commonreferences.Reference(ref, null);
+                var cst = null;
+                cst = this.struct.findConceptScheme(ref2);
+                if (cst != null)
+                    return cst;
+                cst = this.registry.findConceptScheme(ref2);
+                if (cst != null)
+                    return cst;
+            }
+            return null;
+        };
+        Sdmx21StructureReaderTools.prototype.getConcept = function (cs, dim) {
+            if (cs != null) {
+                var concept = cs.findItemString(dim.getAttribute("conceptRef"));
+                return concept;
+            }
+            else
+                return null;
+        };
+        Sdmx21StructureReaderTools.prototype.findConcept = function (conceptRef) {
+            var csa = new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency);
+            var csi = new commonreferences.ID(conceptRef);
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(csa);
+            ref.setId(csi);
+            var reference = new commonreferences.Reference(ref, null);
+            var ct = this.registry.findConcept(reference);
+            if (ct == null) {
+                var ref2 = new commonreferences.Ref();
+                ref2.setId(csi);
+                var reference2 = new commonreferences.Reference(ref2, null);
+                return this.registry.findConcept(reference2);
+            }
+            return ct;
+        };
+        Sdmx21StructureReaderTools.prototype.toMeasureDimension = function (dim) {
+            var dim2 = new structure.MeasureDimension();
+            var cs = this.getConceptScheme(dim);
+            var cl = this.getCodelist(dim);
+            var con = this.getConcept(cs, dim);
+            if (con != null) {
+                var ref = new commonreferences.Ref();
+                ref.setAgencyId(cs.getAgencyId());
+                ref.setMaintainableParentId(cs.getId());
+                ref.setVersion(cs.getVersion());
+                ref.setId(con.getId());
+                var reference = new commonreferences.Reference(ref, null);
+                dim2.setConceptIdentity(reference);
+            }
+            // Sdmx 2.1 files have concept schemes
+            // for cross sectional measures...
+            var createdConceptScheme = new structure.ConceptSchemeType();
+            createdConceptScheme.setAgencyId(cl.getAgencyId());
+            createdConceptScheme.setId(cl.getId());
+            createdConceptScheme.setVersion(cl.getVersion());
+            createdConceptScheme.setNames(cl.getNames());
+            createdConceptScheme.setDescriptions(cl.getDescriptions());
+            for (var i = 0; i < cl.size(); i++) {
+                var code = cl.getItem(i);
+                var concept = new structure.ConceptType();
+                concept.setId(code.getId());
+                concept.setParent(code.getParent());
+                concept.setURN(code.getURN());
+                concept.setURI(code.getURI());
+                concept.setNames(code.getNames());
+                concept.setDescriptions(code.getDescriptions());
+                concept.setAnnotations(code.getAnnotations());
+                createdConceptScheme.addItem(concept);
+            }
+            if (this.struct.getStructures().getConcepts() == null) {
+                this.struct.getStructures().setConcepts(new structure.Concepts());
+            }
+            this.struct.getStructures().getConcepts().getConceptSchemes().push(createdConceptScheme);
+            if (cl != null) {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentationConceptScheme(cl, ttf));
+            }
+            else {
+                var ttf = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
+                dim2.setLocalRepresentation(this.toLocalRepresentation(null, ttf));
+            }
+            return dim2;
+        };
+        Sdmx21StructureReaderTools.prototype.getStructureType = function () {
+            return this.struct;
+        };
+        Sdmx21StructureReaderTools.prototype.findNodeName = function (s, childNodes) {
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    return childNodes[i];
+                }
+            }
+            //console.log("can't find node:"+s);
+            return null;
+        };
+        Sdmx21StructureReaderTools.prototype.searchNodeName = function (s, childNodes) {
+            var result = [];
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    result.push(childNodes[i]);
+                }
+            }
+            if (result.length == 0) {
+            }
+            return result;
+        };
+        Sdmx21StructureReaderTools.prototype.findTextNode = function (node) {
+            if (node == null)
+                return "";
+            var childNodes = node.childNodes;
+            for (var i = 0; i < childNodes.length; i++) {
+                var nodeType = childNodes[i].nodeType;
+                if (nodeType == 3) {
+                    return childNodes[i].nodeValue;
+                }
+            }
+            return "";
+        };
+        Sdmx21StructureReaderTools.prototype.recurseDomChildren = function (start, output) {
+            var nodes;
+            if (start.childNodes) {
+                nodes = start.childNodes;
+                this.loopNodeChildren(nodes, output);
+            }
+        };
+        Sdmx21StructureReaderTools.prototype.loopNodeChildren = function (nodes, output) {
+            var node;
+            for (var i = 0; i < nodes.length; i++) {
+                node = nodes[i];
+                if (output) {
+                    this.outputNode(node);
+                }
+                if (node.childNodes) {
+                    this.recurseDomChildren(node, output);
+                }
+            }
+        };
+        Sdmx21StructureReaderTools.prototype.outputNode = function (node) {
+            var whitespace = /^\s+$/g;
+            if (node.nodeType === 1) {
+                console.log("element: " + node.tagName);
+            }
+            else if (node.nodeType === 3) {
+                //clear whitespace text nodes
+                node.data = node.data.replace(whitespace, "");
+                if (node.data) {
+                    console.log("text: " + node.data);
+                }
+            }
+        };
+        return Sdmx21StructureReaderTools;
+    })();
+    exports.Sdmx21StructureReaderTools = Sdmx21StructureReaderTools;
+});
+
+//# sourceMappingURL=sdmx21.js.map
+;
 define('sdmx/abs',["require", "exports", "sdmx/registry", "sdmx"], function (require, exports, registry, sdmx) {
     var ABS = (function () {
         function ABS(agency, service, options) {
@@ -8442,7 +9409,7 @@ define('sdmx/oecd',["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"
                         resolve(this.dataflowList[i]);
                     }
                 }
-                reject();
+                reject(null);
             });
             return p;
         };
@@ -9235,6 +10202,26 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
                 this.options = options;
             }
         }
+        NOMISRESTServiceRegistry.prototype.throttle = function (fn, threshhold, scope) {
+            threshhold || (threshhold = 250);
+            var last, deferTimer;
+            return function () {
+                var context = scope || this;
+                var now = +new Date, args = arguments;
+                if (last && now < last + threshhold) {
+                    // hold on to it
+                    clearTimeout(deferTimer);
+                    deferTimer = setTimeout(function () {
+                        last = now;
+                        fn.apply(context, args);
+                    }, threshhold);
+                }
+                else {
+                    last = now;
+                    fn.apply(context, args);
+                }
+            };
+        };
         NOMISRESTServiceRegistry.prototype.getRemoteRegistry = function () {
             return this;
         };
@@ -9421,6 +10408,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             var opts = {};
             opts.url = urlString + s;
             opts.method = "GET";
+            opts.headers = { "Connection": "close" };
             return this.makeRequest(opts).then(function (a) {
                 return sdmx.SdmxIO.parseStructure(a);
             });
@@ -9436,6 +10424,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             var opts = {};
             opts.url = urlString + s;
             opts.method = "GET";
+            opts.headers = { "Connection": "close" };
             return this.makeRequest(opts).then(function (a) {
                 var dm = sdmx.SdmxIO.parseData(a);
                 var payload = new common.PayloadStructureType();
@@ -9456,6 +10445,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
+            opts.headers = { "Connection": "close" };
             return this.makeRequest2(opts).then(function (a) {
                 var pack = { string: a };
                 for (var i = 0; i < Object.keys(vals).length; i++) {
@@ -9472,10 +10462,10 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
         NOMISRESTServiceRegistry.prototype.findDataStructure = function (ref) {
             var dst = this.local.findDataStructure(ref);
             if (dst != null) {
-                var promise = new Promise(function (resolve, reject) {
+                var promise1 = new Promise(function (resolve, reject) {
                     resolve(dst);
                 }.bind(this));
-                return promise;
+                return promise1;
             }
             else {
                 var geogIndex = ref.getMaintainableParentId().toString().lastIndexOf("_");
@@ -9503,7 +10493,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
             else {
                 var dfs = [];
                 var th = this;
-                var promise = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml").then(function (st) {
+                var promise2 = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml").then(function (st) {
                     var packArray = [];
                     var list = st.getStructures().getDataStructures().getDataStructures();
                     for (var i = 0; i < list.length; i++) {
@@ -9516,66 +10506,65 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
                     }
                     return packArray;
                 });
-                return promise.then(function (pArray) {
-                    var promiseArray = [];
-                    return Promise.all(pArray.map(function (pack) {
-                        return th.retrieve2(pack.url, pack).then(function (pack) {
-                            var cubeId2 = pack.cubeId;
-                            var cubeName2 = pack.cubeName;
-                            var url2 = pack.url;
-                            var doc = pack.string;
-                            var parsedDataflows = [];
-                            try {
-                                var geogList = th.parseGeography(doc, cubeId2, cubeName2);
-                                for (var j = 0; j < geogList.length; j++) {
-                                    var dataFlow = new structure.Dataflow();
-                                    dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
-                                    dataFlow.setId(new commonreferences.ID(cubeId2 + "_" + geogList[j].getGeography()));
-                                    var name = new common.Name("en", cubeName2 + " " + geogList[j].getGeographyName());
-                                    var names = [];
-                                    names.push(name);
-                                    dataFlow.setNames(names);
-                                    var ref = new commonreferences.Ref();
-                                    ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
-                                    ref.setMaintainableParentId(dataFlow.getId());
-                                    ref.setVersion(commonreferences.Version.ONE);
-                                    var reference = new commonreferences.Reference(ref, null);
-                                    dataFlow.setStructure(reference);
-                                    parsedDataflows.push(dataFlow);
-                                }
-                                if (geogList.length == 0) {
-                                    var dataFlow = new structure.Dataflow();
-                                    dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
-                                    dataFlow.setId(new commonreferences.ID(cubeId2 + "_NOGEOG"));
-                                    var name = new common.Name("en", cubeName2);
-                                    var names = [];
-                                    names.push(name);
-                                    dataFlow.setNames(names);
-                                    var ref = new commonreferences.Ref();
-                                    ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
-                                    ref.setMaintainableParentId(dataFlow.getId());
-                                    ref.setVersion(commonreferences.Version.ONE);
-                                    var reference = new commonreferences.Reference(ref, null);
-                                    dataFlow.setStructure(reference);
-                                    parsedDataflows.push(dataFlow);
-                                }
+                return promise2.map(function (item, index, length) {
+                    var pack = item;
+                    return th.retrieve2(pack.url, pack).then(function (pack) {
+                        var cubeId2 = pack.cubeId;
+                        var cubeName2 = pack.cubeName;
+                        var url2 = pack.url;
+                        var doc = pack.string;
+                        var parsedDataflows = [];
+                        try {
+                            var geogList = th.parseGeography(doc, cubeId2, cubeName2);
+                            for (var j = 0; j < geogList.length; j++) {
+                                var dataFlow = new structure.Dataflow();
+                                dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
+                                dataFlow.setId(new commonreferences.ID(cubeId2 + "_" + geogList[j].getGeography()));
+                                var name = new common.Name("en", cubeName2 + " " + geogList[j].getGeographyName());
+                                var names = [];
+                                names.push(name);
+                                dataFlow.setNames(names);
+                                var ref = new commonreferences.Ref();
+                                ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
+                                ref.setMaintainableParentId(dataFlow.getId());
+                                ref.setVersion(commonreferences.Version.ONE);
+                                var reference = new commonreferences.Reference(ref, null);
+                                dataFlow.setStructure(reference);
+                                parsedDataflows.push(dataFlow);
                             }
-                            catch (error) {
-                                console.log("error!:" + error);
-                            }
-                            return parsedDataflows;
-                        });
-                    })).then(function (dfs2) {
-                        var dfs = [];
-                        for (var i = 0; i < dfs2.length; i++) {
-                            for (var j = 0; j < dfs2[i].length; j++) {
-                                dfs.push(dfs2[i][j]);
+                            if (geogList.length == 0) {
+                                var dataFlow = new structure.Dataflow();
+                                dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
+                                dataFlow.setId(new commonreferences.ID(cubeId2 + "_NOGEOG"));
+                                var name = new common.Name("en", cubeName2);
+                                var names = [];
+                                names.push(name);
+                                dataFlow.setNames(names);
+                                var ref = new commonreferences.Ref();
+                                ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
+                                ref.setMaintainableParentId(dataFlow.getId());
+                                ref.setVersion(commonreferences.Version.ONE);
+                                var reference = new commonreferences.Reference(ref, null);
+                                dataFlow.setStructure(reference);
+                                parsedDataflows.push(dataFlow);
                             }
                         }
-                        this.dataflowList = dfs;
-                        return dfs;
+                        catch (error) {
+                            console.log("error!:" + error);
+                        }
+                        return parsedDataflows;
                     });
-                });
+                }, { concurrency: 5 }).delay(1300).then(function (stuff) {
+                    // works with delay of 1000, put 1300 to be safe =D
+                    var dfs = [];
+                    for (var i = 0; i < stuff.length; i++) {
+                        for (var j = 0; j < stuff[i].length; j++) {
+                            dfs.push(stuff[i][j]);
+                        }
+                    }
+                    this.dataflowList = dfs;
+                    return dfs;
+                }.bind(this));
             }
         };
         NOMISRESTServiceRegistry.prototype.getServiceURL = function () {
@@ -9721,7 +10710,7 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
 
 //# sourceMappingURL=nomis.js.map
 ;
-define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "sdmx/nomis"], function (require, exports, sdmx20, abs, oecd, nomis) {
+define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/nomis"], function (require, exports, sdmx20, sdmx21, abs, oecd, nomis) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -9786,6 +10775,7 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "s
     })();
     exports.SdmxIO = SdmxIO;
     SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());
+    SdmxIO.registerParserProvider(new sdmx21.Sdmx21StructureParser());
 });
 
 //# sourceMappingURL=sdmx.js.map
@@ -48156,15 +49146,18 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
         },
         changeNumber: function (e) {
             var manyArrayString = [];
+            var manyArrayObject = [];
             if (e.target.value == "all") {
                 for (var i = 0; i < this.state.codelist.getItems().length; i++) {
                     var c = this.state.codelist.getItems()[i];
                     manyArrayString.push(structure.NameableType.toString(c));
+                    manyArrayObject.push(c);
                 }
             }
             this.setState({
                 number: e.target.value,
-                manyArrayString: manyArrayString
+                manyArrayString: manyArrayString,
+                manyArrayObject: manyArrayObject
             });
 
         },
@@ -51007,966 +52000,6 @@ var collections;
 ;
 define("collections", function(){});
 
-/*!
- * @overview es6-promise - a tiny implementation of Promises/A+.
- * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
- * @license   Licensed under MIT license
- *            See https://raw.githubusercontent.com/jakearchibald/es6-promise/master/LICENSE
- * @version   3.2.1
- */
-
-(function() {
-    
-    function lib$es6$promise$utils$$objectOrFunction(x) {
-      return typeof x === 'function' || (typeof x === 'object' && x !== null);
-    }
-
-    function lib$es6$promise$utils$$isFunction(x) {
-      return typeof x === 'function';
-    }
-
-    function lib$es6$promise$utils$$isMaybeThenable(x) {
-      return typeof x === 'object' && x !== null;
-    }
-
-    var lib$es6$promise$utils$$_isArray;
-    if (!Array.isArray) {
-      lib$es6$promise$utils$$_isArray = function (x) {
-        return Object.prototype.toString.call(x) === '[object Array]';
-      };
-    } else {
-      lib$es6$promise$utils$$_isArray = Array.isArray;
-    }
-
-    var lib$es6$promise$utils$$isArray = lib$es6$promise$utils$$_isArray;
-    var lib$es6$promise$asap$$len = 0;
-    var lib$es6$promise$asap$$vertxNext;
-    var lib$es6$promise$asap$$customSchedulerFn;
-
-    var lib$es6$promise$asap$$asap = function asap(callback, arg) {
-      lib$es6$promise$asap$$queue[lib$es6$promise$asap$$len] = callback;
-      lib$es6$promise$asap$$queue[lib$es6$promise$asap$$len + 1] = arg;
-      lib$es6$promise$asap$$len += 2;
-      if (lib$es6$promise$asap$$len === 2) {
-        // If len is 2, that means that we need to schedule an async flush.
-        // If additional callbacks are queued before the queue is flushed, they
-        // will be processed by this flush that we are scheduling.
-        if (lib$es6$promise$asap$$customSchedulerFn) {
-          lib$es6$promise$asap$$customSchedulerFn(lib$es6$promise$asap$$flush);
-        } else {
-          lib$es6$promise$asap$$scheduleFlush();
-        }
-      }
-    }
-
-    function lib$es6$promise$asap$$setScheduler(scheduleFn) {
-      lib$es6$promise$asap$$customSchedulerFn = scheduleFn;
-    }
-
-    function lib$es6$promise$asap$$setAsap(asapFn) {
-      lib$es6$promise$asap$$asap = asapFn;
-    }
-
-    var lib$es6$promise$asap$$browserWindow = (typeof window !== 'undefined') ? window : undefined;
-    var lib$es6$promise$asap$$browserGlobal = lib$es6$promise$asap$$browserWindow || {};
-    var lib$es6$promise$asap$$BrowserMutationObserver = lib$es6$promise$asap$$browserGlobal.MutationObserver || lib$es6$promise$asap$$browserGlobal.WebKitMutationObserver;
-    var lib$es6$promise$asap$$isNode = typeof self === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
-
-    // test for web worker but not in IE10
-    var lib$es6$promise$asap$$isWorker = typeof Uint8ClampedArray !== 'undefined' &&
-      typeof importScripts !== 'undefined' &&
-      typeof MessageChannel !== 'undefined';
-
-    // node
-    function lib$es6$promise$asap$$useNextTick() {
-      // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-      // see https://github.com/cujojs/when/issues/410 for details
-      return function() {
-        process.nextTick(lib$es6$promise$asap$$flush);
-      };
-    }
-
-    // vertx
-    function lib$es6$promise$asap$$useVertxTimer() {
-      return function() {
-        lib$es6$promise$asap$$vertxNext(lib$es6$promise$asap$$flush);
-      };
-    }
-
-    function lib$es6$promise$asap$$useMutationObserver() {
-      var iterations = 0;
-      var observer = new lib$es6$promise$asap$$BrowserMutationObserver(lib$es6$promise$asap$$flush);
-      var node = document.createTextNode('');
-      observer.observe(node, { characterData: true });
-
-      return function() {
-        node.data = (iterations = ++iterations % 2);
-      };
-    }
-
-    // web worker
-    function lib$es6$promise$asap$$useMessageChannel() {
-      var channel = new MessageChannel();
-      channel.port1.onmessage = lib$es6$promise$asap$$flush;
-      return function () {
-        channel.port2.postMessage(0);
-      };
-    }
-
-    function lib$es6$promise$asap$$useSetTimeout() {
-      return function() {
-        setTimeout(lib$es6$promise$asap$$flush, 1);
-      };
-    }
-
-    var lib$es6$promise$asap$$queue = new Array(1000);
-    function lib$es6$promise$asap$$flush() {
-      for (var i = 0; i < lib$es6$promise$asap$$len; i+=2) {
-        var callback = lib$es6$promise$asap$$queue[i];
-        var arg = lib$es6$promise$asap$$queue[i+1];
-
-        callback(arg);
-
-        lib$es6$promise$asap$$queue[i] = undefined;
-        lib$es6$promise$asap$$queue[i+1] = undefined;
-      }
-
-      lib$es6$promise$asap$$len = 0;
-    }
-
-    function lib$es6$promise$asap$$attemptVertx() {
-      try {
-        var r = require;
-        var vertx = r('vertx');
-        lib$es6$promise$asap$$vertxNext = vertx.runOnLoop || vertx.runOnContext;
-        return lib$es6$promise$asap$$useVertxTimer();
-      } catch(e) {
-        return lib$es6$promise$asap$$useSetTimeout();
-      }
-    }
-
-    var lib$es6$promise$asap$$scheduleFlush;
-    // Decide what async method to use to triggering processing of queued callbacks:
-    if (lib$es6$promise$asap$$isNode) {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useNextTick();
-    } else if (lib$es6$promise$asap$$BrowserMutationObserver) {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useMutationObserver();
-    } else if (lib$es6$promise$asap$$isWorker) {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useMessageChannel();
-    } else if (lib$es6$promise$asap$$browserWindow === undefined && typeof require === 'function') {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$attemptVertx();
-    } else {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useSetTimeout();
-    }
-    function lib$es6$promise$then$$then(onFulfillment, onRejection) {
-      var parent = this;
-
-      var child = new this.constructor(lib$es6$promise$$internal$$noop);
-
-      if (child[lib$es6$promise$$internal$$PROMISE_ID] === undefined) {
-        lib$es6$promise$$internal$$makePromise(child);
-      }
-
-      var state = parent._state;
-
-      if (state) {
-        var callback = arguments[state - 1];
-        lib$es6$promise$asap$$asap(function(){
-          lib$es6$promise$$internal$$invokeCallback(state, child, callback, parent._result);
-        });
-      } else {
-        lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection);
-      }
-
-      return child;
-    }
-    var lib$es6$promise$then$$default = lib$es6$promise$then$$then;
-    function lib$es6$promise$promise$resolve$$resolve(object) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (object && typeof object === 'object' && object.constructor === Constructor) {
-        return object;
-      }
-
-      var promise = new Constructor(lib$es6$promise$$internal$$noop);
-      lib$es6$promise$$internal$$resolve(promise, object);
-      return promise;
-    }
-    var lib$es6$promise$promise$resolve$$default = lib$es6$promise$promise$resolve$$resolve;
-    var lib$es6$promise$$internal$$PROMISE_ID = Math.random().toString(36).substring(16);
-
-    function lib$es6$promise$$internal$$noop() {}
-
-    var lib$es6$promise$$internal$$PENDING   = void 0;
-    var lib$es6$promise$$internal$$FULFILLED = 1;
-    var lib$es6$promise$$internal$$REJECTED  = 2;
-
-    var lib$es6$promise$$internal$$GET_THEN_ERROR = new lib$es6$promise$$internal$$ErrorObject();
-
-    function lib$es6$promise$$internal$$selfFulfillment() {
-      return new TypeError("You cannot resolve a promise with itself");
-    }
-
-    function lib$es6$promise$$internal$$cannotReturnOwn() {
-      return new TypeError('A promises callback cannot return that same promise.');
-    }
-
-    function lib$es6$promise$$internal$$getThen(promise) {
-      try {
-        return promise.then;
-      } catch(error) {
-        lib$es6$promise$$internal$$GET_THEN_ERROR.error = error;
-        return lib$es6$promise$$internal$$GET_THEN_ERROR;
-      }
-    }
-
-    function lib$es6$promise$$internal$$tryThen(then, value, fulfillmentHandler, rejectionHandler) {
-      try {
-        then.call(value, fulfillmentHandler, rejectionHandler);
-      } catch(e) {
-        return e;
-      }
-    }
-
-    function lib$es6$promise$$internal$$handleForeignThenable(promise, thenable, then) {
-       lib$es6$promise$asap$$asap(function(promise) {
-        var sealed = false;
-        var error = lib$es6$promise$$internal$$tryThen(then, thenable, function(value) {
-          if (sealed) { return; }
-          sealed = true;
-          if (thenable !== value) {
-            lib$es6$promise$$internal$$resolve(promise, value);
-          } else {
-            lib$es6$promise$$internal$$fulfill(promise, value);
-          }
-        }, function(reason) {
-          if (sealed) { return; }
-          sealed = true;
-
-          lib$es6$promise$$internal$$reject(promise, reason);
-        }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-        if (!sealed && error) {
-          sealed = true;
-          lib$es6$promise$$internal$$reject(promise, error);
-        }
-      }, promise);
-    }
-
-    function lib$es6$promise$$internal$$handleOwnThenable(promise, thenable) {
-      if (thenable._state === lib$es6$promise$$internal$$FULFILLED) {
-        lib$es6$promise$$internal$$fulfill(promise, thenable._result);
-      } else if (thenable._state === lib$es6$promise$$internal$$REJECTED) {
-        lib$es6$promise$$internal$$reject(promise, thenable._result);
-      } else {
-        lib$es6$promise$$internal$$subscribe(thenable, undefined, function(value) {
-          lib$es6$promise$$internal$$resolve(promise, value);
-        }, function(reason) {
-          lib$es6$promise$$internal$$reject(promise, reason);
-        });
-      }
-    }
-
-    function lib$es6$promise$$internal$$handleMaybeThenable(promise, maybeThenable, then) {
-      if (maybeThenable.constructor === promise.constructor &&
-          then === lib$es6$promise$then$$default &&
-          constructor.resolve === lib$es6$promise$promise$resolve$$default) {
-        lib$es6$promise$$internal$$handleOwnThenable(promise, maybeThenable);
-      } else {
-        if (then === lib$es6$promise$$internal$$GET_THEN_ERROR) {
-          lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$GET_THEN_ERROR.error);
-        } else if (then === undefined) {
-          lib$es6$promise$$internal$$fulfill(promise, maybeThenable);
-        } else if (lib$es6$promise$utils$$isFunction(then)) {
-          lib$es6$promise$$internal$$handleForeignThenable(promise, maybeThenable, then);
-        } else {
-          lib$es6$promise$$internal$$fulfill(promise, maybeThenable);
-        }
-      }
-    }
-
-    function lib$es6$promise$$internal$$resolve(promise, value) {
-      if (promise === value) {
-        lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$selfFulfillment());
-      } else if (lib$es6$promise$utils$$objectOrFunction(value)) {
-        lib$es6$promise$$internal$$handleMaybeThenable(promise, value, lib$es6$promise$$internal$$getThen(value));
-      } else {
-        lib$es6$promise$$internal$$fulfill(promise, value);
-      }
-    }
-
-    function lib$es6$promise$$internal$$publishRejection(promise) {
-      if (promise._onerror) {
-        promise._onerror(promise._result);
-      }
-
-      lib$es6$promise$$internal$$publish(promise);
-    }
-
-    function lib$es6$promise$$internal$$fulfill(promise, value) {
-      if (promise._state !== lib$es6$promise$$internal$$PENDING) { return; }
-
-      promise._result = value;
-      promise._state = lib$es6$promise$$internal$$FULFILLED;
-
-      if (promise._subscribers.length !== 0) {
-        lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publish, promise);
-      }
-    }
-
-    function lib$es6$promise$$internal$$reject(promise, reason) {
-      if (promise._state !== lib$es6$promise$$internal$$PENDING) { return; }
-      promise._state = lib$es6$promise$$internal$$REJECTED;
-      promise._result = reason;
-
-      lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publishRejection, promise);
-    }
-
-    function lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection) {
-      var subscribers = parent._subscribers;
-      var length = subscribers.length;
-
-      parent._onerror = null;
-
-      subscribers[length] = child;
-      subscribers[length + lib$es6$promise$$internal$$FULFILLED] = onFulfillment;
-      subscribers[length + lib$es6$promise$$internal$$REJECTED]  = onRejection;
-
-      if (length === 0 && parent._state) {
-        lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publish, parent);
-      }
-    }
-
-    function lib$es6$promise$$internal$$publish(promise) {
-      var subscribers = promise._subscribers;
-      var settled = promise._state;
-
-      if (subscribers.length === 0) { return; }
-
-      var child, callback, detail = promise._result;
-
-      for (var i = 0; i < subscribers.length; i += 3) {
-        child = subscribers[i];
-        callback = subscribers[i + settled];
-
-        if (child) {
-          lib$es6$promise$$internal$$invokeCallback(settled, child, callback, detail);
-        } else {
-          callback(detail);
-        }
-      }
-
-      promise._subscribers.length = 0;
-    }
-
-    function lib$es6$promise$$internal$$ErrorObject() {
-      this.error = null;
-    }
-
-    var lib$es6$promise$$internal$$TRY_CATCH_ERROR = new lib$es6$promise$$internal$$ErrorObject();
-
-    function lib$es6$promise$$internal$$tryCatch(callback, detail) {
-      try {
-        return callback(detail);
-      } catch(e) {
-        lib$es6$promise$$internal$$TRY_CATCH_ERROR.error = e;
-        return lib$es6$promise$$internal$$TRY_CATCH_ERROR;
-      }
-    }
-
-    function lib$es6$promise$$internal$$invokeCallback(settled, promise, callback, detail) {
-      var hasCallback = lib$es6$promise$utils$$isFunction(callback),
-          value, error, succeeded, failed;
-
-      if (hasCallback) {
-        value = lib$es6$promise$$internal$$tryCatch(callback, detail);
-
-        if (value === lib$es6$promise$$internal$$TRY_CATCH_ERROR) {
-          failed = true;
-          error = value.error;
-          value = null;
-        } else {
-          succeeded = true;
-        }
-
-        if (promise === value) {
-          lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$cannotReturnOwn());
-          return;
-        }
-
-      } else {
-        value = detail;
-        succeeded = true;
-      }
-
-      if (promise._state !== lib$es6$promise$$internal$$PENDING) {
-        // noop
-      } else if (hasCallback && succeeded) {
-        lib$es6$promise$$internal$$resolve(promise, value);
-      } else if (failed) {
-        lib$es6$promise$$internal$$reject(promise, error);
-      } else if (settled === lib$es6$promise$$internal$$FULFILLED) {
-        lib$es6$promise$$internal$$fulfill(promise, value);
-      } else if (settled === lib$es6$promise$$internal$$REJECTED) {
-        lib$es6$promise$$internal$$reject(promise, value);
-      }
-    }
-
-    function lib$es6$promise$$internal$$initializePromise(promise, resolver) {
-      try {
-        resolver(function resolvePromise(value){
-          lib$es6$promise$$internal$$resolve(promise, value);
-        }, function rejectPromise(reason) {
-          lib$es6$promise$$internal$$reject(promise, reason);
-        });
-      } catch(e) {
-        lib$es6$promise$$internal$$reject(promise, e);
-      }
-    }
-
-    var lib$es6$promise$$internal$$id = 0;
-    function lib$es6$promise$$internal$$nextId() {
-      return lib$es6$promise$$internal$$id++;
-    }
-
-    function lib$es6$promise$$internal$$makePromise(promise) {
-      promise[lib$es6$promise$$internal$$PROMISE_ID] = lib$es6$promise$$internal$$id++;
-      promise._state = undefined;
-      promise._result = undefined;
-      promise._subscribers = [];
-    }
-
-    function lib$es6$promise$promise$all$$all(entries) {
-      return new lib$es6$promise$enumerator$$default(this, entries).promise;
-    }
-    var lib$es6$promise$promise$all$$default = lib$es6$promise$promise$all$$all;
-    function lib$es6$promise$promise$race$$race(entries) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (!lib$es6$promise$utils$$isArray(entries)) {
-        return new Constructor(function(resolve, reject) {
-          reject(new TypeError('You must pass an array to race.'));
-        });
-      } else {
-        return new Constructor(function(resolve, reject) {
-          var length = entries.length;
-          for (var i = 0; i < length; i++) {
-            Constructor.resolve(entries[i]).then(resolve, reject);
-          }
-        });
-      }
-    }
-    var lib$es6$promise$promise$race$$default = lib$es6$promise$promise$race$$race;
-    function lib$es6$promise$promise$reject$$reject(reason) {
-      /*jshint validthis:true */
-      var Constructor = this;
-      var promise = new Constructor(lib$es6$promise$$internal$$noop);
-      lib$es6$promise$$internal$$reject(promise, reason);
-      return promise;
-    }
-    var lib$es6$promise$promise$reject$$default = lib$es6$promise$promise$reject$$reject;
-
-
-    function lib$es6$promise$promise$$needsResolver() {
-      throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
-    }
-
-    function lib$es6$promise$promise$$needsNew() {
-      throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
-    }
-
-    var lib$es6$promise$promise$$default = lib$es6$promise$promise$$Promise;
-    /**
-      Promise objects represent the eventual result of an asynchronous operation. The
-      primary way of interacting with a promise is through its `then` method, which
-      registers callbacks to receive either a promise's eventual value or the reason
-      why the promise cannot be fulfilled.
-
-      Terminology
-      -----------
-
-      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
-      - `thenable` is an object or function that defines a `then` method.
-      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
-      - `exception` is a value that is thrown using the throw statement.
-      - `reason` is a value that indicates why a promise was rejected.
-      - `settled` the final resting state of a promise, fulfilled or rejected.
-
-      A promise can be in one of three states: pending, fulfilled, or rejected.
-
-      Promises that are fulfilled have a fulfillment value and are in the fulfilled
-      state.  Promises that are rejected have a rejection reason and are in the
-      rejected state.  A fulfillment value is never a thenable.
-
-      Promises can also be said to *resolve* a value.  If this value is also a
-      promise, then the original promise's settled state will match the value's
-      settled state.  So a promise that *resolves* a promise that rejects will
-      itself reject, and a promise that *resolves* a promise that fulfills will
-      itself fulfill.
-
-
-      Basic Usage:
-      ------------
-
-      ```js
-      var promise = new Promise(function(resolve, reject) {
-        // on success
-        resolve(value);
-
-        // on failure
-        reject(reason);
-      });
-
-      promise.then(function(value) {
-        // on fulfillment
-      }, function(reason) {
-        // on rejection
-      });
-      ```
-
-      Advanced Usage:
-      ---------------
-
-      Promises shine when abstracting away asynchronous interactions such as
-      `XMLHttpRequest`s.
-
-      ```js
-      function getJSON(url) {
-        return new Promise(function(resolve, reject){
-          var xhr = new XMLHttpRequest();
-
-          xhr.open('GET', url);
-          xhr.onreadystatechange = handler;
-          xhr.responseType = 'json';
-          xhr.setRequestHeader('Accept', 'application/json');
-          xhr.send();
-
-          function handler() {
-            if (this.readyState === this.DONE) {
-              if (this.status === 200) {
-                resolve(this.response);
-              } else {
-                reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
-              }
-            }
-          };
-        });
-      }
-
-      getJSON('/posts.json').then(function(json) {
-        // on fulfillment
-      }, function(reason) {
-        // on rejection
-      });
-      ```
-
-      Unlike callbacks, promises are great composable primitives.
-
-      ```js
-      Promise.all([
-        getJSON('/posts'),
-        getJSON('/comments')
-      ]).then(function(values){
-        values[0] // => postsJSON
-        values[1] // => commentsJSON
-
-        return values;
-      });
-      ```
-
-      @class Promise
-      @param {function} resolver
-      Useful for tooling.
-      @constructor
-    */
-    function lib$es6$promise$promise$$Promise(resolver) {
-      this[lib$es6$promise$$internal$$PROMISE_ID] = lib$es6$promise$$internal$$nextId();
-      this._result = this._state = undefined;
-      this._subscribers = [];
-
-      if (lib$es6$promise$$internal$$noop !== resolver) {
-        typeof resolver !== 'function' && lib$es6$promise$promise$$needsResolver();
-        this instanceof lib$es6$promise$promise$$Promise ? lib$es6$promise$$internal$$initializePromise(this, resolver) : lib$es6$promise$promise$$needsNew();
-      }
-    }
-
-    lib$es6$promise$promise$$Promise.all = lib$es6$promise$promise$all$$default;
-    lib$es6$promise$promise$$Promise.race = lib$es6$promise$promise$race$$default;
-    lib$es6$promise$promise$$Promise.resolve = lib$es6$promise$promise$resolve$$default;
-    lib$es6$promise$promise$$Promise.reject = lib$es6$promise$promise$reject$$default;
-    lib$es6$promise$promise$$Promise._setScheduler = lib$es6$promise$asap$$setScheduler;
-    lib$es6$promise$promise$$Promise._setAsap = lib$es6$promise$asap$$setAsap;
-    lib$es6$promise$promise$$Promise._asap = lib$es6$promise$asap$$asap;
-
-    lib$es6$promise$promise$$Promise.prototype = {
-      constructor: lib$es6$promise$promise$$Promise,
-
-    /**
-      The primary way of interacting with a promise is through its `then` method,
-      which registers callbacks to receive either a promise's eventual value or the
-      reason why the promise cannot be fulfilled.
-
-      ```js
-      findUser().then(function(user){
-        // user is available
-      }, function(reason){
-        // user is unavailable, and you are given the reason why
-      });
-      ```
-
-      Chaining
-      --------
-
-      The return value of `then` is itself a promise.  This second, 'downstream'
-      promise is resolved with the return value of the first promise's fulfillment
-      or rejection handler, or rejected if the handler throws an exception.
-
-      ```js
-      findUser().then(function (user) {
-        return user.name;
-      }, function (reason) {
-        return 'default name';
-      }).then(function (userName) {
-        // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-        // will be `'default name'`
-      });
-
-      findUser().then(function (user) {
-        throw new Error('Found user, but still unhappy');
-      }, function (reason) {
-        throw new Error('`findUser` rejected and we're unhappy');
-      }).then(function (value) {
-        // never reached
-      }, function (reason) {
-        // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-        // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-      });
-      ```
-      If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-
-      ```js
-      findUser().then(function (user) {
-        throw new PedagogicalException('Upstream error');
-      }).then(function (value) {
-        // never reached
-      }).then(function (value) {
-        // never reached
-      }, function (reason) {
-        // The `PedgagocialException` is propagated all the way down to here
-      });
-      ```
-
-      Assimilation
-      ------------
-
-      Sometimes the value you want to propagate to a downstream promise can only be
-      retrieved asynchronously. This can be achieved by returning a promise in the
-      fulfillment or rejection handler. The downstream promise will then be pending
-      until the returned promise is settled. This is called *assimilation*.
-
-      ```js
-      findUser().then(function (user) {
-        return findCommentsByAuthor(user);
-      }).then(function (comments) {
-        // The user's comments are now available
-      });
-      ```
-
-      If the assimliated promise rejects, then the downstream promise will also reject.
-
-      ```js
-      findUser().then(function (user) {
-        return findCommentsByAuthor(user);
-      }).then(function (comments) {
-        // If `findCommentsByAuthor` fulfills, we'll have the value here
-      }, function (reason) {
-        // If `findCommentsByAuthor` rejects, we'll have the reason here
-      });
-      ```
-
-      Simple Example
-      --------------
-
-      Synchronous Example
-
-      ```javascript
-      var result;
-
-      try {
-        result = findResult();
-        // success
-      } catch(reason) {
-        // failure
-      }
-      ```
-
-      Errback Example
-
-      ```js
-      findResult(function(result, err){
-        if (err) {
-          // failure
-        } else {
-          // success
-        }
-      });
-      ```
-
-      Promise Example;
-
-      ```javascript
-      findResult().then(function(result){
-        // success
-      }, function(reason){
-        // failure
-      });
-      ```
-
-      Advanced Example
-      --------------
-
-      Synchronous Example
-
-      ```javascript
-      var author, books;
-
-      try {
-        author = findAuthor();
-        books  = findBooksByAuthor(author);
-        // success
-      } catch(reason) {
-        // failure
-      }
-      ```
-
-      Errback Example
-
-      ```js
-
-      function foundBooks(books) {
-
-      }
-
-      function failure(reason) {
-
-      }
-
-      findAuthor(function(author, err){
-        if (err) {
-          failure(err);
-          // failure
-        } else {
-          try {
-            findBoooksByAuthor(author, function(books, err) {
-              if (err) {
-                failure(err);
-              } else {
-                try {
-                  foundBooks(books);
-                } catch(reason) {
-                  failure(reason);
-                }
-              }
-            });
-          } catch(error) {
-            failure(err);
-          }
-          // success
-        }
-      });
-      ```
-
-      Promise Example;
-
-      ```javascript
-      findAuthor().
-        then(findBooksByAuthor).
-        then(function(books){
-          // found books
-      }).catch(function(reason){
-        // something went wrong
-      });
-      ```
-
-      @method then
-      @param {Function} onFulfilled
-      @param {Function} onRejected
-      Useful for tooling.
-      @return {Promise}
-    */
-      then: lib$es6$promise$then$$default,
-
-    /**
-      `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-      as the catch block of a try/catch statement.
-
-      ```js
-      function findAuthor(){
-        throw new Error('couldn't find that author');
-      }
-
-      // synchronous
-      try {
-        findAuthor();
-      } catch(reason) {
-        // something went wrong
-      }
-
-      // async with promises
-      findAuthor().catch(function(reason){
-        // something went wrong
-      });
-      ```
-
-      @method catch
-      @param {Function} onRejection
-      Useful for tooling.
-      @return {Promise}
-    */
-      'catch': function(onRejection) {
-        return this.then(null, onRejection);
-      }
-    };
-    var lib$es6$promise$enumerator$$default = lib$es6$promise$enumerator$$Enumerator;
-    function lib$es6$promise$enumerator$$Enumerator(Constructor, input) {
-      this._instanceConstructor = Constructor;
-      this.promise = new Constructor(lib$es6$promise$$internal$$noop);
-
-      if (!this.promise[lib$es6$promise$$internal$$PROMISE_ID]) {
-        lib$es6$promise$$internal$$makePromise(this.promise);
-      }
-
-      if (Array.isArray(input)) {
-        this._input     = input;
-        this.length     = input.length;
-        this._remaining = input.length;
-
-        this._result = new Array(this.length);
-
-        if (this.length === 0) {
-          lib$es6$promise$$internal$$fulfill(this.promise, this._result);
-        } else {
-          this.length = this.length || 0;
-          this._enumerate();
-          if (this._remaining === 0) {
-            lib$es6$promise$$internal$$fulfill(this.promise, this._result);
-          }
-        }
-      } else {
-        lib$es6$promise$$internal$$reject(this.promise, lib$es6$promise$enumerator$$validationError());
-      }
-    }
-
-    function lib$es6$promise$enumerator$$validationError() {
-      return new Error('Array Methods must be provided an Array');
-    }
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._enumerate = function() {
-      var length  = this.length;
-      var input   = this._input;
-
-      for (var i = 0; this._state === lib$es6$promise$$internal$$PENDING && i < length; i++) {
-        this._eachEntry(input[i], i);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
-      var c = this._instanceConstructor;
-      var resolve = c.resolve;
-
-      if (resolve === lib$es6$promise$promise$resolve$$default) {
-        var then = lib$es6$promise$$internal$$getThen(entry);
-
-        if (then === lib$es6$promise$then$$default &&
-            entry._state !== lib$es6$promise$$internal$$PENDING) {
-          this._settledAt(entry._state, i, entry._result);
-        } else if (typeof then !== 'function') {
-          this._remaining--;
-          this._result[i] = entry;
-        } else if (c === lib$es6$promise$promise$$default) {
-          var promise = new c(lib$es6$promise$$internal$$noop);
-          lib$es6$promise$$internal$$handleMaybeThenable(promise, entry, then);
-          this._willSettleAt(promise, i);
-        } else {
-          this._willSettleAt(new c(function(resolve) { resolve(entry); }), i);
-        }
-      } else {
-        this._willSettleAt(resolve(entry), i);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
-      var promise = this.promise;
-
-      if (promise._state === lib$es6$promise$$internal$$PENDING) {
-        this._remaining--;
-
-        if (state === lib$es6$promise$$internal$$REJECTED) {
-          lib$es6$promise$$internal$$reject(promise, value);
-        } else {
-          this._result[i] = value;
-        }
-      }
-
-      if (this._remaining === 0) {
-        lib$es6$promise$$internal$$fulfill(promise, this._result);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._willSettleAt = function(promise, i) {
-      var enumerator = this;
-
-      lib$es6$promise$$internal$$subscribe(promise, undefined, function(value) {
-        enumerator._settledAt(lib$es6$promise$$internal$$FULFILLED, i, value);
-      }, function(reason) {
-        enumerator._settledAt(lib$es6$promise$$internal$$REJECTED, i, reason);
-      });
-    };
-    function lib$es6$promise$polyfill$$polyfill() {
-      var local;
-
-      if (typeof global !== 'undefined') {
-          local = global;
-      } else if (typeof self !== 'undefined') {
-          local = self;
-      } else {
-          try {
-              local = Function('return this')();
-          } catch (e) {
-              throw new Error('polyfill failed because global object is unavailable in this environment');
-          }
-      }
-
-      var P = local.Promise;
-
-      if (P && Object.prototype.toString.call(P.resolve()) === '[object Promise]' && !P.cast) {
-        return;
-      }
-
-      local.Promise = lib$es6$promise$promise$$default;
-    }
-    var lib$es6$promise$polyfill$$default = lib$es6$promise$polyfill$$polyfill;
-
-    var lib$es6$promise$umd$$ES6Promise = {
-      'Promise': lib$es6$promise$promise$$default,
-      'polyfill': lib$es6$promise$polyfill$$default
-    };
-
-    /* global define:true module:true window: true */
-    if (typeof define === 'function' && define['amd']) {
-      define('es6-promise',[],function() { return lib$es6$promise$umd$$ES6Promise; });
-    } else if (typeof module !== 'undefined' && module['exports']) {
-      module['exports'] = lib$es6$promise$umd$$ES6Promise;
-    } else if (typeof this !== 'undefined') {
-      this['ES6Promise'] = lib$es6$promise$umd$$ES6Promise;
-    }
-
-    lib$es6$promise$polyfill$$default();
-}).call(this);
-
-
 //main.js contents
 //Pass a config object to require
 require.config({
@@ -51979,10 +52012,11 @@ require.config({
         }
     }
 });
-require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/SimpleSdmxQuery","collections","es6-promise","moment"],
-        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, SimpleSdmxQuery,collections,promise,moment) {
+require(["sdmx", "sdmx/message", "sdmx/abs", "sdmx/nomis", "sdmx/structure", "sdmx/commonreferences", "sdmx/data", "react", "react-dom", "components/SimpleSdmxQuery","collections","moment",],
+        function (sdmx, message, abs, nomis, structure, commonreferences, data, React, ReactDOM, SimpleSdmxQuery,collections,moment) {
             var q = React.createElement(SimpleSdmxQuery)
             ReactDOM.render(q, document.getElementById('container'));
+            
             //var svcs = React.createElement(Services)
             //ReactDOM.render(svcs, document.getElementById('container2'));
             //var servicesElement = React.createElement(services)
