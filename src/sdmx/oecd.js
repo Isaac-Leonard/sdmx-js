@@ -182,7 +182,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                         resolve(this.dataflowList[i]);
                     }
                 }
-                reject();
+                reject(null);
             });
             return p;
         };

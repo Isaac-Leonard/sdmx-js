@@ -16,8 +16,7 @@
     Copyright (C) 2016 James Gardner
 */
 /// <amd-module name='sdmx/interfaces'/>
-///<reference path="../es6-promise.d.ts"/>
-import Promise = require("es6-promise");
+///<reference path="../bluebird.d.ts"/>
 import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");

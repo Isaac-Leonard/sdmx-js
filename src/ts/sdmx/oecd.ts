@@ -15,7 +15,7 @@
     along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
     Copyright (C) 2016 James Gardner
 */
-///<reference path="../es6-promise.d.ts"/>
+///<reference path="../bluebird.d.ts"/>
 import interfaces = require("sdmx/interfaces");
 import registry = require("sdmx/registry");
 import structure = require("sdmx/structure");
@@ -66,7 +66,7 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
         this.local.unload(struct);
     }
     makeRequest(opts): Promise<string> {
-        return new Promise(function(resolve, reject) {
+        return new Promise<string>(function(resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.open(opts.method, opts.url);
             xhr.onload = function() {
@@ -157,12 +157,12 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
     public findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure> {
         var dst: structure.DataStructure = this.local.findDataStructure(ref);
         if (dst != null) {
-            var promise = new Promise(function(resolve, reject) {
+            var promise = new Promise<structure.DataStructure>(function(resolve, reject) {
                 resolve(dst);
             }.bind(this));
             return promise;
         } else {
-            return this.retrieve(this.serviceURL + "GetDataStructure/" + ref.getMaintainableParentId() + "/" + this.agency).then(function(st: message.StructureType) {
+            return <Promise<structure.DataStructure>>this.retrieve(this.serviceURL + "GetDataStructure/" + ref.getMaintainableParentId() + "/" + this.agency).then(function(st: message.StructureType) {
                 this.load(st);
                 return st.findDataStructure(ref);
             }.bind(this));
@@ -171,12 +171,12 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
 
     public listDataflows(): Promise<Array<structure.Dataflow>> {
         if (this.dataflowList != null) {
-            var promise = new Promise(function(resolve, reject) {
+            var promise = new Promise<Array<structure.Dataflow>>(function(resolve, reject) {
                 resolve(this.dataflowList);
             }.bind(this));
             return promise;
         } else {
-            return this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
+            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
                 var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
                 var dfs: Array<structure.Dataflow> = [];
                 for (var i = 0; i < array.length; i++) {
@@ -206,7 +206,7 @@ export class OECD implements interfaces.Queryable, interfaces.RemoteRegistry {
                     resolve(this.dataflowList[i]);
                 }
             }
-            reject();
+            reject(null);
         });
         return p;
     }

@@ -1,4 +1,4 @@
-define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "sdmx/nomis"], function (require, exports, sdmx20, abs, oecd, nomis) {
+define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/nomis"], function (require, exports, sdmx20, sdmx21, abs, oecd, nomis) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -63,6 +63,7 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/abs", "sdmx/oecd", "s
     })();
     exports.SdmxIO = SdmxIO;
     SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());
+    SdmxIO.registerParserProvider(new sdmx21.Sdmx21StructureParser());
 });
 
 //# sourceMappingURL=sdmx.js.map

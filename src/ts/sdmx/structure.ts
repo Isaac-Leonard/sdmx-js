@@ -17,7 +17,7 @@
 */
 /// <amd-module name='sdmx/structure'/>
 /// <reference path="../collections.ts"/>
-/// <reference path="../es6-promise.d.ts"/>
+/// <reference path="../bluebird.d.ts"/>
 import common = require("sdmx/common");
 import commonreferences = require("sdmx/commonreferences");
 import xml = require("sdmx/xml");

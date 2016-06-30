@@ -19,6 +19,7 @@
 import message = require("sdmx/message");
 import interfaces = require("sdmx/interfaces");
 import sdmx20 = require("sdmx/sdmx20");
+import sdmx21 = require("sdmx/sdmx21");
 import abs = require("sdmx/abs");
 import oecd = require("sdmx/oecd");
 import nomis = require("sdmx/nomis");
@@ -77,3 +78,4 @@ export class SdmxIO {
     }
 }
 SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());
+SdmxIO.registerParserProvider(new sdmx21.Sdmx21StructureParser());

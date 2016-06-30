@@ -25,15 +25,18 @@ define("components/dimension", ["require", "react", "sdmx/structure", "lodash"],
         },
         changeNumber: function (e) {
             var manyArrayString = [];
+            var manyArrayObject = [];
             if (e.target.value == "all") {
                 for (var i = 0; i < this.state.codelist.getItems().length; i++) {
                     var c = this.state.codelist.getItems()[i];
                     manyArrayString.push(structure.NameableType.toString(c));
+                    manyArrayObject.push(c);
                 }
             }
             this.setState({
                 number: e.target.value,
-                manyArrayString: manyArrayString
+                manyArrayString: manyArrayString,
+                manyArrayObject: manyArrayObject
             });
 
         },

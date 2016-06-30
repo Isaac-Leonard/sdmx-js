@@ -15,7 +15,7 @@
     along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
     Copyright (C) 2016 James Gardner
 */
-///<reference path="../es6-promise.d.ts"/>
+///<reference path="../bluebird.d.ts"/>
 ///<reference path="../moment.d.ts"/>
 import moment = require("moment");
 import interfaces = require("sdmx/interfaces");
@@ -42,6 +42,28 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
 
     private dataflowList: Array<structure.Dataflow> = null;
 
+    public throttle(fn, threshhold, scope) {
+        threshhold || (threshhold = 250);
+        var last,
+            deferTimer;
+        return function() {
+            var context = scope || this;
+
+            var now = +new Date,
+                args = arguments;
+            if (last && now < last + threshhold) {
+                // hold on to it
+                clearTimeout(deferTimer);
+                deferTimer = setTimeout(function() {
+                    last = now;
+                    fn.apply(context, args);
+                }, threshhold);
+            } else {
+                last = now;
+                fn.apply(context, args);
+            }
+        };
+    }
     getRemoteRegistry(): interfaces.RemoteRegistry {
         return this;
     }
@@ -71,7 +93,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         dst_ref.setVersion(flow.getVersion());
         var dst_reference = new commonreferences.Reference(dst_ref, null);
         var st: Promise<message.StructureType> = this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + "/time/def.sdmx.xml");
-        return st.then(function(struc: message.StructureType) {
+        return <Promise<message.DataMessage>>st.then(function(struc: message.StructureType) {
             var times: string = "&TIME=";
             var timeCL: structure.Codelist = struc.getStructures().getCodeLists().getCodelists()[0];
             var comma: boolean = true;
@@ -108,7 +130,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                     }
                 }
             }
-            return this.retrieveData(flow,"http://www.nomisweb.co.uk/api/v01/dataset/" + dst_ref.getId() + ".compact.sdmx.xml" + queryString + times + "&" + this.options);
+            return this.retrieveData(flow, "http://www.nomisweb.co.uk/api/v01/dataset/" + dst_ref.getId() + ".compact.sdmx.xml" + queryString + times + "&" + this.options);
         }.bind(this));
         /*
         StringBuilder q = new StringBuilder();
@@ -161,7 +183,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         this.local.unload(struct);
     }
     makeRequest(opts): Promise<string> {
-        return new Promise(function(resolve, reject) {
+        return new Promise<string>(function(resolve, reject) {
             var xhr = new XMLHttpRequest();
             console.log("nomis retrieve:" + opts.url);
             xhr.open(opts.method, opts.url);
@@ -203,7 +225,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
      * 
      */
     makeRequest2(opts): Promise<string> {
-        return new Promise(function(resolve, reject) {
+        return new Promise<string>(function(resolve, reject) {
             var xhr = new XMLHttpRequest();
             console.log("nomis retrieve:" + opts.url);
             xhr.open(opts.method, opts.url);
@@ -243,6 +265,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         var opts: any = {};
         opts.url = urlString + s;
         opts.method = "GET";
+        opts.headers = { "Connection": "close" };
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -257,6 +280,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         var opts: any = {};
         opts.url = urlString + s;
         opts.method = "GET";
+        opts.headers = { "Connection": "close" };
         return this.makeRequest(opts).then(function(a) {
             var dm = sdmx.SdmxIO.parseData(a);
             var payload = new common.PayloadStructureType();
@@ -276,6 +300,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
+        opts.headers = { "Connection": "close" };
         return this.makeRequest2(opts).then(function(a) {
             var pack = { string: a };
             for (var i: number = 0; i < Object.keys(vals).length; i++) {
@@ -293,10 +318,10 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
     public findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure> {
         var dst: structure.DataStructure = this.local.findDataStructure(ref);
         if (dst != null) {
-            var promise = new Promise(function(resolve, reject) {
+            var promise1 = new Promise<structure.DataStructure>(function(resolve, reject) {
                 resolve(dst);
             }.bind(this));
-            return promise;
+            return promise1;
         } else {
             var geogIndex = ref.getMaintainableParentId().toString().lastIndexOf("_");
             var geog: string = ref.getMaintainableParentId().toString().substring(geogIndex + 1, ref.getMaintainableParentId().toString().length);
@@ -305,7 +330,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                 geography_string = "";
             }
             var id: string = ref.getMaintainableParentId().toString().substring(0, geogIndex);
-            return this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + ".structure.sdmx.xml?" + geography_string).then(function(a) {
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/v01/dataset/" + id + ".structure.sdmx.xml?" + geography_string).then(function(a) {
                 a.getStructures().getDataStructures().getDataStructures()[0].setId(ref.getMaintainableParentId());
                 a.getStructures().getDataStructures().getDataStructures()[0].setVersion(ref.getVersion());
                 this.load(a);
@@ -315,14 +340,14 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
     }
     public listDataflows(): Promise<Array<structure.Dataflow>> {
         if (this.dataflowList != null) {
-            var promise1 = new Promise(function(resolve, reject) {
+            var promise1 = new Promise<Array<structure.Dataflow>>(function(resolve, reject) {
                 resolve(this.dataflowList);
             }.bind(this));
             return promise1;
         } else {
             var dfs: Array<structure.Dataflow> = [];
             var th = this;
-            var promise: any = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml").then(function(st: message.StructureType) {
+            var promise2: any = this.retrieve(this.serviceURL + "/v01/dataset/def.sdmx.xml").then(function(st: message.StructureType) {
                 var packArray = [];
                 var list: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
                 for (var i: number = 0; i < list.length; i++) {
@@ -335,65 +360,64 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                 }
                 return packArray;
             });
-            return promise.then(function(pArray: Array<any>) {
-                var promiseArray = [];
-                return Promise.all(pArray.map(function(pack) {
-                    return th.retrieve2(pack.url, pack).then(function(pack) {
-                        var cubeId2: string = pack.cubeId;
-                        var cubeName2: string = pack.cubeName;
-                        var url2: string = pack.url;
-                        var doc: string = pack.string;
-                        var parsedDataflows = [];
-                        try {
-                            var geogList: Array<NOMISGeography> = th.parseGeography(doc, cubeId2, cubeName2);
-                            for (var j = 0; j < geogList.length; j++) {
-                                var dataFlow: structure.Dataflow = new structure.Dataflow();
-                                dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
-                                dataFlow.setId(new commonreferences.ID(cubeId2 + "_" + geogList[j].getGeography()));
-                                var name: common.Name = new common.Name("en", cubeName2 + " " + geogList[j].getGeographyName());
-                                var names: Array<common.Name> = [];
-                                names.push(name);
-                                dataFlow.setNames(names);
-                                var ref: commonreferences.Ref = new commonreferences.Ref();
-                                ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
-                                ref.setMaintainableParentId(dataFlow.getId());
-                                ref.setVersion(commonreferences.Version.ONE);
-                                var reference = new commonreferences.Reference(ref, null);
-                                dataFlow.setStructure(reference);
-                                parsedDataflows.push(dataFlow);
-                            }
-                            if (geogList.length == 0) {
-                                var dataFlow: structure.Dataflow = new structure.Dataflow();
-                                dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
-                                dataFlow.setId(new commonreferences.ID(cubeId2 + "_NOGEOG"));
-                                var name: common.Name = new common.Name("en", cubeName2);
-                                var names: Array<common.Name> = [];
-                                names.push(name);
-                                dataFlow.setNames(names);
-                                var ref: commonreferences.Ref = new commonreferences.Ref();
-                                ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
-                                ref.setMaintainableParentId(dataFlow.getId());
-                                ref.setVersion(commonreferences.Version.ONE);
-                                var reference = new commonreferences.Reference(ref, null);
-                                dataFlow.setStructure(reference);
-                                parsedDataflows.push(dataFlow);
-                            }
-                        } catch (error) {
-                            console.log("error!:" + error);
+            return promise2.map(function(item, index, length) {
+                var pack = item;
+                return th.retrieve2(pack.url, pack).then(function(pack) {
+                    var cubeId2: string = pack.cubeId;
+                    var cubeName2: string = pack.cubeName;
+                    var url2: string = pack.url;
+                    var doc: string = pack.string;
+                    var parsedDataflows = [];
+                    try {
+                        var geogList: Array<NOMISGeography> = th.parseGeography(doc, cubeId2, cubeName2);
+                        for (var j = 0; j < geogList.length; j++) {
+                            var dataFlow: structure.Dataflow = new structure.Dataflow();
+                            dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
+                            dataFlow.setId(new commonreferences.ID(cubeId2 + "_" + geogList[j].getGeography()));
+                            var name: common.Name = new common.Name("en", cubeName2 + " " + geogList[j].getGeographyName());
+                            var names: Array<common.Name> = [];
+                            names.push(name);
+                            dataFlow.setNames(names);
+                            var ref: commonreferences.Ref = new commonreferences.Ref();
+                            ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
+                            ref.setMaintainableParentId(dataFlow.getId());
+                            ref.setVersion(commonreferences.Version.ONE);
+                            var reference = new commonreferences.Reference(ref, null);
+                            dataFlow.setStructure(reference);
+                            parsedDataflows.push(dataFlow);
                         }
-                        return parsedDataflows;
-                    });
-                })).then(function(dfs2) {
-                    var dfs = [];
-                    for (var i: number = 0; i < dfs2.length;i++) {
-                        for (var j: number = 0; j < dfs2[i].length;j++) {
-                            dfs.push(dfs2[i][j]);
+                        if (geogList.length == 0) {
+                            var dataFlow: structure.Dataflow = new structure.Dataflow();
+                            dataFlow.setAgencyId(new commonreferences.NestedNCNameID((th.agency)));
+                            dataFlow.setId(new commonreferences.ID(cubeId2 + "_NOGEOG"));
+                            var name: common.Name = new common.Name("en", cubeName2);
+                            var names: Array<common.Name> = [];
+                            names.push(name);
+                            dataFlow.setNames(names);
+                            var ref: commonreferences.Ref = new commonreferences.Ref();
+                            ref.setAgencyId(new commonreferences.NestedNCNameID(th.agency));
+                            ref.setMaintainableParentId(dataFlow.getId());
+                            ref.setVersion(commonreferences.Version.ONE);
+                            var reference = new commonreferences.Reference(ref, null);
+                            dataFlow.setStructure(reference);
+                            parsedDataflows.push(dataFlow);
                         }
+                    } catch (error) {
+                        console.log("error!:" + error);
                     }
-                    this.dataflowList = dfs
-                    return dfs;
+                    return parsedDataflows;
                 });
-            });
+            }, { concurrency: 5 }).delay(1300).then(function(stuff) {
+              // works with delay of 1000, put 1300 to be safe =D
+                var dfs = [];
+                for (var i: number = 0; i < stuff.length; i++) {
+                    for (var j: number = 0; j < stuff[i].length; j++) {
+                        dfs.push(stuff[i][j]);
+                    }
+                }
+                this.dataflowList = dfs;
+                return dfs;
+            }.bind(this));
         }
     }
 

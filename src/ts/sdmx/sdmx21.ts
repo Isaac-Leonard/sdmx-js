@@ -15,7 +15,7 @@
     along with sdmx-js.  If not, see <http://www.gnu.org/licenses/>.
     Copyright (C) 2016 James Gardner
 */
-/// <amd-module name='sdmx/sdmx20'/>
+/// <amd-module name='sdmx/sdmx21'/>
 ///<reference path="../collections.ts"/>
 import commonreferences = require("sdmx/commonreferences");
 import structure = require("sdmx/structure");
@@ -32,12 +32,12 @@ export function parseXml(s: string): any {
     return xmlDoc;
 }
 
-export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
+export class Sdmx21StructureParser implements interfaces.SdmxParserProvider {
     constructor() {
 
     }
     getVersionIdentifier(): number {
-        return 2.0;
+        return 2.1;
     }
     canParse(input: string): boolean {
         if (input == null) return false;
@@ -45,12 +45,12 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
         if (this.isData(input)) return true;
     }
     isStructure(input: string): boolean {
-        if (input.indexOf("Structure") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+        if (input.indexOf("Structure") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
             return true;
         } else return false;
     }
     isData(input: string): boolean {
-        if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+        if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
             return true;
         } else return false;
     }
@@ -58,22 +58,22 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
         return false;
     }
     parseStructureWithRegistry(input: string, reg: interfaces.LocalRegistry): message.StructureType {
-        var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input, reg);
+        var srt: Sdmx21StructureReaderTools = new Sdmx21StructureReaderTools(input, reg);
         return srt.getStructureType();
 
     }
     parseStructure(input: string): message.StructureType {
-        var srt: Sdmx20StructureReaderTools = new Sdmx20StructureReaderTools(input, null);
+        var srt: Sdmx21StructureReaderTools = new Sdmx21StructureReaderTools(input, null);
         return srt.getStructureType();
 
     }
     parseData(input: string): message.DataMessage {
-        var parser: Sdmx20DataReaderTools = new Sdmx20DataReaderTools(input);
+        var parser: Sdmx21DataReaderTools = new Sdmx21DataReaderTools(input);
         return parser.getDataMessage();
 
     }
 }
-export class Sdmx20DataReaderTools {
+export class Sdmx21DataReaderTools {
     private msg: message.DataMessage = null;
     private dw: data.FlatDataSetWriter = new data.FlatDataSetWriter();
 
@@ -265,7 +265,7 @@ export class Sdmx20DataReaderTools {
         }
     }
 }
-export class Sdmx20StructureReaderTools {
+export class Sdmx21StructureReaderTools {
     private registry: interfaces.LocalRegistry = null;
     private struct: message.StructureType = null;
     private currentKeyFamilyAgency: string = null;
