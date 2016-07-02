@@ -1,4 +1,4 @@
-define("components/services", ["require", "react", "sdmx", "lodash"], function (require, React, sdmx, _) {
+define("SimpleSDMXQuery/services", ["require", "react", "sdmx", "lodash"], function (require, React, sdmx, _) {
     return React.createClass({
         queryable: null,
         getInitialState: function () {

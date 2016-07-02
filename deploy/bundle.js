@@ -10268,12 +10268,16 @@ define('sdmx/nomis',["require", "exports", "moment", "sdmx/registry", "sdmx/stru
                     var startMoment = moment(startTime);
                     var endMoment = moment(endTime);
                     if (ts.isBetween(startMoment, endMoment)) {
+                        console.log(timeCL.getItems()[i].getId().toString() + " is between " + startTime + " and " + endTime);
                         if (!comma) {
                             times += ",";
                             comma = true;
                         }
                         times += timeCL.getItem(i).getId().toString();
                         comma = false;
+                    }
+                    else {
+                        console.log(timeCL.getItems()[i].getId().toString() + " is not between " + startTime + " and " + endTime);
                     }
                 }
                 var queryString = "";

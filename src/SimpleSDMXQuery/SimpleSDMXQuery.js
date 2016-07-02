@@ -1,4 +1,4 @@
-define("components/SimpleSdmxQuery", ["require", "react", "sdmx", "components/services", "components/dataflows", "components/structure", "components/data", "sdmx/data"], function (require, React, sdmx, Services, Dataflows, Structure, Data, data) {
+define("SimpleSDMXQuery/SimpleSDMXQuery", ["require", "react", "sdmx", "SimpleSDMXQuery/services", "SimpleSDMXQuery/dataflows", "SimpleSDMXQuery/structure", "SimpleSDMXQuery/data", "sdmx/data"], function (require, React, sdmx, Services, Dataflows, Structure, Data, data) {
     return React.createClass({
         queryable: null,
         getInitialState: function () {

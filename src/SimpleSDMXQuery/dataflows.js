@@ -1,4 +1,4 @@
-define("components/dataflows", ["require", "react", "sdmx/structure"], function (require, React, structure) {
+define("SimpleSDMXQuery/dataflows", ["require", "react", "sdmx/structure"], function (require, React, structure) {
     var a = React.createClass({
         getInitialState: function () {
             return {

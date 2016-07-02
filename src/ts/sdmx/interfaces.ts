@@ -63,6 +63,12 @@ export interface RemoteRegistry {
     clear(): void;
     load(struct: message.StructureType): void;
     unload(struct: message.StructureType): void;
+/*
+ * Typically, a call to findDataStructure, should load the datastructure, and all child 
+ * references into the LocalRegistry...
+ * or at least, i usually assume that after a call to findDataStructure, the required 
+ * codelists and conceptschemes have been loaded into LocalRegistry.
+ */
     findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure>;
     findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow>;
     findCode(ref: commonreferences.Reference): Promise<structure.CodeType>;

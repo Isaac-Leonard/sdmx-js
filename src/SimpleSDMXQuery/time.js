@@ -1,4 +1,4 @@
-define("components/time", ["require", "react", "sdmx/structure"], function (require, React, structure) {
+define("SimpleSDMXQuery/time", ["require", "react", "sdmx/structure"], function (require, React, structure) {
     return React.createClass({
         getInitialState: function () {
             return {

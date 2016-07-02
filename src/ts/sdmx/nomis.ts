@@ -104,12 +104,15 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                 var startMoment = moment(startTime);
                 var endMoment = moment(endTime);
                 if (ts.isBetween(startMoment, endMoment)) {
+                    //console.log(timeCL.getItems()[i].getId().toString() + " is between " + startTime + " and " + endTime);
                     if (!comma) {
                         times += ",";
                         comma = true;
                     }
                     times += timeCL.getItem(i).getId().toString();
                     comma = false;
+                } else {
+                    console.log(timeCL.getItems()[i].getId().toString() + " is not between " + startTime + " and " + endTime);
                 }
             }
             var queryString: string = "";
@@ -408,7 +411,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
                     return parsedDataflows;
                 });
             }, { concurrency: 5 }).delay(1300).then(function(stuff) {
-              // works with delay of 1000, put 1300 to be safe =D
+                // works with delay of 1000, put 1300 to be safe =D
                 var dfs = [];
                 for (var i: number = 0; i < stuff.length; i++) {
                     for (var j: number = 0; j < stuff[i].length; j++) {
