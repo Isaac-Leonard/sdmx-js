@@ -1,4 +1,4 @@
-define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/nomis"], function (require, exports, sdmx20, sdmx21, abs, oecd, nomis) {
+define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/knoema", "sdmx/nomis"], function (require, exports, sdmx20, sdmx21, abs, oecd, knoema, nomis) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -34,17 +34,21 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
             SdmxIO.PARSER.push(p);
         };
         SdmxIO.listServices = function () {
-            return ["NOMIS",
-                "OECD"];
+            return ["NOMIS", "ABS",
+                "OECD", "KNOEMA", "AfDB"];
             //return ["OECD"];
         };
         SdmxIO.connect = function (s) {
             if (s == "ABS")
                 return new abs.ABS("ABS", "http://stat.abs.gov.au/restsdmx/sdmx.ashx/", "");
+            if (s == "KNOEMA")
+                return new knoema.Knoema("KNOEMA", "http://knoema.com/api/1.0/sdmx", "");
             if (s == "NOMIS")
                 return new nomis.NOMISRESTServiceRegistry("NOMIS", "http://www.nomisweb.co.uk/api", "uid=0xad235cca367972d98bd642ef04ea259da5de264f");
             if (s == "OECD")
                 return new oecd.OECD("OECD", "http://stats.oecd.org/restsdmx/sdmx.ashx/", "");
+            if (s == "AfDB")
+                return new knoema.Knoema("AfDB", "http://opendataforafrica.org/api/1.0/sdmx", "");
         };
         SdmxIO.setTruncateNames = function (n) {
             SdmxIO.TRUNCATE_NAMES = n;

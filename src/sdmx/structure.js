@@ -318,28 +318,37 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return this.identifiesMe(new commonreferences.NestedNCNameID(agency2), new commonreferences.ID(id2), new commonreferences.Version(vers2));
         };
         MaintainableType.prototype.identifiesMe = function (agency2, id2, vers2) {
+            /*
+             * I honestly dont know why i always end up in this function debugging...
+             * next time i look here.. check in the parser api that the objects are being created properly
+             * :D
+             * JG
+             */
             //System.out.println("Left=" + this.agencyID + "." + this.getId() + "." + this.getVersion());
             //System.out.println("Right=" + agency2 + "." + id2 + "." + vers2);
-            //console.log("myAg:" + this.getAgencyID() + " compare:" + agency2.toString());
+            //console.log("myAg:" + this.getAgencyId() + " compare:" + agency2.toString());
             //console.log("myId:" + this.getId() + " compare:" + id2.toString());
             //if (this.getVersion()!=null&&vers2!=null){
             //console.log("myv:" + this.getVersion() + " compare:" + vers2.toString());
             //}
             if (vers2 == null || this.getVersion() == null) {
                 if (this.agencyId.equalsNestedNCNameID(agency2) && this.getId().equalsNestedID(id2)) {
+                    //console.log("Identifies me1");
                     return true;
                 }
                 else {
+                    //console.log("Doesn't Identify me2");
                     //System.out.println("Doesn't Match!!");
                     return false;
                 }
             }
             else {
                 if (this.agencyId.equalsNestedNCNameID(agency2) && this.getId().equalsNestedID(id2) && this.getVersion().equalsVersion(vers2)) {
+                    //console.log("Identifies me3");
                     return true;
                 }
                 else {
-                    //System.out.println("Doesn't Match!!");
+                    //console.log("Doesn't Identify me4");
                     return false;
                 }
             }
@@ -539,6 +548,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Component.prototype.getId = function () {
             if (_super.prototype.getId.call(this) == null) {
                 if (this.conceptIdentity == null) {
+                    //alert("Concept Identity Null:LocalRep:" + JSON.stringify(this.localRepresentation));
                     //Thread.dumpStack();
                     return new commonreferences.ID("MISS");
                 }
@@ -971,11 +981,16 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return cl;
         };
         Concepts.prototype.findConceptSchemeReference = function (ref) {
-            return this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getMaintainedParentVersion());
+            if (ref == null) {
+                return null;
+            }
+            else
+                return this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
         };
         Concepts.prototype.merge = function (conceptsType) {
-            if (conceptsType == null)
+            if (conceptsType == null) {
                 return;
+            }
             for (var i = 0; i < conceptsType.getConceptSchemes().length; i++) {
                 this.concepts.push(conceptsType.getConceptSchemes()[i]);
             }
@@ -1103,13 +1118,15 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return null;
         };
         Structures.prototype.findConcept = function (ref) {
-            if (this.concepts == null)
+            if (this.concepts == null) {
                 return null;
+            }
             return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
         };
         Structures.prototype.findConceptScheme = function (ref) {
-            if (this.concepts == null)
+            if (this.concepts == null) {
                 return null;
+            }
             return this.concepts.findConceptSchemeReference(ref);
         };
         Structures.prototype.searchDataStructure = function (ref) {

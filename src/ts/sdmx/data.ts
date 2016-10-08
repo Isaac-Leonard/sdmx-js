@@ -31,6 +31,13 @@ export class Query {
     private query: Array<QueryKey> = [];
     private startDate: Date = new Date();
     private endDate: Date = new Date();
+    private updatedAfter: Date = null;
+    private firstNObservations: number = null;
+    private lastNObservations: number = null;
+    private dimensionAtObservation: string = null;
+    private detail: string = null;
+    private includeHistory: boolean = null;
+    private providerRef: string = null;
 
     constructor(flow: structure.Dataflow, registry: interfaces.LocalRegistry) {
         this.flow = flow;
@@ -90,6 +97,34 @@ export class Query {
             }
         }
         return qString;
+    }
+    getUpdatedAfter(): Date { return this.updatedAfter; }
+    setUpdatedAfter(d: Date) { this.updatedAfter = d; }
+    getFirstNObservations(): number {
+        return this.firstNObservations;
+    }
+    setFirstNObservations(n: number) {
+        this.firstNObservations = n;
+    }
+    getLastNObservations(): number {
+        return this.lastNObservations;
+    }
+    setLastNObservations(n: number) {
+        this.lastNObservations = n;
+    }
+    getDimensionAtObservation(): string {
+        return this.dimensionAtObservation;
+    }
+    setDimensionAtObservation(s: string) {
+        this.dimensionAtObservation = s;
+    }
+    setDetail(s: string) { this.detail = s; }
+    getDetail(): string { return this.detail; }
+    getIncludeHistory(): boolean { return this.includeHistory; }
+    setIncludeHistory(b: boolean) { this.includeHistory = b; }
+    setProviderRef(s: string) { this.providerRef = s; }
+    getProviderRef(): string {
+        return this.providerRef;
     }
 }
 export class QueryKey {

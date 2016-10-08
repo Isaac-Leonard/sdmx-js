@@ -1,9 +1,9 @@
-define(["require", "exports", "sdmx/registry", "sdmx"], function (require, exports, registry, sdmx) {
-    var ABS = (function () {
-        function ABS(agency, service, options) {
-            this.agency = "ABS";
+define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
+    var Knoema = (function () {
+        function Knoema(agency, service, options) {
+            this.agency = "Knoema";
             //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-            this.serviceURL = "http://stat.data.abs.gov.au/restsdmx/sdmx.ashx/";
+            this.serviceURL = "http://knoema.com/api/1.0/sdmx";
             //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
             this.options = "";
             this.local = new registry.LocalRegistry();
@@ -18,25 +18,49 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 this.options = options;
             }
         }
-        ABS.prototype.getRemoteRegistry = function () {
+        Knoema.prototype.getRemoteRegistry = function () {
             return this;
         };
-        ABS.prototype.getRepository = function () {
+        Knoema.prototype.getRepository = function () {
             return null; //this;
         };
-        ABS.prototype.clear = function () {
+        Knoema.prototype.clear = function () {
             this.local.clear();
         };
-        ABS.prototype.query = function (s) {
+        Knoema.prototype.query = function (q) {
+            var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+            return this.retrieveData(q.getDataflow(), url);
         };
-        ABS.prototype.load = function (struct) {
+        Knoema.prototype.retrieveData = function (dataflow, urlString) {
+            console.log("oecd retrieveData:" + urlString);
+            var s = this.options;
+            if (urlString.indexOf("?") == -1) {
+                s = "?" + s + "&random=" + new Date().getTime();
+            }
+            else {
+                s = "&" + s + "&random=" + new Date().getTime();
+            }
+            var opts = {};
+            opts.url = urlString;
+            opts.method = "GET";
+            opts.headers = {};
+            return this.makeRequest(opts).then(function (a) {
+                console.log("Got Data Response");
+                var dm = sdmx.SdmxIO.parseData(a);
+                var payload = new common.PayloadStructureType();
+                payload.setStructure(dataflow.getStructure());
+                dm.getHeader().setStructures([payload]);
+                return dm;
+            });
+        };
+        Knoema.prototype.load = function (struct) {
             console.log("abs load");
             this.local.load(struct);
         };
-        ABS.prototype.unload = function (struct) {
+        Knoema.prototype.unload = function (struct) {
             this.local.unload(struct);
         };
-        ABS.prototype.makeRequest = function (opts) {
+        Knoema.prototype.makeRequest = function (opts) {
             return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(opts.method, opts.url);
@@ -73,7 +97,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 xhr.send(params);
             });
         };
-        ABS.prototype.retrieve = function (urlString) {
+        Knoema.prototype.retrieve = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -90,7 +114,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        ABS.prototype.retrieve2 = function (urlString) {
+        Knoema.prototype.retrieve2 = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -106,7 +130,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return a;
             });
         };
-        ABS.prototype.findDataStructure = function (ref) {
+        Knoema.prototype.findDataStructure = function (ref) {
             var dst = this.local.findDataStructure(ref);
             if (dst != null) {
                 var promise = new Promise(function (resolve, reject) {
@@ -115,10 +139,13 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return promise;
             }
             else {
-                return null;
+                return this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function (structure) {
+                    this.local.load(structure);
+                    return structure.getStructures().findDataStructure(ref);
+                }.bind(this));
             }
         };
-        ABS.prototype.listDataflows = function () {
+        Knoema.prototype.listDataflows = function () {
             if (this.dataflowList != null) {
                 var promise = new Promise(function (resolve, reject) {
                     resolve(this.dataflowList);
@@ -126,7 +153,7 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 return promise;
             }
             else {
-                return this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function (st) {
+                return this.retrieve(this.serviceURL).then(function (st) {
                     var array = st.getStructures().getDataStructures().getDataStructures();
                     var dfs = [];
                     for (var i = 0; i < array.length; i++) {
@@ -137,26 +164,26 @@ define(["require", "exports", "sdmx/registry", "sdmx"], function (require, expor
                 }.bind(this));
             }
         };
-        ABS.prototype.getServiceURL = function () { return this.serviceURL; };
-        ABS.prototype.findDataflow = function (ref) { return null; };
-        ABS.prototype.findCode = function (ref) { return null; };
-        ABS.prototype.findCodelist = function (ref) { return null; };
-        ABS.prototype.findItemType = function (item) { return null; };
-        ABS.prototype.findConcept = function (ref) { return null; };
-        ABS.prototype.findConceptScheme = function (ref) { return null; };
-        ABS.prototype.searchDataStructure = function (ref) { return null; };
-        ABS.prototype.searchDataflow = function (ref) { return null; };
-        ABS.prototype.searchCodelist = function (ref) { return null; };
-        ABS.prototype.searchItemType = function (item) { return null; };
-        ABS.prototype.searchConcept = function (ref) { return null; };
-        ABS.prototype.searchConceptScheme = function (ref) { return null; };
-        ABS.prototype.getLocalRegistry = function () {
+        Knoema.prototype.getServiceURL = function () { return this.serviceURL; };
+        Knoema.prototype.findDataflow = function (ref) { return null; };
+        Knoema.prototype.findCode = function (ref) { return null; };
+        Knoema.prototype.findCodelist = function (ref) { return null; };
+        Knoema.prototype.findItemType = function (item) { return null; };
+        Knoema.prototype.findConcept = function (ref) { return null; };
+        Knoema.prototype.findConceptScheme = function (ref) { return null; };
+        Knoema.prototype.searchDataStructure = function (ref) { return null; };
+        Knoema.prototype.searchDataflow = function (ref) { return null; };
+        Knoema.prototype.searchCodelist = function (ref) { return null; };
+        Knoema.prototype.searchItemType = function (item) { return null; };
+        Knoema.prototype.searchConcept = function (ref) { return null; };
+        Knoema.prototype.searchConceptScheme = function (ref) { return null; };
+        Knoema.prototype.getLocalRegistry = function () {
             return this.local;
         };
-        ABS.prototype.save = function () { };
-        return ABS;
+        Knoema.prototype.save = function () { };
+        return Knoema;
     })();
-    exports.ABS = ABS;
+    exports.Knoema = Knoema;
 });
 
-//# sourceMappingURL=abs.js.map
+//# sourceMappingURL=knoema.js.map

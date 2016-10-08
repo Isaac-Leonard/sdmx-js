@@ -433,10 +433,16 @@ export class Sdmx20StructureReaderTools {
         if (conceptsNode == null) return null;
         var concepts: structure.Concepts = new structure.Concepts();
         this.struct.getStructures().setConcepts(concepts);
-        var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
-        for (var i: number = 0; i < conNodes.length; i++) {
-            var conceptScheme: structure.ConceptSchemeType = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
-            this.toConcept(conceptScheme, conNodes[i]);
+        var csNodes = this.searchNodeName("ConceptScheme", conceptsNode.childNodes);
+        for (var i: number = 0; i < csNodes.length; i++) {
+            concepts.getConceptSchemes().push(this.toConceptScheme(csNodes[i]));
+        }
+        if (csNodes.length == 0) {
+            var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
+            for (var i: number = 0; i < conNodes.length; i++) {
+                var conceptScheme: structure.ConceptSchemeType = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
+                this.toConcept(conceptScheme, conNodes[i]);
+            }
         }
         return concepts;
     }
@@ -463,7 +469,12 @@ export class Sdmx20StructureReaderTools {
         var cs: structure.ConceptSchemeType = new structure.ConceptSchemeType();
         cs.setNames(this.toNames(conceptSchemeNode))
         cs.setAgencyId(this.toNestedNCNameID(conceptSchemeNode));
+        cs.setId(this.toID(conceptSchemeNode));
         cs.setVersion(this.toVersion(conceptSchemeNode));
+        var conceptNodes = this.searchNodeName("Concept", conceptSchemeNode.childNodes);
+        for (var i = 0; i < conceptNodes.length; i++) {
+            this.toConcept(cs, conceptNodes[i]);
+        }
         return cs;
     }
     toConcept(conceptScheme: structure.ConceptSchemeType, conceptNode: any) {
@@ -555,6 +566,9 @@ export class Sdmx20StructureReaderTools {
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
         var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (dim.getAttribute("conceptRef") != null) {
+            dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+        }
         if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyId());
@@ -578,6 +592,9 @@ export class Sdmx20StructureReaderTools {
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
         var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (dim.getAttribute("conceptRef") != null) {
+            dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+        }
         if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyId());
@@ -601,6 +618,9 @@ export class Sdmx20StructureReaderTools {
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
         var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (dim.getAttribute("conceptRef") != null) {
+            dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+        }
         if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyId());
@@ -624,6 +644,9 @@ export class Sdmx20StructureReaderTools {
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.Codelist = this.getCodelist(dim);
         var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (dim.getAttribute("conceptRef") != null) {
+            dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+        }
         if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyId());
@@ -799,6 +822,7 @@ export class Sdmx20StructureReaderTools {
             cst = this.registry.findConceptScheme(ref2);
             if (cst != null) return cst;
         }
+        //alert("Falling through getConceptScheme");
         return null;
     }
     getConcept(cs: structure.ConceptSchemeType, dim: any) {
@@ -828,6 +852,9 @@ export class Sdmx20StructureReaderTools {
         var cs: structure.ConceptSchemeType = this.getConceptScheme(dim);
         var cl: structure.ConceptSchemeType = this.getCodelist(dim);
         var con: structure.ConceptType = this.getConcept(cs, dim);
+        if (dim.getAttribute("conceptRef") != null) {
+            dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+        }
         if (con != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
             ref.setAgencyId(cs.getAgencyId());
@@ -845,7 +872,7 @@ export class Sdmx20StructureReaderTools {
         createdConceptScheme.setVersion(cl.getVersion());
         createdConceptScheme.setNames(cl.getNames());
         createdConceptScheme.setDescriptions(cl.getDescriptions());
-        for (var i: number = 0; i < cl.size();i++) {
+        for (var i: number = 0; i < cl.size(); i++) {
             var code: structure.ItemType = cl.getItem(i);
             var concept: structure.ConceptType = new structure.ConceptType();
             concept.setId(code.getId());
@@ -857,7 +884,7 @@ export class Sdmx20StructureReaderTools {
             concept.setAnnotations(code.getAnnotations());
             createdConceptScheme.addItem(concept);
         }
-        if (this.struct.getStructures().getConcepts()==null) {
+        if (this.struct.getStructures().getConcepts() == null) {
             this.struct.getStructures().setConcepts(new structure.Concepts());
         }
         this.struct.getStructures().getConcepts().getConceptSchemes().push(createdConceptScheme);

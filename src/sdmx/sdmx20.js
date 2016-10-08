@@ -417,10 +417,16 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 return null;
             var concepts = new structure.Concepts();
             this.struct.getStructures().setConcepts(concepts);
-            var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
-            for (var i = 0; i < conNodes.length; i++) {
-                var conceptScheme = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
-                this.toConcept(conceptScheme, conNodes[i]);
+            var csNodes = this.searchNodeName("ConceptScheme", conceptsNode.childNodes);
+            for (var i = 0; i < csNodes.length; i++) {
+                concepts.getConceptSchemes().push(this.toConceptScheme(csNodes[i]));
+            }
+            if (csNodes.length == 0) {
+                var conNodes = this.searchNodeName("Concept", conceptsNode.childNodes);
+                for (var i = 0; i < conNodes.length; i++) {
+                    var conceptScheme = this.findStandaloneConceptScheme(this.toNestedNCNameID(conNodes[i]));
+                    this.toConcept(conceptScheme, conNodes[i]);
+                }
             }
             return concepts;
         };
@@ -448,7 +454,12 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var cs = new structure.ConceptSchemeType();
             cs.setNames(this.toNames(conceptSchemeNode));
             cs.setAgencyId(this.toNestedNCNameID(conceptSchemeNode));
+            cs.setId(this.toID(conceptSchemeNode));
             cs.setVersion(this.toVersion(conceptSchemeNode));
+            var conceptNodes = this.searchNodeName("Concept", conceptSchemeNode.childNodes);
+            for (var i = 0; i < conceptNodes.length; i++) {
+                this.toConcept(cs, conceptNodes[i]);
+            }
             return cs;
         };
         Sdmx20StructureReaderTools.prototype.toConcept = function (conceptScheme, conceptNode) {
@@ -542,6 +553,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var cs = this.getConceptScheme(dim);
             var cl = this.getCodelist(dim);
             var con = this.getConcept(cs, dim);
+            if (dim.getAttribute("conceptRef") != null) {
+                dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+            }
             if (con != null) {
                 var ref = new commonreferences.Ref();
                 ref.setAgencyId(cs.getAgencyId());
@@ -566,6 +580,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var cs = this.getConceptScheme(dim);
             var cl = this.getCodelist(dim);
             var con = this.getConcept(cs, dim);
+            if (dim.getAttribute("conceptRef") != null) {
+                dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+            }
             if (con != null) {
                 var ref = new commonreferences.Ref();
                 ref.setAgencyId(cs.getAgencyId());
@@ -590,6 +607,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var cs = this.getConceptScheme(dim);
             var cl = this.getCodelist(dim);
             var con = this.getConcept(cs, dim);
+            if (dim.getAttribute("conceptRef") != null) {
+                dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+            }
             if (con != null) {
                 var ref = new commonreferences.Ref();
                 ref.setAgencyId(cs.getAgencyId());
@@ -614,6 +634,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var cs = this.getConceptScheme(dim);
             var cl = this.getCodelist(dim);
             var con = this.getConcept(cs, dim);
+            if (dim.getAttribute("conceptRef") != null) {
+                dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+            }
             if (con != null) {
                 var ref = new commonreferences.Ref();
                 ref.setAgencyId(cs.getAgencyId());
@@ -811,6 +834,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 if (cst != null)
                     return cst;
             }
+            //alert("Falling through getConceptScheme");
             return null;
         };
         Sdmx20StructureReaderTools.prototype.getConcept = function (cs, dim) {
@@ -842,6 +866,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var cs = this.getConceptScheme(dim);
             var cl = this.getCodelist(dim);
             var con = this.getConcept(cs, dim);
+            if (dim.getAttribute("conceptRef") != null) {
+                dim2.setId(new commonreferences.ID(dim.getAttribute("conceptRef")));
+            }
             if (con != null) {
                 var ref = new commonreferences.Ref();
                 ref.setAgencyId(cs.getAgencyId());

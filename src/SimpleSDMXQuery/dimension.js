@@ -99,6 +99,10 @@ define("SimpleSDMXQuery/dimension", ["require", "react", "sdmx/structure", "loda
                         }, React.createElement('option', {'value': 'all'}, 'All'), React.createElement('option', {'value': 'one'}, 'One'), React.createElement('option', {'value': 'many'}, 'Many')
                                 ), _.map(this.state.codelist.getItems(), this.repeatButton));
             } else if (this.state.number == "one") {
+                if( dim.getConceptIdentity()==null ) {
+                    //alert("Dimension:"+this.state.conceptRef+" does not have a concept Identity!");
+                    //alert(JSON.stringify(this.state.conceptRef));
+                }
                 return React.createElement('div', {}, React.createElement(
                         "p",
                         null,

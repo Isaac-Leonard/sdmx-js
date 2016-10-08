@@ -12,6 +12,13 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.query = [];
             this.startDate = new Date();
             this.endDate = new Date();
+            this.updatedAfter = null;
+            this.firstNObservations = null;
+            this.lastNObservations = null;
+            this.dimensionAtObservation = null;
+            this.detail = null;
+            this.includeHistory = null;
+            this.providerRef = null;
             this.flow = flow;
             this.structRef = flow.getStructure();
             this.registry = registry;
@@ -70,6 +77,34 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                 }
             }
             return qString;
+        };
+        Query.prototype.getUpdatedAfter = function () { return this.updatedAfter; };
+        Query.prototype.setUpdatedAfter = function (d) { this.updatedAfter = d; };
+        Query.prototype.getFirstNObservations = function () {
+            return this.firstNObservations;
+        };
+        Query.prototype.setFirstNObservations = function (n) {
+            this.firstNObservations = n;
+        };
+        Query.prototype.getLastNObservations = function () {
+            return this.lastNObservations;
+        };
+        Query.prototype.setLastNObservations = function (n) {
+            this.lastNObservations = n;
+        };
+        Query.prototype.getDimensionAtObservation = function () {
+            return this.dimensionAtObservation;
+        };
+        Query.prototype.setDimensionAtObservation = function (s) {
+            this.dimensionAtObservation = s;
+        };
+        Query.prototype.setDetail = function (s) { this.detail = s; };
+        Query.prototype.getDetail = function () { return this.detail; };
+        Query.prototype.getIncludeHistory = function () { return this.includeHistory; };
+        Query.prototype.setIncludeHistory = function (b) { this.includeHistory = b; };
+        Query.prototype.setProviderRef = function (s) { this.providerRef = s; };
+        Query.prototype.getProviderRef = function () {
+            return this.providerRef;
         };
         return Query;
     })();

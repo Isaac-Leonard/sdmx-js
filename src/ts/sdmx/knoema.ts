@@ -23,10 +23,11 @@ import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
 import sdmx = require("sdmx");
-export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
-    private agency: string = "ABS";
+import data = require("data");
+export class Knoema implements interfaces.Queryable, interfaces.RemoteRegistry, interfaces.Repository {
+    private agency: string = "Knoema";
     //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-    private serviceURL: string = "http://stat.data.abs.gov.au/restsdmx/sdmx.ashx/";
+    private serviceURL: string = "http://knoema.com/api/1.0/sdmx";
     //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
@@ -45,8 +46,30 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
     clear() {
         this.local.clear();
     }
-    query(s: string) {
-
+    query(q:data.Query):Promise<message.DataMessage> {
+        var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        return this.retrieveData(q.getDataflow(),url);
+    }
+    public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
+        console.log("oecd retrieveData:" + urlString);
+        var s: string = this.options;
+        if (urlString.indexOf("?") == -1) {
+            s = "?" + s + "&random=" + new Date().getTime();
+        } else {
+            s = "&" + s + "&random=" + new Date().getTime();
+        }
+        var opts: any = {};
+        opts.url = urlString;
+        opts.method = "GET";
+        opts.headers = {};
+        return this.makeRequest(opts).then(function(a) {
+            console.log("Got Data Response");
+            var dm = sdmx.SdmxIO.parseData(a);
+            var payload = new common.PayloadStructureType();
+            payload.setStructure(dataflow.getStructure());
+            dm.getHeader().setStructures([payload]);
+            return dm;
+        });
     }
     constructor(agency: string, service: string, options: string) {
         if (service != null) { this.serviceURL = service; }
@@ -138,7 +161,10 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return null;
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function(structure: message.StructureType){
+                this.local.load(structure);
+                return structure.getStructures().findDataStructure(ref);
+            }.bind(this));
         }
     }
 
@@ -149,7 +175,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
+            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL).then(function(st: message.StructureType) {
                 var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
                 var dfs: Array<structure.Dataflow> = [];
                 for (var i = 0; i < array.length; i++) {
