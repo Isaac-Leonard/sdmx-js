@@ -160,7 +160,7 @@ export class NameableType extends IdentifiableType {
             //console.log("Named is null");
             return "";
         }
-        if( named.findDescription== null){
+        if (named.findDescription == null) {
             // Obviously not a NameableType :(
             return "";
         }
@@ -684,37 +684,37 @@ export class DataStructure extends MaintainableType {
     public dump() {
         for (var i: number = 0; i < this.components.getDimensionList().getDimensions().length; i++) {
             var dim: Dimension = this.components.getDimensionList().getDimensions()[i];
-            console.log("Dim:"+i+":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + +"id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            console.log("Dim:" + i + ":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + +"id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
             if (dim.getLocalRepresentation().getEnumeration() != null) {
-                console.log("Dim:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                console.log("Dim:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
             }
         }
-        var dim:Component = this.components.getDimensionList().getMeasureDimension();
+        var dim: Component = this.components.getDimensionList().getMeasureDimension();
         if (dim != null) {
-            console.log("Dim:measure:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            console.log("Dim:measure:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
             if (dim.getLocalRepresentation().getEnumeration() != null) {
-                console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
             }
         }
         var dim: Component = this.components.getDimensionList().getTimeDimension();
         if (dim != null) {
-            console.log("Dim:time:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            console.log("Dim:time:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
             if (dim.getLocalRepresentation().getEnumeration() != null) {
-                console.log("Dim:" + "time" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                console.log("Dim:" + "time" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
             }
         }
         var dim: Component = this.components.getMeasureList().getPrimaryMeasure();
         if (dim != null) {
-            console.log("Dim:pm:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            console.log("Dim:pm:" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
             if (dim.getLocalRepresentation().getEnumeration() != null) {
-                console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                console.log("Dim:" + "pm" + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
             }
         }
         for (var i: number = 0; i < this.components.getAttributeList().getAttributes().length; i++) {
             var dim: Component = this.components.getAttributeList().getAttributes()[i];
-            console.log("Att:"+i+":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId()+":v:" + dim.getConceptIdentity().getVersion());
+            console.log("Att:" + i + ":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + "id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
             if (dim.getLocalRepresentation().getEnumeration() != null) {
-                console.log("Att:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId()+":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                console.log("Att:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
             }
         }
     }
@@ -724,30 +724,30 @@ export class DataStructure extends MaintainableType {
     }
 
     public findComponent(col: commonreferences.ID): Component {
-        for (var i: number = 0; i < this.components.getDimensionList().getDimensions().length;i++) {
+        for (var i: number = 0; i < this.components.getDimensionList().getDimensions().length; i++) {
             var dim = this.components.getDimensionList().getDimensions()[i];
-            if (dim.getId().equalsID(col)){
+            if (dim.getId().equalsID(col)) {
                 return dim;
             }
         }
-        for (var i: number = 0; i < this.components.getAttributeList().getAttributes().length;i++) {
+        for (var i: number = 0; i < this.components.getAttributeList().getAttributes().length; i++) {
             var dim = this.components.getAttributeList().getAttributes()[i];
-            if (dim.getId().equalsID(col)){
+            if (dim.getId().equalsID(col)) {
                 return dim;
             }
         }
-        if (this.components.getDimensionList().getMeasureDimension()!=null ) {
+        if (this.components.getDimensionList().getMeasureDimension() != null) {
             var dim = this.components.getDimensionList().getMeasureDimension();
-            if (dim.getId().equalsID(col)){
+            if (dim.getId().equalsID(col)) {
                 return dim;
             }
         }
-        var time:TimeDimension = this.components.getDimensionList().getTimeDimension();
-        if (time.getId().equalsID(col)){
+        var time: TimeDimension = this.components.getDimensionList().getTimeDimension();
+        if (time.getId().equalsID(col)) {
             return time;
         }
         var dim2: PrimaryMeasure = this.components.getMeasureList().getPrimaryMeasure();
-        if (dim2.getId().equalsID(col)){
+        if (dim2.getId().equalsID(col)) {
             return dim2;
         }
         return null;
@@ -975,12 +975,16 @@ export class Concepts {
         return cl;
     }
     findConceptSchemeReference(ref: commonreferences.Reference): ConceptSchemeType {
-        if( ref == null ) {return null;}
-        else return this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
+        if (ref == null) { return null; }
+        else {
+            var cs: ConceptSchemeType = this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
+            if (cs == null) { return null; }
+            return cs;
+        }
     }
 
     merge(conceptsType: Concepts) {
-        if (conceptsType == null) {return;}
+        if (conceptsType == null) { return; }
         for (var i: number = 0; i < conceptsType.getConceptSchemes().length; i++) {
             this.concepts.push(conceptsType.getConceptSchemes()[i]);
         }
@@ -1105,11 +1109,13 @@ export class Structures implements interfaces.LocalRegistry {
         return null;
     }
     findConcept(ref: commonreferences.Reference): structure.ConceptType {
-        if (this.concepts == null) {return null;}
-        return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
+        if (this.concepts == null) { return null; }
+        var cs: ConceptSchemeType = this.concepts.findConceptSchemeReference(ref);
+        if( cs == null ) {return null;}
+        return cs.findItemId(ref.getId());
     }
     findConceptScheme(ref: commonreferences.Reference): structure.ConceptSchemeType {
-        if (this.concepts == null){ return null;}
+        if (this.concepts == null) { return null; }
         return this.concepts.findConceptSchemeReference(ref);
     }
     searchDataStructure(ref: commonreferences.Reference): Array<structure.DataStructure> {
