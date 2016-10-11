@@ -984,8 +984,13 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             if (ref == null) {
                 return null;
             }
-            else
-                return this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
+            else {
+                var cs = this.findConceptScheme(ref.getAgencyId(), ref.getMaintainableParentId(), ref.getVersion());
+                if (cs == null) {
+                    return null;
+                }
+                return cs;
+            }
         };
         Concepts.prototype.merge = function (conceptsType) {
             if (conceptsType == null) {
@@ -1121,7 +1126,11 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             if (this.concepts == null) {
                 return null;
             }
-            return this.concepts.findConceptSchemeReference(ref).findItemId(ref.getId());
+            var cs = this.concepts.findConceptSchemeReference(ref);
+            if (cs == null) {
+                return null;
+            }
+            return cs.findItemId(ref.getId());
         };
         Structures.prototype.findConceptScheme = function (ref) {
             if (this.concepts == null) {

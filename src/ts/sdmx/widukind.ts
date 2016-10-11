@@ -22,12 +22,12 @@ import structure = require("sdmx/structure");
 import message = require("sdmx/message");
 import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
-import data = require("sdmx/data");
 import sdmx = require("sdmx");
-export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
-    private agency: string = "ABS";
+import data = require("data");
+export class Widukind implements interfaces.Queryable, interfaces.RemoteRegistry, interfaces.Repository {
+    private agency: string = "WIDUKIND";
     //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://stat.data.abs.gov.au/restsdmx/sdmx.ashx/";
+    private serviceURL: string = "http://widukind-api.cepremap.org/api/v1/sdmx/";
     //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
@@ -47,11 +47,11 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         this.local.clear();
     }
     query(q:data.Query):Promise<message.DataMessage> {
-        var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
         return this.retrieveData(q.getDataflow(),url);
     }
     public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
-        console.log("abs retrieveData:" + urlString);
+        console.log("oecd retrieveData:" + urlString);
         var s: string = this.options;
         if (urlString.indexOf("?") == -1) {
             s = "?" + s + "&random=" + new Date().getTime();
@@ -161,13 +161,12 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "GetDataStructure/" + ref.getMaintainableParentId().toString() + "/" + ref.getAgencyId().toString()).then(function(structure: message.StructureType){
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function(structure: message.StructureType){
                 this.local.load(structure);
                 return structure.getStructures().findDataStructure(ref);
             }.bind(this));
         }
     }
-
 
     public listDataflows(): Promise<Array<structure.Dataflow>> {
         if (this.dataflowList != null) {
@@ -176,7 +175,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
+            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL).then(function(st: message.StructureType) {
                 var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
                 var dfs: Array<structure.Dataflow> = [];
                 for (var i = 0; i < array.length; i++) {

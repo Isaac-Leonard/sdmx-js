@@ -24,6 +24,7 @@ import abs = require("sdmx/abs");
 import oecd = require("sdmx/oecd");
 import knoema = require("sdmx/knoema");
 import nomis = require("sdmx/nomis");
+import ilo = require("sdmx/ilo");
 export class SdmxIO {
     public static LOCALE: string = "en";
     public static SANITISE_NAMES: boolean = false;
@@ -60,15 +61,16 @@ export class SdmxIO {
     }
     public static listServices():Array<string> {
         return ["NOMIS","ABS",
-        "OECD","KNOEMA","AfDB"];
+        "OECD","KNOEMA","AfDB","ILO"];
         //return ["OECD"];
     }
     public static connect(s: string): interfaces.Queryable {
-        if (s == "ABS") return new abs.ABS("ABS","http://stat.abs.gov.au/restsdmx/sdmx.ashx/","");
+        if (s == "ABS") return new abs.ABS("ABS","http://cors-anywhere.herokuapp.com/http://stat.abs.gov.au/restsdmx/sdmx.ashx/","");
         if (s == "KNOEMA") return new knoema.Knoema("KNOEMA","http://knoema.com/api/1.0/sdmx","");
         if (s == "NOMIS") return new nomis.NOMISRESTServiceRegistry("NOMIS", "http://www.nomisweb.co.uk/api", "uid=0xad235cca367972d98bd642ef04ea259da5de264f");
         if (s == "OECD") return new oecd.OECD("OECD","http://stats.oecd.org/restsdmx/sdmx.ashx/","");
         if (s == "AfDB") return new knoema.Knoema("AfDB","http://opendataforafrica.org/api/1.0/sdmx","");
+        if (s == "ILO") return new ilo.ILO("ILO","http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest","");
     }
     public static setTruncateNames(n:number) {
         SdmxIO.TRUNCATE_NAMES=n;

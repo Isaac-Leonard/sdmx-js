@@ -52,7 +52,11 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
     isData(input: string): boolean {
         if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
             return true;
-        } else return false;
+        }
+        if (input.indexOf("MessageGroup") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+            return true;
+        }
+        else return false;
     }
     isMetadata(header: string): boolean {
         return false;
@@ -307,7 +311,8 @@ export class Sdmx20StructureReaderTools {
         return header;
     }
     toSender(senderNode: any): message.Sender {
-        var sender: string = senderNode.childNodes[0].nodeValue;
+        if( senderNode == null || senderNode.childNodes == null ) return null;
+        //var sender: string = senderNode.childNodes[0].nodeValue;
         var senderType: message.Sender = new message.Sender();
         var senderId: string = senderNode.getAttribute("id");
         var senderID: commonreferences.ID = new commonreferences.ID(senderId);

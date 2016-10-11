@@ -31,6 +31,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
                 return true;
             }
+            if (input.indexOf("MessageGroup") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+                return true;
+            }
             else
                 return false;
         };
@@ -284,7 +287,9 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return header;
         };
         Sdmx20StructureReaderTools.prototype.toSender = function (senderNode) {
-            var sender = senderNode.childNodes[0].nodeValue;
+            if (senderNode == null || senderNode.childNodes == null)
+                return null;
+            //var sender: string = senderNode.childNodes[0].nodeValue;
             var senderType = new message.Sender();
             var senderId = senderNode.getAttribute("id");
             var senderID = new commonreferences.ID(senderId);

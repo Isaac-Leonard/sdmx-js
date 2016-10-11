@@ -1,9 +1,9 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
-    var ABS = (function () {
-        function ABS(agency, service, options) {
-            this.agency = "ABS";
+    var Widukind = (function () {
+        function Widukind(agency, service, options) {
+            this.agency = "WIDUKIND";
             //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-            this.serviceURL = "http://cors-anywhere.herokuapp.com/http://stat.data.abs.gov.au/restsdmx/sdmx.ashx/";
+            this.serviceURL = "http://widukind-api.cepremap.org/api/v1/sdmx/";
             //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
             this.options = "";
             this.local = new registry.LocalRegistry();
@@ -18,21 +18,21 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 this.options = options;
             }
         }
-        ABS.prototype.getRemoteRegistry = function () {
+        Widukind.prototype.getRemoteRegistry = function () {
             return this;
         };
-        ABS.prototype.getRepository = function () {
+        Widukind.prototype.getRepository = function () {
             return null; //this;
         };
-        ABS.prototype.clear = function () {
+        Widukind.prototype.clear = function () {
             this.local.clear();
         };
-        ABS.prototype.query = function (q) {
-            var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        Widukind.prototype.query = function (q) {
+            var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
             return this.retrieveData(q.getDataflow(), url);
         };
-        ABS.prototype.retrieveData = function (dataflow, urlString) {
-            console.log("abs retrieveData:" + urlString);
+        Widukind.prototype.retrieveData = function (dataflow, urlString) {
+            console.log("oecd retrieveData:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
                 s = "?" + s + "&random=" + new Date().getTime();
@@ -53,14 +53,14 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return dm;
             });
         };
-        ABS.prototype.load = function (struct) {
+        Widukind.prototype.load = function (struct) {
             console.log("abs load");
             this.local.load(struct);
         };
-        ABS.prototype.unload = function (struct) {
+        Widukind.prototype.unload = function (struct) {
             this.local.unload(struct);
         };
-        ABS.prototype.makeRequest = function (opts) {
+        Widukind.prototype.makeRequest = function (opts) {
             return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(opts.method, opts.url);
@@ -97,7 +97,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 xhr.send(params);
             });
         };
-        ABS.prototype.retrieve = function (urlString) {
+        Widukind.prototype.retrieve = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -114,7 +114,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        ABS.prototype.retrieve2 = function (urlString) {
+        Widukind.prototype.retrieve2 = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -130,7 +130,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return a;
             });
         };
-        ABS.prototype.findDataStructure = function (ref) {
+        Widukind.prototype.findDataStructure = function (ref) {
             var dst = this.local.findDataStructure(ref);
             if (dst != null) {
                 var promise = new Promise(function (resolve, reject) {
@@ -139,13 +139,13 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return promise;
             }
             else {
-                return this.retrieve(this.getServiceURL() + "GetDataStructure/" + ref.getMaintainableParentId().toString() + "/" + ref.getAgencyId().toString()).then(function (structure) {
+                return this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function (structure) {
                     this.local.load(structure);
                     return structure.getStructures().findDataStructure(ref);
                 }.bind(this));
             }
         };
-        ABS.prototype.listDataflows = function () {
+        Widukind.prototype.listDataflows = function () {
             if (this.dataflowList != null) {
                 var promise = new Promise(function (resolve, reject) {
                     resolve(this.dataflowList);
@@ -153,7 +153,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return promise;
             }
             else {
-                return this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function (st) {
+                return this.retrieve(this.serviceURL).then(function (st) {
                     var array = st.getStructures().getDataStructures().getDataStructures();
                     var dfs = [];
                     for (var i = 0; i < array.length; i++) {
@@ -164,26 +164,26 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 }.bind(this));
             }
         };
-        ABS.prototype.getServiceURL = function () { return this.serviceURL; };
-        ABS.prototype.findDataflow = function (ref) { return null; };
-        ABS.prototype.findCode = function (ref) { return null; };
-        ABS.prototype.findCodelist = function (ref) { return null; };
-        ABS.prototype.findItemType = function (item) { return null; };
-        ABS.prototype.findConcept = function (ref) { return null; };
-        ABS.prototype.findConceptScheme = function (ref) { return null; };
-        ABS.prototype.searchDataStructure = function (ref) { return null; };
-        ABS.prototype.searchDataflow = function (ref) { return null; };
-        ABS.prototype.searchCodelist = function (ref) { return null; };
-        ABS.prototype.searchItemType = function (item) { return null; };
-        ABS.prototype.searchConcept = function (ref) { return null; };
-        ABS.prototype.searchConceptScheme = function (ref) { return null; };
-        ABS.prototype.getLocalRegistry = function () {
+        Widukind.prototype.getServiceURL = function () { return this.serviceURL; };
+        Widukind.prototype.findDataflow = function (ref) { return null; };
+        Widukind.prototype.findCode = function (ref) { return null; };
+        Widukind.prototype.findCodelist = function (ref) { return null; };
+        Widukind.prototype.findItemType = function (item) { return null; };
+        Widukind.prototype.findConcept = function (ref) { return null; };
+        Widukind.prototype.findConceptScheme = function (ref) { return null; };
+        Widukind.prototype.searchDataStructure = function (ref) { return null; };
+        Widukind.prototype.searchDataflow = function (ref) { return null; };
+        Widukind.prototype.searchCodelist = function (ref) { return null; };
+        Widukind.prototype.searchItemType = function (item) { return null; };
+        Widukind.prototype.searchConcept = function (ref) { return null; };
+        Widukind.prototype.searchConceptScheme = function (ref) { return null; };
+        Widukind.prototype.getLocalRegistry = function () {
             return this.local;
         };
-        ABS.prototype.save = function () { };
-        return ABS;
+        Widukind.prototype.save = function () { };
+        return Widukind;
     })();
-    exports.ABS = ABS;
+    exports.Widukind = Widukind;
 });
 
-//# sourceMappingURL=abs.js.map
+//# sourceMappingURL=widukind.js.map

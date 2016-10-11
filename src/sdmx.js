@@ -1,4 +1,4 @@
-define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/knoema", "sdmx/nomis"], function (require, exports, sdmx20, sdmx21, abs, oecd, knoema, nomis) {
+define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/knoema", "sdmx/nomis", "sdmx/ilo"], function (require, exports, sdmx20, sdmx21, abs, oecd, knoema, nomis, ilo) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -35,12 +35,12 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
         };
         SdmxIO.listServices = function () {
             return ["NOMIS", "ABS",
-                "OECD", "KNOEMA", "AfDB"];
+                "OECD", "KNOEMA", "AfDB", "ILO"];
             //return ["OECD"];
         };
         SdmxIO.connect = function (s) {
             if (s == "ABS")
-                return new abs.ABS("ABS", "http://stat.abs.gov.au/restsdmx/sdmx.ashx/", "");
+                return new abs.ABS("ABS", "http://cors-anywhere.herokuapp.com/http://stat.abs.gov.au/restsdmx/sdmx.ashx/", "");
             if (s == "KNOEMA")
                 return new knoema.Knoema("KNOEMA", "http://knoema.com/api/1.0/sdmx", "");
             if (s == "NOMIS")
@@ -49,6 +49,8 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
                 return new oecd.OECD("OECD", "http://stats.oecd.org/restsdmx/sdmx.ashx/", "");
             if (s == "AfDB")
                 return new knoema.Knoema("AfDB", "http://opendataforafrica.org/api/1.0/sdmx", "");
+            if (s == "ILO")
+                return new ilo.ILO("ILO", "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest", "");
         };
         SdmxIO.setTruncateNames = function (n) {
             SdmxIO.TRUNCATE_NAMES = n;
