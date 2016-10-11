@@ -792,7 +792,7 @@ export class StructuredDataSet {
             concept = this.registry.findConcept(conceptRef);
             return structure.NameableType.toString(concept);
         } else {
-            throw new Error("Can't find Concept:" + conceptString);
+            return conceptString;
         }
     }
 

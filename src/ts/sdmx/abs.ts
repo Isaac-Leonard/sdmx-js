@@ -47,7 +47,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         this.local.clear();
     }
     query(q:data.Query):Promise<message.DataMessage> {
-        var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear()+"&format=compact_v2";
         return this.retrieveData(q.getDataflow(),url);
     }
     public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {

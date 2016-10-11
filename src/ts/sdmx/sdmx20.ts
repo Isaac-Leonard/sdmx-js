@@ -114,6 +114,10 @@ export class Sdmx20DataReaderTools {
             for (var i: number = 0; i < obsArray.length; i++) {
                 this.dw.newObservation();
                 var atts = obsArray[i].attributes;
+                for (var av: number = 0; av < atts.length; av++) {
+                    this.dw.writeObservationComponent(atts[av].nodeName, atts[av].value);
+                }
+                this.dw.finishObservation();
             }
         } else {
             for (var i: number = 0; i < series.length; i++) {
@@ -153,8 +157,7 @@ export class Sdmx20DataReaderTools {
         return header;
     }
     toSender(senderNode: any): message.Sender {
-        var sender: string = senderNode.childNodes[0].nodeValue;
-
+        //var sender: string = senderNode.childNodes[0].nodeValue;
         var senderType: message.Sender = new message.Sender();
         var senderId: string = senderNode.getAttribute("id");
         var senderID: commonreferences.ID = new commonreferences.ID(senderId);
@@ -311,7 +314,7 @@ export class Sdmx20StructureReaderTools {
         return header;
     }
     toSender(senderNode: any): message.Sender {
-        if( senderNode == null || senderNode.childNodes == null ) return null;
+        if (senderNode == null || senderNode.childNodes == null) return null;
         //var sender: string = senderNode.childNodes[0].nodeValue;
         var senderType: message.Sender = new message.Sender();
         var senderId: string = senderNode.getAttribute("id");
@@ -608,6 +611,9 @@ export class Sdmx20StructureReaderTools {
             ref.setId(con.getId());
             var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
             dim2.setConceptIdentity(reference);
+        } else {
+            alert("con is null cs=" + JSON.stringify(cs) + "con=" + JSON.stringify(con));
+
         }
         if (cl != null) {
             var ttf: structure.TextFormatType = this.toTextFormatType(this.findNodeName("TextFormat", dim.childNodes));
@@ -799,20 +805,40 @@ export class Sdmx20StructureReaderTools {
             var reference: commonreferences.Reference = new commonreferences.Reference(csref, null);
             var cst: structure.ConceptSchemeType = null;
             cst = this.struct.findConceptScheme(reference);
-            if (cst != null) return cst;
+            if (cst != null) {
+                if (cst.findItemString(dim.getAttribute("conceptRef")) != null) {
+                    return cst;
+                } else {
+                    //alert("can't find concpetscheme in currentKeyfamilyAgency:STANDALONE CS");
+                }
+            }
             cst = this.registry.findConceptScheme(reference);
-            if (cst != null) return cst;
-            var ct: structure.ConceptType = cst != null ? cst.findItemString(dim.getAttribute("conceptRef")) : null;
-            var ref: commonreferences.Ref = new commonreferences.Ref();
-            ref.setAgencyId(new commonreferences.NestedNCNameID(this.currentKeyFamilyAgency));
-            ref.setId(new commonreferences.ID("STANDALONE_CONCEPT_SCHEME"));
-            var ref2: commonreferences.Reference = new commonreferences.Reference(ref, null);
-            var cst: structure.ConceptSchemeType = null;
-            cst = this.struct.findConceptScheme(ref2);
-            if (cst != null) return cst;
-            cst = this.registry.findConceptScheme(ref2);
-            if (cst != null) return cst;
-            return cst;
+            if (cst != null) {
+                if (cst.findItemString(dim.getAttribute("conceptRef")) != null) {
+                    return cst;
+                } else {
+                    //alert("can't find concpetscheme in registry:STANDALONE CS");
+                }
+            }
+           
+            // 
+            // This is a trick for ABS SDMX Documents, which have
+            // a Primary Measure and all it has is a conceptRef of "OBS_VALUE"
+            // this points to a Primary Measure Concept that belongs to the OECD Agency :(
+            // this code looks through the structure's conceptschemes, and finds a concept
+            // in the document that has the same ID as the conceptRef..
+            // this is really all i can do with this situation :(
+            var css = this.struct.getStructures().getConcepts().getConceptSchemes();
+            for (var i: number = 0; i < css.length; i++) {
+                for (var j: number = 0; j < css[i].size(); j++) {
+                    var concept = css[i].getItem(j);
+                    if (concept.getId().equalsString(dim.getAttribute("conceptRef"))) {
+                        return css[i];
+                    }
+                }
+            }
+            alert("Can't find concept scheme for concept: " + dim.getAttribute("conceptRef"));
+            return null;
         } else if (dim.getAttribute("conceptRef")() != null && dim.getAttribute("conceptAgency") != null) {
             var csa: commonreferences.NestedNCNameID = new commonreferences.NestedNCNameID(dim.getAttribute("conceptAgency"));
             var csi: commonreferences.ID = new commonreferences.ID("STANDALONE_CONCEPT_SCHEME");
@@ -827,7 +853,24 @@ export class Sdmx20StructureReaderTools {
             cst = this.registry.findConceptScheme(ref2);
             if (cst != null) return cst;
         }
-        //alert("Falling through getConceptScheme");
+        if (dim.getAttribute("conceptRef") != null) {
+            // 
+            // This is a trick for ABS SDMX Documents, which have
+            // a Primary Measure and all it has is a conceptRef of "OBS_VALUE"
+            // this points to a Primary Measure Concept that belongs to the OECD Agency :(
+            var css = this.struct.getStructures().getConcepts().getConceptSchemes();
+            for (var i: number = 0; i < css.length; i++) {
+                for (var j: number = 0; j < css[i].size(); j++) {
+                    var concept = css[i].getItem(j);
+                    if (concept.getId().equalsString(dim.getAttribute("conceptRef"))) {
+                        return css[i];
+                    }
+                }
+            }
+            alert("Can't find concept scheme for concept: " + dim.getAttribute("conceptRef"));
+            return null;
+        }
+        alert("Falling through getConceptScheme");
         return null;
     }
     getConcept(cs: structure.ConceptSchemeType, dim: any) {

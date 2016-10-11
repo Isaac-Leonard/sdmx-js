@@ -28,7 +28,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             this.local.clear();
         };
         ABS.prototype.query = function (q) {
-            var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+            var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear() + "&format=compact_v2";
             return this.retrieveData(q.getDataflow(), url);
         };
         ABS.prototype.retrieveData = function (dataflow, urlString) {

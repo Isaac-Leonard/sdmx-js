@@ -750,6 +750,12 @@ export class DataStructure extends MaintainableType {
         if (dim2.getId().equalsID(col)) {
             return dim2;
         }
+        alert("Can't find concept:" + col.getString() + " pm dim:" + dim2.getId().getString());
+        alert(JSON.stringify(dim2));
+        if ("OBS_VALUE" == col.getString() ) {
+            return dim2;
+        }
+        
         return null;
     }
 

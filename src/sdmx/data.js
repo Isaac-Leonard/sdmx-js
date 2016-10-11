@@ -731,7 +731,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                 return structure.NameableType.toString(concept);
             }
             else {
-                throw new Error("Can't find Concept:" + conceptString);
+                return conceptString;
             }
         };
         StructuredDataSet.prototype.size = function () {
