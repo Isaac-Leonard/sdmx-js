@@ -61,7 +61,7 @@ export class Widukind implements interfaces.Queryable, interfaces.RemoteRegistry
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = {};
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             console.log("Got Data Response");
             var dm = sdmx.SdmxIO.parseData(a);
@@ -132,7 +132,7 @@ export class Widukind implements interfaces.Queryable, interfaces.RemoteRegistry
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = {};
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -148,6 +148,7 @@ export class Widukind implements interfaces.Queryable, interfaces.RemoteRegistry
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             return a;
         });

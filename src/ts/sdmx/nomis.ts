@@ -268,7 +268,8 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         var opts: any = {};
         opts.url = urlString + s;
         opts.method = "GET";
-        opts.headers = { "Connection": "close" };
+        opts.headers = { "Connection": "close" ,
+         "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -283,7 +284,7 @@ export class NOMISRESTServiceRegistry implements interfaces.RemoteRegistry, inte
         var opts: any = {};
         opts.url = urlString + s;
         opts.method = "GET";
-        opts.headers = { "Connection": "close" };
+        opts.headers = { "Connection": "close","Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             var dm = sdmx.SdmxIO.parseData(a);
             var payload = new common.PayloadStructureType();

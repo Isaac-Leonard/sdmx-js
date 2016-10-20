@@ -62,7 +62,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = {};
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             console.log("Got Data Response");
             var dm = sdmx.SdmxIO.parseData(a);
@@ -133,7 +133,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = {};
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -149,6 +149,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             return a;
         });
