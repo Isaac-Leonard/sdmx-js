@@ -40,12 +40,12 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             var struct = this.registry.findDataStructure(this.structRef);
             var keynames = [];
             for (var i = 0; i < struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
-                var dim = struct.getDataStructureComponents().getDimensionList().getDimensions()[i];
-                keynames.push(dim.getId().toString());
+                var dim1 = struct.getDataStructureComponents().getDimensionList().getDimensions()[i];
+                keynames.push(dim1.getId().toString());
             }
             if (struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
-                var dim = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
-                keynames.push(dim.getId().toString());
+                var dim2 = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+                keynames.push(dim2.getId().toString());
             }
             return keynames;
         };

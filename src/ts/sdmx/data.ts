@@ -60,12 +60,12 @@ export class Query {
         var struct: structure.DataStructure = this.registry.findDataStructure(this.structRef);
         var keynames = [];
         for (var i: number = 0; i < struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
-            var dim: structure.Dimension = struct.getDataStructureComponents().getDimensionList().getDimensions()[i];
-            keynames.push(dim.getId().toString());
+            var dim1: structure.Dimension = struct.getDataStructureComponents().getDimensionList().getDimensions()[i];
+            keynames.push(dim1.getId().toString());
         }
         if (struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
-            var dim: structure.Dimension = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
-            keynames.push(dim.getId().toString());
+            var dim2: structure.MeasureDimension = struct.getDataStructureComponents().getDimensionList().getMeasureDimension();
+            keynames.push(dim2.getId().toString());
         }
         return keynames;
     }

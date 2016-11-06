@@ -25,6 +25,7 @@ import registry = require("sdmx/registry");
 import xml = require("sdmx/xml");
 import common = require("sdmx/common");
 import data = require("sdmx/data");
+import sdmx = require("sdmx");
 export function parseXml(s: string): any {
     var parseXml: DOMParser;
     parseXml = new DOMParser();
@@ -176,6 +177,7 @@ export class Sdmx20DataReaderTools {
         var lang = node.getAttribute("xml:lang");
         var text = node.childNodes[0].nodeValue;
         var name: common.Name = new common.Name(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
         return name;
     }
     toDescriptions(node: any): Array<common.Description> {
@@ -190,12 +192,14 @@ export class Sdmx20DataReaderTools {
         var lang = node.getAttribute("xml:lang");
         var text = node.childNodes[0].nodeValue;
         var desc: common.Description = new common.Description(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
         return desc;
     }
     toTextType(node: any): common.TextType {
         var lang = node.getAttribute("xml:lang");
         var text = node.childNodes[0].nodeValue;
         var textType: common.TextType = new common.TextType(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
         return textType;
     }
     toPartyType(node: any): message.PartyType {
@@ -334,6 +338,7 @@ export class Sdmx20StructureReaderTools {
         var lang = node.getAttribute("xml:lang");
         var text = node.childNodes[0].nodeValue;
         var name: common.Name = new common.Name(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
         return name;
     }
     toDescriptions(node: any): Array<common.Description> {
@@ -352,12 +357,33 @@ export class Sdmx20StructureReaderTools {
         }
         var text = node.childNodes[0].nodeValue;
         var desc: common.Description = new common.Description(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
         return desc;
+    }
+    toCodeNames(node: any): Array<common.Name> {
+        var names: Array<common.Name> = [];
+        var senderNames = this.searchNodeName("Description", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toCodeName(senderNames[i]));
+        }
+        return names;
+    }
+    toCodeName(node: any): common.Description {
+        var lang = node.getAttribute("xml:lang");
+        if (node.childNodes.length == 0) {
+            // <structure:Description xml:lang="en" />
+            return new common.Name(lang, "");
+        }
+        var text = node.childNodes[0].nodeValue;
+        var name: common.Name = new common.Name(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
+        return name;
     }
     toTextType(node: any): common.TextType {
         var lang = node.getAttribute("xml:lang");
         var text = node.childNodes[0].nodeValue;
         var textType: common.TextType = new common.TextType(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
         return textType;
     }
     toPartyType(node: any): message.PartyType {
@@ -415,7 +441,10 @@ export class Sdmx20StructureReaderTools {
     }
     toCode(codeNode: any): structure.CodeType {
         var c: structure.CodeType = new structure.CodeType();
-        c.setDescriptions(this.toDescriptions(codeNode));
+        // Codes in SDMX 2.1 have Names, not Descriptions.. here we change the
+        // description to a name instead.
+        //c.setDescriptions(this.toDescriptions(codeNode));
+        c.setNames(this.toCodeNames(codeNode));
         c.setId(this.toValue(codeNode));
         if (codeNode.getAttribute("parentCode") != null) {
             var ref: commonreferences.Ref = new commonreferences.Ref();
@@ -552,7 +581,7 @@ export class Sdmx20StructureReaderTools {
             } else {
                 // Sometimes Time Dimension seems to get mistakenly sucked
                 // into this list too :(
-                if (dims[i].nodeName != "structure:TimeDimension") {
+                if (dims[i].nodeName.indexOf("TimeDimension")==-1) {
                     dimArray.push(this.toDimension(dims[i]));
                 }
             }

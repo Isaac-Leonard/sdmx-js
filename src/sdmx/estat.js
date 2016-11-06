@@ -1,10 +1,8 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
-    var Widukind = (function () {
-        function Widukind(agency, service, options) {
-            this.agency = "WIDUKIND";
-            //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-            this.serviceURL = "http://widukind-api.cepremap.org/api/v1/sdmx/";
-            //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
+    var ESTAT = (function () {
+        function ESTAT(agency, service, options) {
+            this.agency = "ESTAT";
+            this.serviceURL = "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest";
             this.options = "";
             this.local = new registry.LocalRegistry();
             this.dataflowList = null;
@@ -18,21 +16,23 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 this.options = options;
             }
         }
-        Widukind.prototype.getRemoteRegistry = function () {
+        ESTAT.prototype.getRemoteRegistry = function () {
             return this;
         };
-        Widukind.prototype.getRepository = function () {
-            return null; //this;
+        ESTAT.prototype.getRepository = function () {
+            return this;
         };
-        Widukind.prototype.clear = function () {
+        ESTAT.prototype.clear = function () {
             this.local.clear();
         };
-        Widukind.prototype.query = function (q) {
-            var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        ESTAT.prototype.query = function (q) {
+            var startPeriod = q.getStartDate().getFullYear() + "-" + q.getStartDate().getMonth();
+            var endPeriod = q.getEndDate().getFullYear() + "-" + q.getEndDate().getMonth();
+            var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "?startPeriod=" + startPeriod + "&endPeriod=" + endPeriod + "";
             return this.retrieveData(q.getDataflow(), url);
         };
-        Widukind.prototype.retrieveData = function (dataflow, urlString) {
-            console.log("oecd retrieveData:" + urlString);
+        ESTAT.prototype.retrieveData = function (dataflow, urlString) {
+            console.log("abs retrieveData:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
                 s = "?" + s + "&random=" + new Date().getTime();
@@ -53,14 +53,14 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return dm;
             });
         };
-        Widukind.prototype.load = function (struct) {
+        ESTAT.prototype.load = function (struct) {
             console.log("abs load");
             this.local.load(struct);
         };
-        Widukind.prototype.unload = function (struct) {
+        ESTAT.prototype.unload = function (struct) {
             this.local.unload(struct);
         };
-        Widukind.prototype.makeRequest = function (opts) {
+        ESTAT.prototype.makeRequest = function (opts) {
             return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(opts.method, opts.url);
@@ -97,7 +97,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 xhr.send(params);
             });
         };
-        Widukind.prototype.retrieve = function (urlString) {
+        ESTAT.prototype.retrieve = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -114,7 +114,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return sdmx.SdmxIO.parseStructure(a);
             });
         };
-        Widukind.prototype.retrieve2 = function (urlString) {
+        ESTAT.prototype.retrieve2 = function (urlString) {
             console.log("nomis retrieve:" + urlString);
             var s = this.options;
             if (urlString.indexOf("?") == -1) {
@@ -131,7 +131,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return a;
             });
         };
-        Widukind.prototype.findDataStructure = function (ref) {
+        ESTAT.prototype.findDataStructure = function (ref) {
             var dst = this.local.findDataStructure(ref);
             if (dst != null) {
                 var promise = new Promise(function (resolve, reject) {
@@ -140,13 +140,13 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return promise;
             }
             else {
-                return this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function (structure) {
+                return this.retrieve(this.getServiceURL() + "/datastructure/" + this.agency + "/" + ref.getMaintainableParentId().toString() + "/" + ref.getVersion().toString() + "?references=all").then(function (structure) {
                     this.local.load(structure);
                     return structure.getStructures().findDataStructure(ref);
                 }.bind(this));
             }
         };
-        Widukind.prototype.listDataflows = function () {
+        ESTAT.prototype.listDataflows = function () {
             if (this.dataflowList != null) {
                 var promise = new Promise(function (resolve, reject) {
                     resolve(this.dataflowList);
@@ -154,37 +154,32 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return promise;
             }
             else {
-                return this.retrieve(this.serviceURL).then(function (st) {
-                    var array = st.getStructures().getDataStructures().getDataStructures();
-                    var dfs = [];
-                    for (var i = 0; i < array.length; i++) {
-                        dfs.push(array[i].asDataflow());
-                    }
-                    this.dataflowList = dfs;
-                    return dfs;
+                return this.retrieve(this.serviceURL + "/dataflow/" + this.agency + "/all/latest").then(function (st) {
+                    this.dataflowList = st.getStructures().getDataflows().getDataflowList();
+                    return this.dataflowList;
                 }.bind(this));
             }
         };
-        Widukind.prototype.getServiceURL = function () { return this.serviceURL; };
-        Widukind.prototype.findDataflow = function (ref) { return null; };
-        Widukind.prototype.findCode = function (ref) { return null; };
-        Widukind.prototype.findCodelist = function (ref) { return null; };
-        Widukind.prototype.findItemType = function (item) { return null; };
-        Widukind.prototype.findConcept = function (ref) { return null; };
-        Widukind.prototype.findConceptScheme = function (ref) { return null; };
-        Widukind.prototype.searchDataStructure = function (ref) { return null; };
-        Widukind.prototype.searchDataflow = function (ref) { return null; };
-        Widukind.prototype.searchCodelist = function (ref) { return null; };
-        Widukind.prototype.searchItemType = function (item) { return null; };
-        Widukind.prototype.searchConcept = function (ref) { return null; };
-        Widukind.prototype.searchConceptScheme = function (ref) { return null; };
-        Widukind.prototype.getLocalRegistry = function () {
+        ESTAT.prototype.getServiceURL = function () { return this.serviceURL; };
+        ESTAT.prototype.findDataflow = function (ref) { return null; };
+        ESTAT.prototype.findCode = function (ref) { return null; };
+        ESTAT.prototype.findCodelist = function (ref) { return null; };
+        ESTAT.prototype.findItemType = function (item) { return null; };
+        ESTAT.prototype.findConcept = function (ref) { return null; };
+        ESTAT.prototype.findConceptScheme = function (ref) { return null; };
+        ESTAT.prototype.searchDataStructure = function (ref) { return null; };
+        ESTAT.prototype.searchDataflow = function (ref) { return null; };
+        ESTAT.prototype.searchCodelist = function (ref) { return null; };
+        ESTAT.prototype.searchItemType = function (item) { return null; };
+        ESTAT.prototype.searchConcept = function (ref) { return null; };
+        ESTAT.prototype.searchConceptScheme = function (ref) { return null; };
+        ESTAT.prototype.getLocalRegistry = function () {
             return this.local;
         };
-        Widukind.prototype.save = function () { };
-        return Widukind;
+        ESTAT.prototype.save = function () { };
+        return ESTAT;
     })();
-    exports.Widukind = Widukind;
+    exports.ESTAT = ESTAT;
 });
 
-//# sourceMappingURL=widukind.js.map
+//# sourceMappingURL=estat.js.map

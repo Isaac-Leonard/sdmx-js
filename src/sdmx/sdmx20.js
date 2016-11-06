@@ -1,4 +1,4 @@
-define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data"], function (require, exports, commonreferences, structure, message, registry, xml, common, data) {
+define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data", "sdmx"], function (require, exports, commonreferences, structure, message, registry, xml, common, data, sdmx) {
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -151,6 +151,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var name = new common.Name(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
             return name;
         };
         Sdmx20DataReaderTools.prototype.toDescriptions = function (node) {
@@ -165,12 +166,14 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var desc = new common.Description(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
             return desc;
         };
         Sdmx20DataReaderTools.prototype.toTextType = function (node) {
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var textType = new common.TextType(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
             return textType;
         };
         Sdmx20DataReaderTools.prototype.toPartyType = function (node) {
@@ -312,6 +315,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var name = new common.Name(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
             return name;
         };
         Sdmx20StructureReaderTools.prototype.toDescriptions = function (node) {
@@ -330,12 +334,33 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             var text = node.childNodes[0].nodeValue;
             var desc = new common.Description(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
             return desc;
+        };
+        Sdmx20StructureReaderTools.prototype.toCodeNames = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Description", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toCodeName(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx20StructureReaderTools.prototype.toCodeName = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            if (node.childNodes.length == 0) {
+                // <structure:Description xml:lang="en" />
+                return new common.Name(lang, "");
+            }
+            var text = node.childNodes[0].nodeValue;
+            var name = new common.Name(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
+            return name;
         };
         Sdmx20StructureReaderTools.prototype.toTextType = function (node) {
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var textType = new common.TextType(lang, text);
+            sdmx.SdmxIO.registerLanguage(lang);
             return textType;
         };
         Sdmx20StructureReaderTools.prototype.toPartyType = function (node) {
@@ -396,7 +421,10 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         };
         Sdmx20StructureReaderTools.prototype.toCode = function (codeNode) {
             var c = new structure.CodeType();
-            c.setDescriptions(this.toDescriptions(codeNode));
+            // Codes in SDMX 2.1 have Names, not Descriptions.. here we change the
+            // description to a name instead.
+            //c.setDescriptions(this.toDescriptions(codeNode));
+            c.setNames(this.toCodeNames(codeNode));
             c.setId(this.toValue(codeNode));
             if (codeNode.getAttribute("parentCode") != null) {
                 var ref = new commonreferences.Ref();
@@ -540,7 +568,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 else {
                     // Sometimes Time Dimension seems to get mistakenly sucked
                     // into this list too :(
-                    if (dims[i].nodeName != "structure:TimeDimension") {
+                    if (dims[i].nodeName.indexOf("TimeDimension") == -1) {
                         dimArray.push(this.toDimension(dims[i]));
                     }
                 }

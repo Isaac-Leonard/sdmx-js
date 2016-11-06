@@ -235,7 +235,8 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
             var opts = {};
             opts.url = urlString + s;
             opts.method = "GET";
-            opts.headers = { "Connection": "close" };
+            opts.headers = { "Connection": "close",
+                "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 return sdmx.SdmxIO.parseStructure(a);
             });
@@ -251,7 +252,7 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
             var opts = {};
             opts.url = urlString + s;
             opts.method = "GET";
-            opts.headers = { "Connection": "close" };
+            opts.headers = { "Connection": "close", "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 var dm = sdmx.SdmxIO.parseData(a);
                 var payload = new common.PayloadStructureType();

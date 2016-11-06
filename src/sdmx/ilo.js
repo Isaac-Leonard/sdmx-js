@@ -44,7 +44,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
-            opts.headers = {};
+            opts.headers = { "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 console.log("Got Data Response");
                 var dm = sdmx.SdmxIO.parseData(a);
@@ -110,7 +110,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
-            opts.headers = {};
+            opts.headers = { "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 return sdmx.SdmxIO.parseStructure(a);
             });
@@ -127,6 +127,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
+            opts.headers = { "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 return a;
             });

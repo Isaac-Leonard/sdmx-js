@@ -22,7 +22,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             return this;
         };
         ABS.prototype.getRepository = function () {
-            return null; //this;
+            return this;
         };
         ABS.prototype.clear = function () {
             this.local.clear();
@@ -43,7 +43,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
-            opts.headers = {};
+            opts.headers = { "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 console.log("Got Data Response");
                 var dm = sdmx.SdmxIO.parseData(a);
@@ -126,6 +126,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
+            opts.headers = { "Origin": document.location };
             return this.makeRequest(opts).then(function (a) {
                 return a;
             });

@@ -9,7 +9,9 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         function IdentifiableType() {
             _super.call(this);
         }
-        IdentifiableType.prototype.getId = function () { return this.id; };
+        IdentifiableType.prototype.getId = function () {
+            return this.id;
+        };
         IdentifiableType.prototype.getURN = function () { return this.urn; };
         IdentifiableType.prototype.getURI = function () { return this.uri; };
         IdentifiableType.prototype.setId = function (id) {
@@ -110,7 +112,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return def;
         };
         NameableType.prototype.toString = function () {
-            var loc = sdmx.SdmxIO.getLocale();
+            var loc = sdmx.SdmxIO.getLanguage();
             var name = this.findName(loc);
             if (name != null) {
                 return sdmx.SdmxIO.truncateName(name.toString());
@@ -130,7 +132,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             }
         };
         NameableType.toString = function (named) {
-            var loc = sdmx.SdmxIO.getLocale();
+            var loc = sdmx.SdmxIO.getLanguage();
             if (named == null) {
                 //console.log("Named is null");
                 return "";
@@ -326,8 +328,9 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
              */
             //System.out.println("Left=" + this.agencyID + "." + this.getId() + "." + this.getVersion());
             //System.out.println("Right=" + agency2 + "." + id2 + "." + vers2);
-            //console.log("myAg:" + this.getAgencyId() + " compare:" + agency2.toString());
-            //console.log("myId:" + this.getId() + " compare:" + id2.toString());
+            //console.log("myAg:" + this.getAgencyId().toString() + " compare:" + agency2.toString());
+            //console.log(this.getId().toString());
+            //console.log("myId:" + this.getId().toString() + " compare:" + id2.toString());
             //if (this.getVersion()!=null&&vers2!=null){
             //console.log("myv:" + this.getVersion() + " compare:" + vers2.toString());
             //}
@@ -575,7 +578,14 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         __extends(Dimension, _super);
         function Dimension() {
             _super.apply(this, arguments);
+            this.position = 0;
         }
+        Dimension.prototype.getPosition = function () {
+            return this.position;
+        };
+        Dimension.prototype.setPosition = function (i) {
+            this.position = i;
+        };
         return Dimension;
     })(Component);
     exports.Dimension = Dimension;
@@ -695,10 +705,10 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         };
         DataStructure.prototype.dump = function () {
             for (var i = 0; i < this.components.getDimensionList().getDimensions().length; i++) {
-                var dim = this.components.getDimensionList().getDimensions()[i];
-                console.log("Dim:" + i + ":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim.getConceptIdentity().getMaintainableParentId() + +"id:" + dim.getConceptIdentity().getId() + ":v:" + dim.getConceptIdentity().getVersion());
-                if (dim.getLocalRepresentation().getEnumeration() != null) {
-                    console.log("Dim:" + i + "enum ref:agency" + dim.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim.getLocalRepresentation().getEnumeration().getVersion());
+                var dim1 = this.components.getDimensionList().getDimensions()[i];
+                console.log("Dim:" + i + ":" + dim.getId() + ": ci ref:agency" + dim.getConceptIdentity().getAgencyId() + ":mid" + dim1.getConceptIdentity().getMaintainableParentId() + +"id:" + dim1.getConceptIdentity().getId() + ":v:" + dim1.getConceptIdentity().getVersion());
+                if (dim1.getLocalRepresentation().getEnumeration() != null) {
+                    console.log("Dim:" + i + "enum ref:agency" + dim1.getLocalRepresentation().getEnumeration().getAgencyId() + ":mid" + dim1.getLocalRepresentation().getEnumeration().getMaintainableParentId() + ":" + dim1.getLocalRepresentation().getEnumeration().getId() + ":v:" + dim1.getLocalRepresentation().getEnumeration().getVersion());
                 }
             }
             var dim = this.components.getDimensionList().getMeasureDimension();
@@ -741,15 +751,15 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
                 }
             }
             for (var i = 0; i < this.components.getAttributeList().getAttributes().length; i++) {
-                var dim = this.components.getAttributeList().getAttributes()[i];
-                if (dim.getId().equalsID(col)) {
-                    return dim;
+                var dim2 = this.components.getAttributeList().getAttributes()[i];
+                if (dim2.getId().equalsID(col)) {
+                    return dim2;
                 }
             }
             if (this.components.getDimensionList().getMeasureDimension() != null) {
-                var dim = this.components.getDimensionList().getMeasureDimension();
-                if (dim.getId().equalsID(col)) {
-                    return dim;
+                var dim3 = this.components.getDimensionList().getMeasureDimension();
+                if (dim3.getId().equalsID(col)) {
+                    return dim3;
                 }
             }
             var time = this.components.getDimensionList().getTimeDimension();
@@ -884,7 +894,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         CodeLists.prototype.findCodelistById = function (id) {
             var cl = null;
             for (var i = 0; i < this.codelists.length; i++) {
-                if (this.codelists[i].identifiesMeId(id)) {
+                if (this.codelists[i].identifiesMeId(id.asID())) {
                     if (cl == null)
                         cl = this.codelists[i];
                     else {
@@ -965,7 +975,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Concepts.prototype.findConceptSchemeById = function (id) {
             var cl = null;
             for (var i = 0; i < this.concepts.length; i++) {
-                if (this.concepts[i].identifiesMeId(id)) {
+                if (this.concepts[i].identifiesMeId(id.asID())) {
                     if (cl == null)
                         cl = this.concepts[i];
                     else {
@@ -1117,7 +1127,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Structures.prototype.findCode = function (ref) {
             if (this.codelists == null)
                 return null;
-            return this.codelists.findCodelistReference(ref).findItemId(ref.getId());
+            return this.codelists.findCodelistReference(ref).findItemId(ref.getId().asID());
         };
         Structures.prototype.findCodelist = function (ref) {
             if (this.codelists == null)
@@ -1135,7 +1145,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             if (cs == null) {
                 return null;
             }
-            return cs.findItemId(ref.getId());
+            return cs.findItemId(ref.getId().asID());
         };
         Structures.prototype.findConceptScheme = function (ref) {
             if (this.concepts == null) {

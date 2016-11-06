@@ -24,14 +24,11 @@ import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
 import data = require("sdmx/data");
 import sdmx = require("sdmx");
-export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
-    private agency: string = "ABS";
-    //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://stat.data.abs.gov.au/restsdmx/sdmx.ashx/";
-    //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
+export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
+    private agency: string = "ESTAT";
+    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
-
     private dataflowList: Array<structure.Dataflow> = null;
 
     getRemoteRegistry(): interfaces.RemoteRegistry {
@@ -46,7 +43,9 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         this.local.clear();
     }
     query(q:data.Query):Promise<message.DataMessage> {
-        var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear()+"&format=compact_v2";
+        var startPeriod = q.getStartDate().getFullYear() + "-" + q.getStartDate().getMonth();
+        var endPeriod = q.getEndDate().getFullYear() + "-" + q.getEndDate().getMonth();
+        var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "?startPeriod=" + startPeriod + "&endPeriod=" + endPeriod +"";
         return this.retrieveData(q.getDataflow(),url);
     }
     public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
@@ -131,7 +130,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = {};
+        opts.headers = { "Origin": document.location};
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -161,7 +160,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "GetDataStructure/" + ref.getMaintainableParentId().toString() + "/" + ref.getAgencyId().toString()).then(function(structure: message.StructureType){
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/datastructure/" + this.agency+"/" + ref.getMaintainableParentId().toString() + "/" + ref.getVersion().toString()+"?references=all").then(function(structure: message.StructureType){
                 this.local.load(structure);
                 return structure.getStructures().findDataStructure(ref);
             }.bind(this));
@@ -176,14 +175,9 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
-                var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
-                var dfs: Array<structure.Dataflow> = [];
-                for (var i = 0; i < array.length; i++) {
-                    dfs.push(array[i].asDataflow());
-                }
-                this.dataflowList = dfs;
-                return dfs;
+            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "/dataflow/" + this.agency+"/all/latest").then(function(st: message.StructureType) {
+                this.dataflowList = st.getStructures().getDataflows().getDataflowList();
+                return this.dataflowList;
             }.bind(this)
             );
         }
