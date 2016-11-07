@@ -42,13 +42,13 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
     clear() {
         this.local.clear();
     }
-    query(q:data.Query):Promise<message.DataMessage> {
+    query(q: data.Query): Promise<message.DataMessage> {
         var startPeriod = q.getStartDate().getFullYear() + "-" + q.getStartDate().getMonth();
         var endPeriod = q.getEndDate().getFullYear() + "-" + q.getEndDate().getMonth();
-        var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "?startPeriod=" + startPeriod + "&endPeriod=" + endPeriod +"";
-        return this.retrieveData(q.getDataflow(),url);
+        var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "?startPeriod=" + startPeriod + "&endPeriod=" + endPeriod + "";
+        return this.retrieveData(q.getDataflow(), url);
     }
-    public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
+    public retrieveData(dataflow: structure.Dataflow, urlString: string): Promise<message.DataMessage> {
         console.log("abs retrieveData:" + urlString);
         var s: string = this.options;
         if (urlString.indexOf("?") == -1) {
@@ -59,66 +59,69 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = {
+            "Origin": document.location
+            //,"Accept": "application/vnd.sdmx.structurespecificdata+xml"
+            };
         return this.makeRequest(opts).then(function(a) {
-            console.log("Got Data Response");
-            var dm = sdmx.SdmxIO.parseData(a);
-            var payload = new common.PayloadStructureType();
-            payload.setStructure(dataflow.getStructure());
-            dm.getHeader().setStructures([payload]);
-            return dm;
-        });
-    }
-    constructor(agency: string, service: string, options: string) {
-        if (service != null) { this.serviceURL = service; }
-        if (agency != null) { this.agency = agency; }
-        if (options != null) { this.options = options; }
-    }
+                console.log("Got Data Response");
+                var dm = sdmx.SdmxIO.parseData(a);
+                var payload = new common.PayloadStructureType();
+                payload.setStructure(dataflow.getStructure());
+                dm.getHeader().setStructures([payload]);
+                return dm;
+            });
+        }
+        constructor(agency: string, service: string, options: string) {
+            if (service != null) { this.serviceURL = service; }
+            if (agency != null) { this.agency = agency; }
+            if (options != null) { this.options = options; }
+        }
 
-    load(struct: message.StructureType) {
-        console.log("abs load");
-        this.local.load(struct);
-    }
+        load(struct: message.StructureType) {
+            console.log("abs load");
+            this.local.load(struct);
+        }
 
-    unload(struct: message.StructureType) {
-        this.local.unload(struct);
-    }
-    makeRequest(opts): Promise<string> {
-        return new Promise<string>(function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(opts.method, opts.url);
-            xhr.onload = function() {
-                if (this.status >= 200 && this.status < 300) {
-                    resolve(xhr.response);
-                } else {
+        unload(struct: message.StructureType) {
+            this.local.unload(struct);
+        }
+        makeRequest(opts): Promise < string > {
+            return new Promise<string>(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open(opts.method, opts.url);
+                xhr.onload = function() {
+                    if (this.status >= 200 && this.status < 300) {
+                        resolve(xhr.response);
+                    } else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText
+                        });
+                    }
+                };
+                xhr.onerror = function() {
                     reject({
                         status: this.status,
                         statusText: xhr.statusText
                     });
+                };
+                if (opts.headers) {
+                    Object.keys(opts.headers).forEach(function(key) {
+                        xhr.setRequestHeader(key, opts.headers[key]);
+                    });
                 }
-            };
-            xhr.onerror = function() {
-                reject({
-                    status: this.status,
-                    statusText: xhr.statusText
-                });
-            };
-            if (opts.headers) {
-                Object.keys(opts.headers).forEach(function(key) {
-                    xhr.setRequestHeader(key, opts.headers[key]);
-                });
-            }
-            var params = opts.params;
-            // We'll need to stringify if we've been given an object
-            // If we have a string, this is skipped.
-            if (params && typeof params === 'object') {
-                params = Object.keys(params).map(function(key) {
-                    return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-                }).join('&');
-            }
-            xhr.send(params);
-        });
-    }
+                var params = opts.params;
+                // We'll need to stringify if we've been given an object
+                // If we have a string, this is skipped.
+                if (params && typeof params === 'object') {
+                    params = Object.keys(params).map(function(key) {
+                        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+                    }).join('&');
+                }
+                xhr.send(params);
+            });
+        }
     public retrieve(urlString: string): Promise<message.StructureType> {
         console.log("nomis retrieve:" + urlString);
         var s: string = this.options;
@@ -130,7 +133,7 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -146,7 +149,7 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             return a;
         });
@@ -155,12 +158,12 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
     public findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure> {
         var dst: structure.DataStructure = this.local.findDataStructure(ref);
         if (dst != null) {
-            var promise = new Promise < structure.DataStructure>(function(resolve, reject) {
+            var promise = new Promise<structure.DataStructure>(function(resolve, reject) {
                 resolve(dst);
             }.bind(this));
             return promise;
         } else {
-            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/datastructure/" + this.agency+"/" + ref.getMaintainableParentId().toString() + "/" + ref.getVersion().toString()+"?references=all").then(function(structure: message.StructureType){
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/datastructure/" + this.agency + "/" + ref.getMaintainableParentId().toString() + "/" + ref.getVersion().toString() + "?references=all").then(function(structure: message.StructureType) {
                 this.local.load(structure);
                 return structure.getStructures().findDataStructure(ref);
             }.bind(this));
@@ -175,14 +178,14 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
             }.bind(this));
             return promise;
         } else {
-            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "/dataflow/" + this.agency+"/all/latest").then(function(st: message.StructureType) {
+            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "/dataflow/" + this.agency + "/all/latest").then(function(st: message.StructureType) {
                 this.dataflowList = st.getStructures().getDataflows().getDataflowList();
                 return this.dataflowList;
             }.bind(this)
             );
         }
     }
-    public getServiceURL(): string { return this.serviceURL;    }
+    public getServiceURL(): string { return this.serviceURL; }
     findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow> { return null; }
     findCode(ref: commonreferences.Reference): Promise<structure.CodeType> { return null; }
     findCodelist(ref: commonreferences.Reference): Promise<structure.Codelist> { return null; }

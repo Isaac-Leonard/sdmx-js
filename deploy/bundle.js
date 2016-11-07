@@ -8309,10 +8309,24 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 return false;
         };
         Sdmx21StructureParser.prototype.isData = function (input) {
-            if (input.indexOf("StructureSpecificData") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
+            if (this.isStructureSpecificData(input)) {
                 return true;
             }
-            else if (input.indexOf("GenericData") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
+            else if (this.isGenericData(input)) {
+                return true;
+            }
+            else
+                return false;
+        };
+        Sdmx21StructureParser.prototype.isGenericData = function (input) {
+            if (input.indexOf("GenericData") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
+                return true;
+            }
+            else
+                return false;
+        };
+        Sdmx21StructureParser.prototype.isStructureSpecificData = function (input) {
+            if (input.indexOf("StructureSpecificData") != -1 && input.indexOf("http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message") != -1) {
                 return true;
             }
             else
@@ -8330,8 +8344,15 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return srt.getStructureType();
         };
         Sdmx21StructureParser.prototype.parseData = function (input) {
-            var parser = new Sdmx21DataReaderTools(input);
-            return parser.getDataMessage();
+            if (this.isGenericData(input)) {
+                alert("GenericData");
+                var parser = new Sdmx21GenericDataReaderTools(input);
+                return parser.getDataMessage();
+            }
+            else if (this.isStructureSpecificData(input)) {
+                var parser2 = new Sdmx21DataReaderTools(input);
+                return parser2.getDataMessage();
+            }
         };
         return Sdmx21StructureParser;
     })();
@@ -8526,6 +8547,248 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         return Sdmx21DataReaderTools;
     })();
     exports.Sdmx21DataReaderTools = Sdmx21DataReaderTools;
+    var Sdmx21GenericDataReaderTools = (function () {
+        function Sdmx21GenericDataReaderTools(s) {
+            this.msg = null;
+            this.dw = new data.FlatDataSetWriter();
+            this.dimensionAtObservation = "TIME_PERIOD";
+            //console.log("sdmx20 parsing data");
+            var dom = parseXml(s);
+            //console.log("sdmx20 creating DataMessage");
+            this.msg = this.toDataMessage(dom.documentElement);
+        }
+        Sdmx21GenericDataReaderTools.prototype.getDataMessage = function () { return this.msg; };
+        Sdmx21GenericDataReaderTools.prototype.toDataMessage = function (dm) {
+            var msg = new message.DataMessage();
+            var childNodes = dm.childNodes;
+            msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+            var dss = this.toDataSets(this.searchNodeName("DataSet", childNodes));
+            for (var i = 0; i < dss.length; i++) {
+                msg.addDataSet(dss[i]);
+            }
+            return msg;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toDataSets = function (dm) {
+            var dss = [];
+            for (var i = 0; i < dm.length; i++) {
+                dss.push(this.toDataSet(dm[i].childNodes));
+            }
+            return dss;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toDataSet = function (ds) {
+            this.dw.newDataSet();
+            var series = this.searchNodeName("Series", ds);
+            if (series.length == 0) {
+                var obsArray = this.searchNodeName("Obs", ds);
+                for (var i = 0; i < obsArray.length; i++) {
+                    this.dw.newObservation();
+                    var atts = obsArray[i].attributes;
+                }
+            }
+            else {
+                for (var i = 0; i < series.length; i++) {
+                    this.dw.newSeries();
+                    var satts = series[i].attributes;
+                    var seriesKeysNode = this.findNodeName("SeriesKey", series[i].childNodes);
+                    var keyNodes = this.searchNodeName("Value", seriesKeysNode.childNodes);
+                    for (var av = 0; av < keyNodes.length; av++) {
+                        this.dw.writeSeriesComponent(keyNodes[av].getAttribute("id"), keyNodes[av].getAttribute("value"));
+                    }
+                    var obsArray = this.searchNodeName("Obs", series[i].childNodes);
+                    for (var j = 0; j < obsArray.length; j++) {
+                        this.dw.newObservation();
+                        var obsDimensionNode = this.findNodeName("ObsDimension", obsArray[j].childNodes);
+                        this.dw.writeObservationComponent(this.dimensionAtObservation, obsDimensionNode.getAttribute("value"));
+                        var obsValueNode = this.findNodeName("ObsValue", obsArray[j].childNodes);
+                        // "OBS_VALUE is hard coded into SDMX 2.1
+                        this.dw.writeObservationComponent("OBS_VALUE", obsValueNode.getAttribute("value"));
+                        var attNode = this.findNodeName("Attributes", obsArray[j].childNodes);
+                        if (attNode != null) {
+                            var attNodes = this.searchNodeName("Value", attNode.childNodes);
+                            for (var av = 0; av < attNodes.length; av++) {
+                                this.dw.writeObservationComponent(attNodes[av].getAttribute("id"), attNodes[av].getAttribute("value"));
+                            }
+                        }
+                        this.dw.finishObservation();
+                    }
+                    this.dw.finishSeries();
+                }
+            }
+            return this.dw.finishDataSet();
+        };
+        Sdmx21GenericDataReaderTools.prototype.toHeader = function (headerNode) {
+            var header = new message.Header();
+            header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+            var test = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+            header.setTest(test == "true");
+            // truncated not in sdmx 2.1
+            //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+            //header.setTruncated(truncated=="true");
+            var prepared = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
+            var prepDate = xml.DateTime.fromString(prepared);
+            header.setPrepared(new message.HeaderTimeType(prepDate));
+            header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+            header.setStructures([this.toStructure(this.findNodeName("Structure", headerNode.childNodes))]);
+            return header;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toStructure = function (structureNode) {
+            this.dimensionAtObservation = structureNode.getAttribute("dimensionAtObservation");
+            var refNode = this.findNodeName("Ref", structureNode.childNodes);
+            var ref = new commonreferences.Ref();
+            ref.setMaintainableParentId(this.toID(refNode));
+            ref.setAgencyId(this.toNestedNCNameID(refNode));
+            ref.setVersion(this.toVersion(refNode));
+            var reference = new commonreferences.Reference(ref, null);
+            var payload = new common.PayloadStructureType();
+            payload.setStructure(reference);
+            return payload;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toSender = function (senderNode) {
+            var sender = senderNode.childNodes[0].nodeValue;
+            var senderType = new message.Sender();
+            var senderId = senderNode.getAttribute("id");
+            var senderID = new commonreferences.ID(senderId);
+            senderType.setId(senderID);
+            return senderType;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toNames = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Name", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toName(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toName = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var name = new common.Name(lang, text);
+            return name;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toDescriptions = function (node) {
+            var names = [];
+            var senderNames = this.searchNodeName("Description", node.childNodes);
+            for (var i = 0; i < senderNames.length; i++) {
+                names.push(this.toDescription(senderNames[i]));
+            }
+            return names;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toDescription = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var desc = new common.Description(lang, text);
+            return desc;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toTextType = function (node) {
+            var lang = node.getAttribute("xml:lang");
+            var text = node.childNodes[0].nodeValue;
+            var textType = new common.TextType(lang, text);
+            return textType;
+        };
+        Sdmx21GenericDataReaderTools.prototype.toPartyType = function (node) {
+            var pt = new message.PartyType();
+            return pt;
+        };
+        Sdmx21GenericDataReaderTools.prototype.findNodeName = function (s, childNodes) {
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    return childNodes[i];
+                }
+            }
+            return null;
+        };
+        Sdmx21GenericDataReaderTools.prototype.searchNodeName = function (s, childNodes) {
+            var result = [];
+            for (var i = 0; i < childNodes.length; i++) {
+                var nn = childNodes[i].nodeName;
+                //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+                if (nn.indexOf(s) != -1) {
+                    //alert("found node:"+s);
+                    result.push(childNodes[i]);
+                }
+            }
+            if (result.length == 0) {
+            }
+            return result;
+        };
+        Sdmx21GenericDataReaderTools.prototype.findTextNode = function (node) {
+            if (node == null)
+                return "";
+            var childNodes = node.childNodes;
+            for (var i = 0; i < childNodes.length; i++) {
+                var nodeType = childNodes[i].nodeType;
+                if (nodeType == 3) {
+                    return childNodes[i].nodeValue;
+                }
+            }
+            return "";
+        };
+        Sdmx21GenericDataReaderTools.prototype.recurseDomChildren = function (start, output) {
+            var nodes;
+            if (start.childNodes) {
+                nodes = start.childNodes;
+                this.loopNodeChildren(nodes, output);
+            }
+        };
+        Sdmx21GenericDataReaderTools.prototype.loopNodeChildren = function (nodes, output) {
+            var node;
+            for (var i = 0; i < nodes.length; i++) {
+                node = nodes[i];
+                if (output) {
+                    this.outputNode(node);
+                }
+                if (node.childNodes) {
+                    this.recurseDomChildren(node, output);
+                }
+            }
+        };
+        Sdmx21GenericDataReaderTools.prototype.outputNode = function (node) {
+            var whitespace = /^\s+$/g;
+            if (node.nodeType === 1) {
+                console.log("element: " + node.tagName);
+            }
+            else if (node.nodeType === 3) {
+                //clear whitespace text nodes
+                node.data = node.data.replace(whitespace, "");
+                if (node.data) {
+                    console.log("text: " + node.data);
+                }
+            }
+        };
+        Sdmx21GenericDataReaderTools.prototype.toID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.ID(node.getAttribute("id"));
+        };
+        Sdmx21GenericDataReaderTools.prototype.toMaintainableParentID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.ID(node.getAttribute("maintainableParentID"));
+        };
+        Sdmx21GenericDataReaderTools.prototype.toNestedID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.NestedID(node.getAttribute("id"));
+        };
+        Sdmx21GenericDataReaderTools.prototype.toNestedNCNameID = function (node) {
+            if (node == null)
+                return null;
+            return new commonreferences.NestedNCNameID(node.getAttribute("agencyID"));
+        };
+        Sdmx21GenericDataReaderTools.prototype.toVersion = function (node) {
+            if (node == null)
+                return null;
+            if (node.getAttribute("version") == "" || node.getAttribute("version") == null) {
+                return commonreferences.Version.ONE;
+            }
+            return new commonreferences.Version(node.getAttribute("version"));
+        };
+        return Sdmx21GenericDataReaderTools;
+    })();
+    exports.Sdmx21GenericDataReaderTools = Sdmx21GenericDataReaderTools;
     var Sdmx21StructureReaderTools = (function () {
         function Sdmx21StructureReaderTools(s, reg) {
             this.registry = null;
@@ -8808,7 +9071,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var attListNode = this.findNodeName("AttributeList", dsc.childNodes);
             var measListNode = this.findNodeName("MeasureList", dsc.childNodes);
             components.setDimensionList(this.toDimensionList(dimListNode));
-            components.setAttributeList(this.toAttributeList(attListNode));
+            components.setAttributeList(this.toAttributeList(this.searchNodeName("Attribute", attListNode.childNodes)));
             components.setMeasureList(this.toMeasureList(measListNode));
             return components;
         };
@@ -8832,6 +9095,10 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             dimensionList.setDimensions(dimensions);
             var time = this.findNodeName("TimeDimension", dimListNode.childNodes);
             dimensionList.setTimeDimension(this.toTimeDimension(time));
+            var meas = this.findNodeName("MeasureDimension", dimListNode.childNodes);
+            if (meas != null) {
+                dimensionList.setMeasureDimension(this.toMeasureDimension(meas));
+            }
             return dimensionList;
         };
         Sdmx21StructureReaderTools.prototype.toAttributeList = function (dims) {
@@ -8857,6 +9124,13 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             dim2.setLocalRepresentation(this.getLocalRepresentation(dim));
             return dim2;
         };
+        Sdmx21StructureReaderTools.prototype.toMeasureDimension = function (dim) {
+            var dim2 = new structure.MeasureDimension();
+            dim2.setId(this.toID(dim));
+            dim2.setConceptIdentity(this.getConceptIdentity(dim));
+            dim2.setLocalRepresentation(this.getLocalRepresentationCrossSectional(dim));
+            return dim2;
+        };
         Sdmx21StructureReaderTools.prototype.toPrimaryMeasure = function (dim) {
             var dim2 = new structure.PrimaryMeasure();
             dim2.setId(this.toID(dim));
@@ -8876,6 +9150,27 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 ref.setMaintainableParentId(this.toID(refNode));
                 ref.setAgencyId(this.toNestedNCNameID(refNode));
                 ref.setVersion(this.toVersion(refNode));
+                ref.setRefClass(commonreferences.ObjectTypeCodelistType.CODELIST);
+                ref.setPackage(commonreferences.PackageTypeCodelistType.CODELIST);
+                var reference = new commonreferences.Reference(ref, null);
+                var rep = new structure.RepresentationType();
+                rep.setEnumeration(reference);
+            }
+            return rep;
+        };
+        Sdmx21StructureReaderTools.prototype.getLocalRepresentationCrossSectional = function (dim) {
+            var localRepNode = this.findNodeName("LocalRepresentation", dim.childNodes);
+            if (localRepNode == null) {
+                return new structure.RepresentationType();
+            }
+            var enumeration = this.findNodeName("Enumeration", localRepNode.childNodes);
+            if (enumeration != null) {
+                var refNode = this.findNodeName("Ref", enumeration.childNodes);
+                var ref = new commonreferences.Ref();
+                ref.setMaintainableParentId(this.toID(refNode));
+                ref.setAgencyId(this.toNestedNCNameID(refNode));
+                ref.setVersion(this.toVersion(refNode));
+                ref.setRefClass(commonreferences.ObjectTypeCodelistType.CONCEPTSCHEME);
                 var reference = new commonreferences.Reference(ref, null);
                 var rep = new structure.RepresentationType();
                 rep.setEnumeration(reference);
@@ -11195,7 +11490,9 @@ define('sdmx/estat',["require", "exports", "sdmx/registry", "sdmx/common", "sdmx
             var opts = {};
             opts.url = urlString;
             opts.method = "GET";
-            opts.headers = { "Origin": document.location };
+            opts.headers = {
+                "Origin": document.location
+            };
             return this.makeRequest(opts).then(function (a) {
                 console.log("Got Data Response");
                 var dm = sdmx.SdmxIO.parseData(a);
