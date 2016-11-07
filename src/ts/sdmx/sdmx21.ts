@@ -82,7 +82,6 @@ export class Sdmx21StructureParser implements interfaces.SdmxParserProvider {
     }
     parseData(input: string): message.DataMessage {
         if (this.isGenericData(input)) {
-            alert("GenericData");
             var parser: Sdmx21GenericDataReaderTools = new Sdmx21GenericDataReaderTools(input);
             return parser.getDataMessage();
         } else if (this.isStructureSpecificData(input)) {
