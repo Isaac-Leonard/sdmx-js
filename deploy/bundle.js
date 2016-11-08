@@ -8345,7 +8345,6 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         };
         Sdmx21StructureParser.prototype.parseData = function (input) {
             if (this.isGenericData(input)) {
-                alert("GenericData");
                 var parser = new Sdmx21GenericDataReaderTools(input);
                 return parser.getDataMessage();
             }
@@ -11656,9 +11655,6 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
                 if (SdmxIO.PARSER[i].canParse(s)) {
                     return SdmxIO.PARSER[i].parseData(s);
                 }
-                else {
-                    alert("not my type");
-                }
             }
             return null;
         };
@@ -11683,6 +11679,7 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
                 return new knoema.Knoema("AfDB", "http://opendataforafrica.org/api/1.0/sdmx", "");
             if (s == "ILO")
                 return new ilo.ILO("ILO", "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest", "");
+            // if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
             if (s == "ESTAT")
                 return new estat.ESTAT("ESTAT", "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
         };

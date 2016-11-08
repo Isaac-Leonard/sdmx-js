@@ -64,7 +64,6 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
         };
         Sdmx21StructureParser.prototype.parseData = function (input) {
             if (this.isGenericData(input)) {
-                alert("GenericData");
                 var parser = new Sdmx21GenericDataReaderTools(input);
                 return parser.getDataMessage();
             }
