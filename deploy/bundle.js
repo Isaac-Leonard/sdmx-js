@@ -11679,9 +11679,9 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
                 return new knoema.Knoema("AfDB", "http://opendataforafrica.org/api/1.0/sdmx", "");
             if (s == "ILO")
                 return new ilo.ILO("ILO", "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest", "");
-            // if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
             if (s == "ESTAT")
-                return new estat.ESTAT("ESTAT", "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
+                return new estat.ESTAT("ESTAT", "http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
+            // if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
         };
         SdmxIO.setTruncateNames = function (n) {
             SdmxIO.TRUNCATE_NAMES = n;
