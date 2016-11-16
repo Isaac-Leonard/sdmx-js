@@ -34,6 +34,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
 
     private dataflowList: Array<structure.Dataflow> = null;
     private classifications: structure.Codelist = null;
+    private indicatorsArrayCodelist: Array<structure.Codelist> = [];
 
     getRemoteRegistry(): interfaces.RemoteRegistry {
         return this;
@@ -48,7 +49,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         this.local.clear();
     }
     query(q: data.Query): Promise<message.DataMessage> {
-        var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startPeriod=" + q.getStartDate().getFullYear() + "&endPeriod=" + q.getEndDate().getFullYear();
         return this.retrieveData(q.getDataflow(), url);
     }
     public retrieveData(dataflow: structure.Dataflow, urlString: string): Promise<message.DataMessage> {
@@ -62,7 +63,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             console.log("Got Data Response");
             var dm = sdmx.SdmxIO.parseData(a);
@@ -133,7 +134,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -149,7 +150,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             return a;
         });
@@ -163,7 +164,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
             }.bind(this));
             return promise;
         } else {
-            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "GetDataStructure/" + ref.getMaintainableParentId().toString() + "/" + ref.getAgencyId().toString()).then(function(structure: message.StructureType) {
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/datastructure/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId().toString() + "?references=children").then(function(structure: message.StructureType) {
                 this.local.load(structure);
                 return structure.getStructures().findDataStructure(ref);
             }.bind(this));
@@ -173,7 +174,7 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
 
 
 
-    public listDataflows(): Promise<Array<structure.Dataflow>> {
+    public listDataflows(): Promise<any> {
         if (this.dataflowList != null) {
             var promise = new Promise<Array<structure.Dataflow>>(function(resolve, reject) {
                 resolve(this.dataflowList);
@@ -187,8 +188,10 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
             var ref: commonreferences.Reference = new commonreferences.Reference(r, null);
             var prom: Promise<any> = this.findCodelist(ref);
             var dataflowList: Array<structure.Dataflow> = [];
-            prom.then(function(classifications: structure.Codelist) {
+            var indicatorsCodelist = [];
+            return prom.then(function(classifications: any) {
                 this.classifications = classifications;
+                var indicatorsArray = [];
                 for (var i: number = 0; i < classifications.size(); i++) {
                     var code: structure.CodeType = <structure.CodeType>classifications.getItem(i);
                     var cod: string = code.getId().toString();
@@ -196,39 +199,45 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
                     r2.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
                     r2.setMaintainableParentId(new commonreferences.ID("CL_INDICATOR_" + cod));
                     r2.setVersion(null);
-                    var ref: commonreferences.Reference = new commonreferences.Reference(r, null);
-                    prom = prom.then(this.findCodelist(ref));
+                    var ref: commonreferences.Reference = new commonreferences.Reference(r2, null);
+                    indicatorsArray.push(ref);
                 }
-                return prom.map(function(indicators: Array<structure.Codelist>) {
-                    for (var i: number = 0; i < classifications.size(); i++) {
-                        var col1 = classifications.getItem(i);
-                        var con = col1.getId().toString();
-                        var indic: structure.Codelist = null;
-                        for (var j = 0; j < indicators.length; j++) {
-                            if (indicators[j].getId().equalsString("CL_INDICATOR_" + con)) {
-                                indic = indicators[j];
-                            }
-                        }
-                        for (var k = 0; k < indic.size(); k++) {
-                            var dataflow = new structure.Dataflow();
-                            dataflow.setAgencyId(classifications.getAgencyId());
-                            var indicid: string = indic.getId().toString();
-                            dataflow.setId(new commonreferences.ID("DF_" + con + "_ALL_" + indicid));
-                            dataflow.setVersion(null);
-                            var r3: commonreferences.Ref = new commonreferences.Ref();
-                            r3.setAgencyId(classifications.getAgencyId());
-                            r3.setMaintainableParentId(new commonreferences.ID(con + "_ALL_" + indicid));
-                            r3.setVersion(null);
-                            var names: Array<common.Name> = [];
-                            var name: common.Name = new common.Name("en", col1.findName("en").getText() + " - " + indic.findName("en").getText());
+                return indicatorsArray;
+            }.bind(this)).map(function(item, idex, length) {
+                return this.findCodelist(item);
+            }.bind(this)).then(function(indicatorArray: any) {
+                this.indicatorsArrayCodelist = indicatorArray;
+                console.log(JSON.stringify(indicatorArray));
+                var indic: structure.Codelist = null;
+                var dataflowList: Array<structure.Dataflow> = [];
+                for (var i: number = 0; i < this.classifications.size(); i++) {
+                    var col1 = this.classifications.getItem(i);
+                    var con = col1.getId().toString();
+                    indic = this.indicatorsArrayCodelist[i];
+                    for (var k = 0; k < indic.size(); k++) {
+                        var dataflow = new structure.Dataflow();
+                        dataflow.setAgencyId(this.classifications.getAgencyId());
+                        var indicid: string = indic.getItem(k).getId().toString();
+                        dataflow.setId(new commonreferences.ID("DF_" + con + "_ALL_" + indicid));
+                        dataflow.setVersion(null);
+                        var r3: commonreferences.Ref = new commonreferences.Ref();
+                        r3.setAgencyId(this.classifications.getAgencyId());
+                        r3.setMaintainableParentId(new commonreferences.ID(con + "_ALL_" + indicid));
+                        r3.setVersion(null);
+                        var names: Array<common.Name> = [];
+                        var langs = ["en", "fr", "es"];
+                        for (var lang: number = 0; lang < langs.length; lang++) {
+                            var name: common.Name = new common.Name(langs[lang], col1.findName(langs[lang]).getText() + " - " + indic.getItem(k).findName(langs[lang]).getText());
                             names.push(name);
-                            dataflow.setNames(names);
-                            dataflowList.push(dataflow);
                         }
+                        dataflow.setNames(names);
+                        var reference: commonreferences.Reference = new commonreferences.Reference(r3, null);
+                        dataflow.setStructure(reference);
+                        dataflowList.push(dataflow);
                     }
-                    this.dataflowList = dataflowList;
-                    return dataflowList;
-                }.bind(this));
+                }
+                this.dataflowList = dataflowList;
+                return this.dataflowList;
             }.bind(this));
         }
     }
@@ -245,13 +254,14 @@ export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, int
         } else {
             return <Promise<structure.Codelist>>this.retrieve(this.getServiceURL() + "/codelist/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId() + (ref.getVersion() == null ? "/latest" : ref.getVersion().toString())).then(function(structure: message.StructureType) {
                 this.local.load(structure);
-                return structure.getStructures().findCodelist(ref);
+                var cl: structure.Codelist = structure.getStructures().findCodelist(ref);
+                return cl;
             }.bind(this));
         }
     }
     findItemType(item: commonreferences.Reference): Promise<structure.ItemType> { return null; }
     findConcept(ref: commonreferences.Reference): Promise<structure.ConceptType> { return null; }
-    findConceptScheme(ref: commonreferences.Reference): Promise<structure.ConceptSchemeType> { 
+    findConceptScheme(ref: commonreferences.Reference): Promise<structure.ConceptSchemeType> {
         var dst: structure.ConceptSchemeType = this.local.findConceptScheme(ref);
         if (dst != null) {
             var promise = new Promise<structure.ConceptSchemeType>(function(resolve, reject) {

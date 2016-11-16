@@ -133,9 +133,14 @@ define("SimpleSDMXQuery/dimension", ["require", "react", "sdmx/structure", "loda
             if( this.state.number == "one" ) {
                 q.getQueryKey(this.state.conceptRef).addValue(this.state.oneObject.getId().toString());
             }
-            if( this.state.number == "many"||this.state.number=="all") {
+            if( this.state.number == "many") {
                 for(var i=0;i<this.state.manyArrayObject.length;i++) {
                     q.getQueryKey(this.state.conceptRef).addValue(this.state.manyArrayObject[i].getId().toString());
+                }
+            }
+            if( this.state.number=="all") {
+                for(var i=0;i<this.state.manyArrayObject.length;i++) {
+                    q.getQueryKey(this.state.conceptRef).setAll(true);
                 }
             }
         }

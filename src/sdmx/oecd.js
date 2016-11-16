@@ -1,4 +1,5 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
+    "use strict";
     var OECD = (function () {
         function OECD(agency, service, options) {
             this.agency = "OECD";
@@ -203,7 +204,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         OECD.prototype.save = function () { };
         return OECD;
-    })();
+    }());
     exports.OECD = OECD;
 });
 

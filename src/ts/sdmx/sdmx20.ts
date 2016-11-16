@@ -54,6 +54,9 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
         if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
             return true;
         }
+        if (input.indexOf("GenericData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+            return true;
+        }
         if (input.indexOf("MessageGroup") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
             return true;
         }
@@ -72,9 +75,26 @@ export class Sdmx20StructureParser implements interfaces.SdmxParserProvider {
         return srt.getStructureType();
 
     }
+    isCompactData(input: string) {
+        if (input.indexOf("CompactData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+            return true;
+        }
+        return false;
+    }
+    isGenericData(input: string) {
+        if (input.indexOf("GenericData") != -1 && input.indexOf("http://www.SDMX.org/resources/SDMXML/schemas/v2_0/message") != -1) {
+            return true;
+        }
+        return false;
+    }
     parseData(input: string): message.DataMessage {
-        var parser: Sdmx20DataReaderTools = new Sdmx20DataReaderTools(input);
-        return parser.getDataMessage();
+        if (this.isGenericData(input)) {
+            var parser: Sdmx20GenericDataReaderTools = new Sdmx20GenericDataReaderTools(input);
+            return parser.getDataMessage();
+        } else {
+            var parser2: Sdmx20DataReaderTools = new Sdmx20DataReaderTools(input);
+            return parser2.getDataMessage();
+        }
 
     }
 }
@@ -141,6 +161,214 @@ export class Sdmx20DataReaderTools {
 
         }
         return this.dw.finishDataSet();
+    }
+
+    toHeader(headerNode: any) {
+        var header: message.Header = new message.Header();
+        header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
+        var test: string = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
+        header.setTest(test == "true");
+        // truncated not in sdmx 2.1
+        //var truncated:string= this.findNodeName("Truncated",headerNode.childNodes).childNodes[0].nodeValue;
+        //header.setTruncated(truncated=="true");
+        var prepared: string = this.findNodeName("Prepared", headerNode.childNodes).childNodes[0].nodeValue;
+        var prepDate: xml.DateTime = xml.DateTime.fromString(prepared);
+        header.setPrepared(new message.HeaderTimeType(prepDate));
+        header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
+        return header;
+    }
+    toSender(senderNode: any): message.Sender {
+        //var sender: string = senderNode.childNodes[0].nodeValue;
+        var senderType: message.Sender = new message.Sender();
+        var senderId: string = senderNode.getAttribute("id");
+        var senderID: commonreferences.ID = new commonreferences.ID(senderId);
+        senderType.setId(senderID);
+        return senderType;
+    }
+    toNames(node: any): Array<common.Name> {
+        var names: Array<common.Name> = [];
+        var senderNames = this.searchNodeName("Name", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toName(senderNames[i]));
+        }
+        return names;
+    }
+    toName(node: any): common.Name {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var name: common.Name = new common.Name(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
+        return name;
+    }
+    toDescriptions(node: any): Array<common.Description> {
+        var names: Array<common.Description> = [];
+        var senderNames = this.searchNodeName("Description", node.childNodes);
+        for (var i: number = 0; i < senderNames.length; i++) {
+            names.push(this.toDescription(senderNames[i]));
+        }
+        return names;
+    }
+    toDescription(node: any): common.Description {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var desc: common.Description = new common.Description(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
+        return desc;
+    }
+    toTextType(node: any): common.TextType {
+        var lang = node.getAttribute("xml:lang");
+        var text = node.childNodes[0].nodeValue;
+        var textType: common.TextType = new common.TextType(lang, text);
+        sdmx.SdmxIO.registerLanguage(lang);
+        return textType;
+    }
+    toPartyType(node: any): message.PartyType {
+        var pt = new message.PartyType();
+        return pt;
+    }
+    findNodeName(s: string, childNodes: any) {
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nn: string = childNodes[i].nodeName;
+            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+            if (nn.indexOf(s) != -1) {
+                //alert("found node:"+s);
+                return childNodes[i];
+            }
+        }
+        return null;
+    }
+    searchNodeName(s: string, childNodes: any): Array<any> {
+        var result: Array<any> = [];
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nn: string = childNodes[i].nodeName;
+            //alert("looking for:"+s+": name="+childNodes[i].nodeName);
+            if (nn.indexOf(s) != -1) {
+                //alert("found node:"+s);
+                result.push(childNodes[i]);
+            }
+        }
+        if (result.length == 0) {
+            //alert("cannot find any " + s + " in node");
+        }
+        return result;
+    }
+    findTextNode(node: any): string {
+        if (node == null) return "";
+        var childNodes = node.childNodes;
+        for (var i: number = 0; i < childNodes.length; i++) {
+            var nodeType = childNodes[i].nodeType;
+            if (nodeType == 3) {
+                return childNodes[i].nodeValue;
+            }
+        }
+        return "";
+    }
+    recurseDomChildren(start: any, output: any) {
+        var nodes;
+        if (start.childNodes) {
+            nodes = start.childNodes;
+            this.loopNodeChildren(nodes, output);
+        }
+    }
+
+    loopNodeChildren(nodes: Array<any>, output: any) {
+        var node;
+        for (var i = 0; i < nodes.length; i++) {
+            node = nodes[i];
+            if (output) {
+                this.outputNode(node);
+            }
+            if (node.childNodes) {
+                this.recurseDomChildren(node, output);
+            }
+        }
+    }
+    outputNode(node: any) {
+        var whitespace = /^\s+$/g;
+        if (node.nodeType === 1) {
+            console.log("element: " + node.tagName);
+        } else if (node.nodeType === 3) {
+            //clear whitespace text nodes
+            node.data = node.data.replace(whitespace, "");
+            if (node.data) {
+                console.log("text: " + node.data);
+            }
+        }
+    }
+}
+export class Sdmx20GenericDataReaderTools {
+    private msg: message.DataMessage = null;
+    private dw: data.FlatDataSetWriter = new data.FlatDataSetWriter();
+
+    constructor(s: string) {
+        //console.log("sdmx20 parsing data");
+        var dom: any = parseXml(s);
+        //console.log("sdmx20 creating DataMessage");
+        this.msg = this.toDataMessage(dom.documentElement);
+    }
+
+    getDataMessage(): message.DataMessage { return this.msg; }
+    toDataMessage(dm: any): message.DataMessage {
+        var msg: message.DataMessage = new message.DataMessage();
+        var childNodes = dm.childNodes;
+        msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
+        var dss = this.toDataSets(this.searchNodeName("DataSet", childNodes));
+        for (var i: number = 0; i < dss.length; i++) {
+            msg.addDataSet(dss[i]);
+        }
+        return msg;
+    }
+    toDataSets(dm: Array<any>): Array<data.FlatDataSet> {
+        var dss: Array<data.FlatDataSet> = [];
+        for (var i: number = 0; i < dm.length; i++) {
+            dss.push(this.toDataSet(dm[i].childNodes));
+        }
+        return dss;
+    }
+    toDataSet(ds: any): data.FlatDataSet {
+        this.dw.newDataSet();
+        var series: Array<any> = this.searchNodeName("Series", ds);
+        if (series.length == 0) {
+            var obsArray: Array<any> = this.searchNodeName("Obs", ds);
+            for (var i: number = 0; i < obsArray.length; i++) {
+                this.toObs(obsArray[i], this.dw);
+            }
+        } else {
+            for (var i: number = 0; i < series.length; i++) {
+                this.dw.newSeries();
+                var seriesKey = this.findNodeName("SeriesKey", series[i].childNodes);
+                var satts: Array<any> = this.searchNodeName("Value", seriesKey.childNodes);
+                for (var av: number = 0; av < satts.length; av++) {
+                    this.dw.writeSeriesComponent(satts[av].getAttribute("concept"), satts[av].getAttribute("value"));
+                }
+                var obsArray: Array<any> = this.searchNodeName("Obs", series[i].childNodes);
+                for (var i: number = 0; i < obsArray.length; i++) {
+                    this.toObs(obsArray[i], this.dw);
+                }
+                this.dw.finishSeries();
+            }
+
+        }
+        return this.dw.finishDataSet();
+    }
+    toObs(obs: any, dw: data.FlatDataSetWriter) {
+        dw.newObservation();
+        var timeNode = this.findNodeName("Time", obs.childNodes);
+        var valueNode = this.findNodeName("ObsValue", obs.childNodes);
+        var attributesNode = this.findNodeName("Attributes", obs.childNodes);
+        if (timeNode != null) {
+            dw.writeObservationComponent("TIME_PERIOD", timeNode.childNodes[0].nodeValue);
+        }
+        if (valueNode != null) {
+            dw.writeObservationComponent("OBS_VALUE", valueNode.getAttribute("value"));
+        }
+        if (attributesNode != null) {
+            var attributesArray = this.searchNodeName("Value", attributesNode.childNodes);
+            for (var i: number = 0; i < attributesArray.length; i++) {
+                dw.writeObservationComponent(attributesArray[i].getAttribute("concept"), attributesArray[i].getAttribute("value"));
+            }
+        }
+        dw.finishObservation();
     }
 
     toHeader(headerNode: any) {
@@ -581,7 +809,7 @@ export class Sdmx20StructureReaderTools {
             } else {
                 // Sometimes Time Dimension seems to get mistakenly sucked
                 // into this list too :(
-                if (dims[i].nodeName.indexOf("TimeDimension")==-1) {
+                if (dims[i].nodeName.indexOf("TimeDimension") == -1) {
                     dimArray.push(this.toDimension(dims[i]));
                 }
             }

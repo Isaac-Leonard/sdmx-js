@@ -68,8 +68,7 @@ export class SdmxIO {
         if (s == "OECD") return new oecd.OECD("OECD", "http://stats.oecd.org/restsdmx/sdmx.ashx/", "");
         if (s == "AfDB") return new knoema.Knoema("AfDB", "http://opendataforafrica.org/api/1.0/sdmx", "");
         if (s == "ILO") return new ilo.ILO("ILO", "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest", "");
-       // if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
-        if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
+        if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
     }
     public static setTruncateNames(n: number) {
         SdmxIO.TRUNCATE_NAMES = n;
@@ -81,7 +80,7 @@ export class SdmxIO {
         return s;
     }
     private static languages = [];
-    private static language = window.navigator.userLanguage || window.navigator.language;
+    private static language = window.navigator.userLanguage || window.navigator.language||"en";
     public static registerLanguage(s: string) {
         for (var i: number = 0; i < this.languages.length; i++) {
             if (this.languages[i] == s) return;

@@ -1,8 +1,9 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
+    "use strict";
     var ESTAT = (function () {
         function ESTAT(agency, service, options) {
             this.agency = "ESTAT";
-            this.serviceURL = "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest";
+            this.serviceURL = "http://cors-anywhere.herokuapp.com/http://ec.europa.eu/eurostat/SDMX/diss-web/rest";
             this.options = "";
             this.local = new registry.LocalRegistry();
             this.dataflowList = null;
@@ -44,7 +45,8 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             opts.url = urlString;
             opts.method = "GET";
             opts.headers = {
-                "Origin": document.location
+                "Origin": document.location,
+                "Accept": "application/vnd.sdmx.structurespecificdata+xml"
             };
             return this.makeRequest(opts).then(function (a) {
                 console.log("Got Data Response");
@@ -180,7 +182,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         ESTAT.prototype.save = function () { };
         return ESTAT;
-    })();
+    }());
     exports.ESTAT = ESTAT;
 });
 

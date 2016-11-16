@@ -1,4 +1,5 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
+    "use strict";
     var Knoema = (function () {
         function Knoema(agency, service, options) {
             this.agency = "Knoema";
@@ -183,7 +184,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         Knoema.prototype.save = function () { };
         return Knoema;
-    })();
+    }());
     exports.Knoema = Knoema;
 });
 

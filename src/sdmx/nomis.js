@@ -1,4 +1,5 @@
 define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx/commonreferences", "sdmx/common", "sdmx", "sdmx/time"], function (require, exports, moment, registry, structure, commonreferences, common, sdmx, time) {
+    "use strict";
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -508,7 +509,7 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
         };
         NOMISRESTServiceRegistry.prototype.save = function () { };
         return NOMISRESTServiceRegistry;
-    })();
+    }());
     exports.NOMISRESTServiceRegistry = NOMISRESTServiceRegistry;
     var NOMISGeography = (function () {
         function NOMISGeography(geography, geographyName, cubeName, cubeId) {
@@ -532,7 +533,7 @@ define(["require", "exports", "moment", "sdmx/registry", "sdmx/structure", "sdmx
             return this.geographyName;
         };
         return NOMISGeography;
-    })();
+    }());
     exports.NOMISGeography = NOMISGeography;
 });
 

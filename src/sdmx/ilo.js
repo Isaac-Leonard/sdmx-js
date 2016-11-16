@@ -1,4 +1,5 @@
 define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonreferences", "sdmx/common", "sdmx"], function (require, exports, registry, structure, commonreferences, common, sdmx) {
+    "use strict";
     var ILO = (function () {
         function ILO(agency, service, options) {
             this.agency = "ILO";
@@ -9,6 +10,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             this.local = new registry.LocalRegistry();
             this.dataflowList = null;
             this.classifications = null;
+            this.indicatorsArrayCodelist = [];
             if (service != null) {
                 this.serviceURL = service;
             }
@@ -29,7 +31,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             this.local.clear();
         };
         ILO.prototype.query = function (q) {
-            var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+            var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startPeriod=" + q.getStartDate().getFullYear() + "&endPeriod=" + q.getEndDate().getFullYear();
             return this.retrieveData(q.getDataflow(), url);
         };
         ILO.prototype.retrieveData = function (dataflow, urlString) {
@@ -141,7 +143,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 return promise;
             }
             else {
-                return this.retrieve(this.getServiceURL() + "GetDataStructure/" + ref.getMaintainableParentId().toString() + "/" + ref.getAgencyId().toString()).then(function (structure) {
+                return this.retrieve(this.getServiceURL() + "/datastructure/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId().toString() + "?references=children").then(function (structure) {
                     this.local.load(structure);
                     return structure.getStructures().findDataStructure(ref);
                 }.bind(this));
@@ -162,8 +164,10 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                 var ref = new commonreferences.Reference(r, null);
                 var prom = this.findCodelist(ref);
                 var dataflowList = [];
-                prom.then(function (classifications) {
+                var indicatorsCodelist = [];
+                return prom.then(function (classifications) {
                     this.classifications = classifications;
+                    var indicatorsArray = [];
                     for (var i = 0; i < classifications.size(); i++) {
                         var code = classifications.getItem(i);
                         var cod = code.getId().toString();
@@ -171,39 +175,45 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
                         r2.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
                         r2.setMaintainableParentId(new commonreferences.ID("CL_INDICATOR_" + cod));
                         r2.setVersion(null);
-                        var ref = new commonreferences.Reference(r, null);
-                        prom = prom.then(this.findCodelist(ref));
+                        var ref = new commonreferences.Reference(r2, null);
+                        indicatorsArray.push(ref);
                     }
-                    return prom.map(function (indicators) {
-                        for (var i = 0; i < classifications.size(); i++) {
-                            var col1 = classifications.getItem(i);
-                            var con = col1.getId().toString();
-                            var indic = null;
-                            for (var j = 0; j < indicators.length; j++) {
-                                if (indicators[j].getId().equalsString("CL_INDICATOR_" + con)) {
-                                    indic = indicators[j];
-                                }
-                            }
-                            for (var k = 0; k < indic.size(); k++) {
-                                var dataflow = new structure.Dataflow();
-                                dataflow.setAgencyId(classifications.getAgencyId());
-                                var indicid = indic.getId().toString();
-                                dataflow.setId(new commonreferences.ID("DF_" + con + "_ALL_" + indicid));
-                                dataflow.setVersion(null);
-                                var r3 = new commonreferences.Ref();
-                                r3.setAgencyId(classifications.getAgencyId());
-                                r3.setMaintainableParentId(new commonreferences.ID(con + "_ALL_" + indicid));
-                                r3.setVersion(null);
-                                var names = [];
-                                var name = new common.Name("en", col1.findName("en").getText() + " - " + indic.findName("en").getText());
+                    return indicatorsArray;
+                }.bind(this)).map(function (item, idex, length) {
+                    return this.findCodelist(item);
+                }.bind(this)).then(function (indicatorArray) {
+                    this.indicatorsArrayCodelist = indicatorArray;
+                    console.log(JSON.stringify(indicatorArray));
+                    var indic = null;
+                    var dataflowList = [];
+                    for (var i = 0; i < this.classifications.size(); i++) {
+                        var col1 = this.classifications.getItem(i);
+                        var con = col1.getId().toString();
+                        indic = this.indicatorsArrayCodelist[i];
+                        for (var k = 0; k < indic.size(); k++) {
+                            var dataflow = new structure.Dataflow();
+                            dataflow.setAgencyId(this.classifications.getAgencyId());
+                            var indicid = indic.getItem(k).getId().toString();
+                            dataflow.setId(new commonreferences.ID("DF_" + con + "_ALL_" + indicid));
+                            dataflow.setVersion(null);
+                            var r3 = new commonreferences.Ref();
+                            r3.setAgencyId(this.classifications.getAgencyId());
+                            r3.setMaintainableParentId(new commonreferences.ID(con + "_ALL_" + indicid));
+                            r3.setVersion(null);
+                            var names = [];
+                            var langs = ["en", "fr", "es"];
+                            for (var lang = 0; lang < langs.length; lang++) {
+                                var name = new common.Name(langs[lang], col1.findName(langs[lang]).getText() + " - " + indic.getItem(k).findName(langs[lang]).getText());
                                 names.push(name);
-                                dataflow.setNames(names);
-                                dataflowList.push(dataflow);
                             }
+                            dataflow.setNames(names);
+                            var reference = new commonreferences.Reference(r3, null);
+                            dataflow.setStructure(reference);
+                            dataflowList.push(dataflow);
                         }
-                        this.dataflowList = dataflowList;
-                        return dataflowList;
-                    }.bind(this));
+                    }
+                    this.dataflowList = dataflowList;
+                    return this.dataflowList;
                 }.bind(this));
             }
         };
@@ -221,7 +231,8 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
             else {
                 return this.retrieve(this.getServiceURL() + "/codelist/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId() + (ref.getVersion() == null ? "/latest" : ref.getVersion().toString())).then(function (structure) {
                     this.local.load(structure);
-                    return structure.getStructures().findCodelist(ref);
+                    var cl = structure.getStructures().findCodelist(ref);
+                    return cl;
                 }.bind(this));
             }
         };
@@ -253,7 +264,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
         };
         ILO.prototype.save = function () { };
         return ILO;
-    })();
+    }());
     exports.ILO = ILO;
 });
 

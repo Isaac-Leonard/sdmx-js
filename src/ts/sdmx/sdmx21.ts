@@ -85,13 +85,13 @@ export class Sdmx21StructureParser implements interfaces.SdmxParserProvider {
             var parser: Sdmx21GenericDataReaderTools = new Sdmx21GenericDataReaderTools(input);
             return parser.getDataMessage();
         } else if (this.isStructureSpecificData(input)) {
-            var parser2: Sdmx21DataReaderTools = new Sdmx21DataReaderTools(input);
+            var parser2: Sdmx21StructureSpecificDataReaderTools = new Sdmx21StructureSpecificDataReaderTools(input);
             return parser2.getDataMessage();
         }
 
     }
 }
-export class Sdmx21DataReaderTools {
+export class Sdmx21StructureSpecificDataReaderTools {
     private msg: message.DataMessage = null;
     private dw: data.FlatDataSetWriter = new data.FlatDataSetWriter();
 

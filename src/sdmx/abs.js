@@ -1,4 +1,5 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
+    "use strict";
     var ABS = (function () {
         function ABS(agency, service, options) {
             this.agency = "ABS";
@@ -183,7 +184,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         ABS.prototype.save = function () { };
         return ABS;
-    })();
+    }());
     exports.ABS = ABS;
 });
 

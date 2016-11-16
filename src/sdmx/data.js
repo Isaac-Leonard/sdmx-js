@@ -4,6 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences", "sdmx/structure", "sdmx"], function (require, exports, common, commonreferences, structure, sdmx) {
+    "use strict";
     var Query = (function () {
         function Query(flow, registry) {
             this.flow = null;
@@ -107,10 +108,11 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.providerRef;
         };
         return Query;
-    })();
+    }());
     exports.Query = Query;
     var QueryKey = (function () {
         function QueryKey(structRef, registry, s) {
+            this.all = false;
             this.structRef = null;
             this.registry = null;
             this.name = null;
@@ -153,7 +155,12 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                 // lr == null
                 return null;
             }
-            return null;
+        };
+        QueryKey.prototype.isAll = function () {
+            return this.all;
+        };
+        QueryKey.prototype.setAll = function (b) {
+            this.all = b;
         };
         QueryKey.prototype.possibleValues = function () {
             var result = [];
@@ -166,17 +173,22 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             ;
         };
         QueryKey.prototype.getQueryString = function () {
-            var s = "";
-            for (var i = 0; i < this.values.length; i++) {
-                s += this.values[i];
-                if (i < (this.values.length - 1)) {
-                    s += "+";
-                }
+            if (this.isAll()) {
+                return "";
             }
-            return s;
+            else {
+                var s = "";
+                for (var i = 0; i < this.values.length; i++) {
+                    s += this.values[i];
+                    if (i < (this.values.length - 1)) {
+                        s += "+";
+                    }
+                }
+                return s;
+            }
         };
         return QueryKey;
-    })();
+    }());
     exports.QueryKey = QueryKey;
     var FlatObs = (function () {
         function FlatObs(vals) {
@@ -213,7 +225,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.values.length;
         };
         return FlatObs;
-    })();
+    }());
     exports.FlatObs = FlatObs;
     var AttachmentLevel = (function () {
         function AttachmentLevel(s, id) {
@@ -253,7 +265,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         AttachmentLevel.OBSERVATION = new AttachmentLevel(AttachmentLevel.ATTACHMENT_OBSERVATION_STRING, AttachmentLevel.ATTACHMENT_OBSERVATION);
         AttachmentLevel.GROUP = new AttachmentLevel(AttachmentLevel.ATTACHMENT_GROUP_STRING, AttachmentLevel.ATTACHMENT_GROUP);
         return AttachmentLevel;
-    })();
+    }());
     exports.AttachmentLevel = AttachmentLevel;
     var AbstractKey = (function () {
         function AbstractKey() {
@@ -262,7 +274,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return "";
         };
         return AbstractKey;
-    })();
+    }());
     exports.AbstractKey = AbstractKey;
     var PartialKey = (function (_super) {
         __extends(PartialKey, _super);
@@ -270,7 +282,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             _super.apply(this, arguments);
         }
         return PartialKey;
-    })(AbstractKey);
+    }(AbstractKey));
     exports.PartialKey = PartialKey;
     var FullKey = (function (_super) {
         __extends(FullKey, _super);
@@ -278,7 +290,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             _super.apply(this, arguments);
         }
         return FullKey;
-    })(AbstractKey);
+    }(AbstractKey));
     exports.FullKey = FullKey;
     var Cube = (function () {
         function Cube() {
@@ -286,7 +298,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         Cube.prototype.putObservation = function (order, mapper, o) {
         };
         return Cube;
-    })();
+    }());
     exports.Cube = Cube;
     var Group = (function () {
         function Group() {
@@ -353,7 +365,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.groupAttributes.setValue(columnName, val);
         };
         return Group;
-    })();
+    }());
     exports.Group = Group;
     var FlatColumnMapper = (function () {
         function FlatColumnMapper() {
@@ -445,7 +457,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             }
         };
         return FlatColumnMapper;
-    })();
+    }());
     exports.FlatColumnMapper = FlatColumnMapper;
     var FlatDataSet = (function () {
         function FlatDataSet() {
@@ -563,7 +575,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.dimensionAtObservation;
         };
         return FlatDataSet;
-    })();
+    }());
     exports.FlatDataSet = FlatDataSet;
     var FlatDataSetWriter = (function () {
         function FlatDataSetWriter() {
@@ -639,7 +651,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.groups.push(group);
         };
         return FlatDataSetWriter;
-    })();
+    }());
     exports.FlatDataSetWriter = FlatDataSetWriter;
     var StructuredDataMessage = (function () {
         function StructuredDataMessage(dm, reg) {
@@ -697,7 +709,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.dataflow = dataflow;
         };
         return StructuredDataMessage;
-    })();
+    }());
     exports.StructuredDataMessage = StructuredDataMessage;
     var StructuredDataSet = (function () {
         function StructuredDataSet(ds, reg, struct) {
@@ -760,7 +772,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return result;
         };
         return StructuredDataSet;
-    })();
+    }());
     exports.StructuredDataSet = StructuredDataSet;
     var StructuredValue = (function () {
         function StructuredValue(concept, value, registry, struct) {
@@ -835,7 +847,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.value;
         };
         return StructuredValue;
-    })();
+    }());
     exports.StructuredValue = StructuredValue;
     var ValueTypeResolver = (function () {
         function ValueTypeResolver() {
@@ -963,7 +975,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return null;
         };
         return ValueTypeResolver;
-    })();
+    }());
     exports.ValueTypeResolver = ValueTypeResolver;
 });
 

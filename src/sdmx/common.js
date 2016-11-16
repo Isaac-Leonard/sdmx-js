@@ -4,6 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function (require, exports, commonreferences) {
+    "use strict";
     var TextType = (function () {
         function TextType(lang, text) {
             this.lang = "";
@@ -24,7 +25,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             this.lang = s;
         };
         return TextType;
-    })();
+    }());
     exports.TextType = TextType;
     var Annotation = (function () {
         function Annotation() {
@@ -33,7 +34,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             this.annotationUrl = "";
         }
         return Annotation;
-    })();
+    }());
     exports.Annotation = Annotation;
     var Annotations = (function () {
         function Annotations() {
@@ -46,7 +47,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             this.annotations = a;
         };
         return Annotations;
-    })();
+    }());
     exports.Annotations = Annotations;
     var AnnotableType = (function () {
         function AnnotableType() {
@@ -58,7 +59,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             this.annotations = annots;
         };
         return AnnotableType;
-    })();
+    }());
     exports.AnnotableType = AnnotableType;
     var Description = (function (_super) {
         __extends(Description, _super);
@@ -66,7 +67,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             _super.call(this, lang, text);
         }
         return Description;
-    })(TextType);
+    }(TextType));
     exports.Description = Description;
     var Name = (function (_super) {
         __extends(Name, _super);
@@ -74,7 +75,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             _super.call(this, lang, text);
         }
         return Name;
-    })(TextType);
+    }(TextType));
     exports.Name = Name;
     var ObservationDimensionType = (function (_super) {
         __extends(ObservationDimensionType, _super);
@@ -89,7 +90,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
         }
         ObservationDimensionType.prototype.toString = function () { return this.code != null ? this.code.toString() : _super.prototype.toString.call(this); };
         return ObservationDimensionType;
-    })(commonreferences.NCNameID);
+    }(commonreferences.NCNameID));
     exports.ObservationDimensionType = ObservationDimensionType;
     var ActionType = (function () {
         function ActionType(s) {
@@ -146,7 +147,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
         ActionType.DELETE = new ActionType(ActionType.DELETE_TEXT);
         ActionType.INFORMATION = new ActionType(ActionType.INFORMATION_TEXT);
         return ActionType;
-    })();
+    }());
     exports.ActionType = ActionType;
     var PayloadStructureType = (function () {
         function PayloadStructureType() {
@@ -163,7 +164,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
         };
         PayloadStructureType.prototype.getStructure = function () { return this.structure; };
         return PayloadStructureType;
-    })();
+    }());
     exports.PayloadStructureType = PayloadStructureType;
     var ObservationalTimePeriodType = (function () {
         function ObservationalTimePeriodType(s) {
@@ -220,7 +221,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
         ObservationalTimePeriodType.WEEK = 6;
         ObservationalTimePeriodType.DAY = 7;
         return ObservationalTimePeriodType;
-    })();
+    }());
     exports.ObservationalTimePeriodType = ObservationalTimePeriodType;
     var ExternalReferenceAttributeGroup = (function () {
         function ExternalReferenceAttributeGroup() {
@@ -246,7 +247,7 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
             this.structureURL = structureURL;
         };
         return ExternalReferenceAttributeGroup;
-    })();
+    }());
     exports.ExternalReferenceAttributeGroup = ExternalReferenceAttributeGroup;
     var DataType = (function () {
         function DataType(s) {
@@ -383,13 +384,13 @@ define("sdmx/common", ["require", "exports", "sdmx/commonreferences"], function 
         DataType.DATASET_REFERENCE = DataType.add("DataSetReference");
         DataType.ATTACHMENT_CONSTRAINT_REFERENCE = DataType.add("AttachmentConstraintReference");
         return DataType;
-    })();
+    }());
     exports.DataType = DataType;
     var StandardTimePeriodType = (function () {
         function StandardTimePeriodType() {
         }
         return StandardTimePeriodType;
-    })();
+    }());
     exports.StandardTimePeriodType = StandardTimePeriodType;
 });
 

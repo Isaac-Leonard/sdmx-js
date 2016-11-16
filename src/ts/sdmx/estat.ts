@@ -26,7 +26,7 @@ import data = require("sdmx/data");
 import sdmx = require("sdmx");
 export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
     private agency: string = "ESTAT";
-    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest";
+    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://ec.europa.eu/eurostat/SDMX/diss-web/rest";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
     private dataflowList: Array<structure.Dataflow> = null;
@@ -61,7 +61,7 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
         opts.method = "GET";
         opts.headers = {
             "Origin": document.location
-            //,"Accept": "application/vnd.sdmx.structurespecificdata+xml"
+            ,"Accept": "application/vnd.sdmx.structurespecificdata+xml"
             };
         return this.makeRequest(opts).then(function(a) {
                 console.log("Got Data Response");

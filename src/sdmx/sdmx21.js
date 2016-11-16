@@ -1,4 +1,5 @@
 define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data", "sdmx"], function (require, exports, commonreferences, structure, message, registry, xml, common, data, sdmx) {
+    "use strict";
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -68,15 +69,15 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 return parser.getDataMessage();
             }
             else if (this.isStructureSpecificData(input)) {
-                var parser2 = new Sdmx21DataReaderTools(input);
+                var parser2 = new Sdmx21StructureSpecificDataReaderTools(input);
                 return parser2.getDataMessage();
             }
         };
         return Sdmx21StructureParser;
-    })();
+    }());
     exports.Sdmx21StructureParser = Sdmx21StructureParser;
-    var Sdmx21DataReaderTools = (function () {
-        function Sdmx21DataReaderTools(s) {
+    var Sdmx21StructureSpecificDataReaderTools = (function () {
+        function Sdmx21StructureSpecificDataReaderTools(s) {
             this.msg = null;
             this.dw = new data.FlatDataSetWriter();
             //console.log("sdmx20 parsing data");
@@ -84,8 +85,8 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             //console.log("sdmx20 creating DataMessage");
             this.msg = this.toDataMessage(dom.documentElement);
         }
-        Sdmx21DataReaderTools.prototype.getDataMessage = function () { return this.msg; };
-        Sdmx21DataReaderTools.prototype.toDataMessage = function (dm) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.getDataMessage = function () { return this.msg; };
+        Sdmx21StructureSpecificDataReaderTools.prototype.toDataMessage = function (dm) {
             var msg = new message.DataMessage();
             var childNodes = dm.childNodes;
             msg.setHeader(this.toHeader(this.findNodeName("Header", childNodes)));
@@ -95,14 +96,14 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return msg;
         };
-        Sdmx21DataReaderTools.prototype.toDataSets = function (dm) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toDataSets = function (dm) {
             var dss = [];
             for (var i = 0; i < dm.length; i++) {
                 dss.push(this.toDataSet(dm[i].childNodes));
             }
             return dss;
         };
-        Sdmx21DataReaderTools.prototype.toDataSet = function (ds) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toDataSet = function (ds) {
             this.dw.newDataSet();
             var series = this.searchNodeName("Series", ds);
             if (series.length == 0) {
@@ -133,7 +134,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return this.dw.finishDataSet();
         };
-        Sdmx21DataReaderTools.prototype.toHeader = function (headerNode) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toHeader = function (headerNode) {
             var header = new message.Header();
             header.setId(this.findNodeName("ID", headerNode.childNodes).childNodes[0].nodeValue);
             var test = this.findNodeName("Test", headerNode.childNodes).childNodes[0].nodeValue;
@@ -147,7 +148,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             header.setSender(this.toSender(this.findNodeName("Sender", headerNode.childNodes)));
             return header;
         };
-        Sdmx21DataReaderTools.prototype.toSender = function (senderNode) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toSender = function (senderNode) {
             var sender = senderNode.childNodes[0].nodeValue;
             var senderType = new message.Sender();
             var senderId = senderNode.getAttribute("id");
@@ -155,7 +156,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             senderType.setId(senderID);
             return senderType;
         };
-        Sdmx21DataReaderTools.prototype.toNames = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toNames = function (node) {
             var names = [];
             var senderNames = this.searchNodeName("Name", node.childNodes);
             for (var i = 0; i < senderNames.length; i++) {
@@ -163,13 +164,13 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return names;
         };
-        Sdmx21DataReaderTools.prototype.toName = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toName = function (node) {
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var name = new common.Name(lang, text);
             return name;
         };
-        Sdmx21DataReaderTools.prototype.toDescriptions = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toDescriptions = function (node) {
             var names = [];
             var senderNames = this.searchNodeName("Description", node.childNodes);
             for (var i = 0; i < senderNames.length; i++) {
@@ -177,23 +178,23 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return names;
         };
-        Sdmx21DataReaderTools.prototype.toDescription = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toDescription = function (node) {
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var desc = new common.Description(lang, text);
             return desc;
         };
-        Sdmx21DataReaderTools.prototype.toTextType = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toTextType = function (node) {
             var lang = node.getAttribute("xml:lang");
             var text = node.childNodes[0].nodeValue;
             var textType = new common.TextType(lang, text);
             return textType;
         };
-        Sdmx21DataReaderTools.prototype.toPartyType = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.toPartyType = function (node) {
             var pt = new message.PartyType();
             return pt;
         };
-        Sdmx21DataReaderTools.prototype.findNodeName = function (s, childNodes) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.findNodeName = function (s, childNodes) {
             for (var i = 0; i < childNodes.length; i++) {
                 var nn = childNodes[i].nodeName;
                 //alert("looking for:"+s+": name="+childNodes[i].nodeName);
@@ -204,7 +205,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return null;
         };
-        Sdmx21DataReaderTools.prototype.searchNodeName = function (s, childNodes) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.searchNodeName = function (s, childNodes) {
             var result = [];
             for (var i = 0; i < childNodes.length; i++) {
                 var nn = childNodes[i].nodeName;
@@ -218,7 +219,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return result;
         };
-        Sdmx21DataReaderTools.prototype.findTextNode = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.findTextNode = function (node) {
             if (node == null)
                 return "";
             var childNodes = node.childNodes;
@@ -230,14 +231,14 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
             return "";
         };
-        Sdmx21DataReaderTools.prototype.recurseDomChildren = function (start, output) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.recurseDomChildren = function (start, output) {
             var nodes;
             if (start.childNodes) {
                 nodes = start.childNodes;
                 this.loopNodeChildren(nodes, output);
             }
         };
-        Sdmx21DataReaderTools.prototype.loopNodeChildren = function (nodes, output) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.loopNodeChildren = function (nodes, output) {
             var node;
             for (var i = 0; i < nodes.length; i++) {
                 node = nodes[i];
@@ -249,7 +250,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 }
             }
         };
-        Sdmx21DataReaderTools.prototype.outputNode = function (node) {
+        Sdmx21StructureSpecificDataReaderTools.prototype.outputNode = function (node) {
             var whitespace = /^\s+$/g;
             if (node.nodeType === 1) {
                 console.log("element: " + node.tagName);
@@ -262,9 +263,9 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 }
             }
         };
-        return Sdmx21DataReaderTools;
-    })();
-    exports.Sdmx21DataReaderTools = Sdmx21DataReaderTools;
+        return Sdmx21StructureSpecificDataReaderTools;
+    }());
+    exports.Sdmx21StructureSpecificDataReaderTools = Sdmx21StructureSpecificDataReaderTools;
     var Sdmx21GenericDataReaderTools = (function () {
         function Sdmx21GenericDataReaderTools(s) {
             this.msg = null;
@@ -505,7 +506,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return new commonreferences.Version(node.getAttribute("version"));
         };
         return Sdmx21GenericDataReaderTools;
-    })();
+    }());
     exports.Sdmx21GenericDataReaderTools = Sdmx21GenericDataReaderTools;
     var Sdmx21StructureReaderTools = (function () {
         function Sdmx21StructureReaderTools(s, reg) {
@@ -1023,7 +1024,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx21StructureReaderTools;
-    })();
+    }());
     exports.Sdmx21StructureReaderTools = Sdmx21StructureReaderTools;
 });
 

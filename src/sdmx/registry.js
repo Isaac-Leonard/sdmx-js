@@ -1,4 +1,5 @@
 define("sdmx/registry", ["require", "exports"], function (require, exports) {
+    "use strict";
     var LocalRegistry = (function () {
         function LocalRegistry() {
             this.structures = [];
@@ -84,7 +85,7 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
         };
         LocalRegistry.prototype.save = function () { };
         return LocalRegistry;
-    })();
+    }());
     exports.LocalRegistry = LocalRegistry;
     var DoubleRegistry = (function () {
         function DoubleRegistry(left, right) {
@@ -228,7 +229,7 @@ define("sdmx/registry", ["require", "exports"], function (require, exports) {
         };
         DoubleRegistry.prototype.save = function () { };
         return DoubleRegistry;
-    })();
+    }());
     exports.DoubleRegistry = DoubleRegistry;
 });
 

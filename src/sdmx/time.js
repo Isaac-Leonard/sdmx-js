@@ -4,6 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define(["require", "exports"], function (require, exports) {
+    "use strict";
     var TimeUtil = (function () {
         function TimeUtil() {
         }
@@ -110,7 +111,7 @@ define(["require", "exports"], function (require, exports) {
         TimeUtil.LONG_MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         TimeUtil.SHORT_MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         return TimeUtil;
-    })();
+    }());
     exports.TimeUtil = TimeUtil;
     var AbstractRegularTimePeriod = (function () {
         function AbstractRegularTimePeriod() {
@@ -177,7 +178,7 @@ define(["require", "exports"], function (require, exports) {
             return this.getStart().toString();
         };
         return AbstractRegularTimePeriod;
-    })();
+    }());
     exports.AbstractRegularTimePeriod = AbstractRegularTimePeriod;
     var MonthConstants = (function () {
         function MonthConstants() {
@@ -212,7 +213,7 @@ define(["require", "exports"], function (require, exports) {
         MonthConstants.NOVEMBER = 11;
         MonthConstants.DECEMBER = 12;
         return MonthConstants;
-    })();
+    }());
     exports.MonthConstants = MonthConstants;
     /**
      * Represents a year in the range -9999 to 9999.  This class is immutable,
@@ -422,7 +423,7 @@ define(["require", "exports"], function (require, exports) {
          */
         Year.MAXIMUM_YEAR = 9999;
         return Year;
-    })(AbstractRegularTimePeriod);
+    }(AbstractRegularTimePeriod));
     exports.Year = Year;
     var Month = (function (_super) {
         __extends(Month, _super);
@@ -732,7 +733,7 @@ define(["require", "exports"], function (require, exports) {
             return result;
         };
         return Month;
-    })(AbstractRegularTimePeriod);
+    }(AbstractRegularTimePeriod));
     exports.Month = Month;
 });
 

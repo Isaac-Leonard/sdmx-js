@@ -128,6 +128,7 @@ export class Query {
     }
 }
 export class QueryKey {
+    private all:boolean = false;
     private structRef: commonreferences.Reference = null;
     private registry: interfaces.LocalRegistry = null;
     private name: string = null;
@@ -169,7 +170,12 @@ export class QueryKey {
             // lr == null
             return null;
         }
-        return null;
+    }
+    public isAll(): boolean {
+        return this.all;
+    }
+    public setAll(b:boolean) {
+        this.all=b;
     }
     public possibleValues(): Array<string> {
         var result = [];
@@ -181,14 +187,18 @@ export class QueryKey {
         return result;;
     }
     getQueryString() {
-        var s: string = "";
-        for (var i: number = 0; i < this.values.length; i++) {
-            s += this.values[i];
-            if (i < (this.values.length - 1)) {
-                s += "+";
+        if (this.isAll()) {
+            return "";
+        } else {
+            var s: string = "";
+            for (var i: number = 0; i < this.values.length; i++) {
+                s += this.values[i];
+                if (i < (this.values.length - 1)) {
+                    s += "+";
+                }
             }
+            return s;
         }
-        return s;
     }
 }
 

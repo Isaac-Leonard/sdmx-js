@@ -48,7 +48,7 @@ gulp.task('compile-ts', function () {
 
     var tsResult = gulp.src(sourceTsFiles)
             .pipe(sourcemaps.init())
-            .pipe(tsc(tsProject));
+            .pipe(tsProject());
     tsResult.dts.pipe(gulp.dest(config.tsOutputPath));
     return tsResult.js
             .pipe(sourcemaps.write('.'))

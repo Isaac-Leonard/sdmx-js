@@ -1,4 +1,5 @@
 define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/knoema", "sdmx/nomis", "sdmx/ilo", "sdmx/estat"], function (require, exports, sdmx20, sdmx21, abs, oecd, knoema, nomis, ilo, estat) {
+    "use strict";
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -45,9 +46,8 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
                 return new knoema.Knoema("AfDB", "http://opendataforafrica.org/api/1.0/sdmx", "");
             if (s == "ILO")
                 return new ilo.ILO("ILO", "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest", "");
-            // if (s == "ESTAT") return new estat.ESTAT("ESTAT", "http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
             if (s == "ESTAT")
-                return new estat.ESTAT("ESTAT", "http://cors-anywhere.herokuapp.com/http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
+                return new estat.ESTAT("ESTAT", "http://ec.europa.eu/eurostat/SDMX/diss-web/rest", "");
         };
         SdmxIO.setTruncateNames = function (n) {
             SdmxIO.TRUNCATE_NAMES = n;
@@ -78,9 +78,9 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
         SdmxIO.PARSER = [];
         SdmxIO.TRUNCATE_NAMES = 100;
         SdmxIO.languages = [];
-        SdmxIO.language = window.navigator.userLanguage || window.navigator.language;
+        SdmxIO.language = window.navigator.userLanguage || window.navigator.language || "en";
         return SdmxIO;
-    })();
+    }());
     exports.SdmxIO = SdmxIO;
     SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());
     SdmxIO.registerParserProvider(new sdmx21.Sdmx21StructureParser());
