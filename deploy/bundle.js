@@ -8828,7 +8828,19 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
                 var obsArray = this.searchNodeName("Obs", ds);
                 for (var i = 0; i < obsArray.length; i++) {
                     this.dw.newObservation();
-                    var atts = obsArray[i].attributes;
+                    var obsDimensionNode = this.findNodeName("ObsDimension", obsArray[i].childNodes);
+                    this.dw.writeObservationComponent(this.dimensionAtObservation, obsDimensionNode.getAttribute("value"));
+                    var obsValueNode = this.findNodeName("ObsValue", obsArray[i].childNodes);
+                    // "OBS_VALUE is hard coded into SDMX 2.1
+                    this.dw.writeObservationComponent("OBS_VALUE", obsValueNode.getAttribute("value"));
+                    var attNode = this.findNodeName("Attributes", obsArray[i].childNodes);
+                    if (attNode != null) {
+                        var attNodes = this.searchNodeName("Value", attNode.childNodes);
+                        for (var av = 0; av < attNodes.length; av++) {
+                            this.dw.writeObservationComponent(attNodes[av].getAttribute("id"), attNodes[av].getAttribute("value"));
+                        }
+                    }
+                    this.dw.finishObservation();
                 }
             }
             else {
@@ -11759,6 +11771,7 @@ define('sdmx/estat',["require", "exports", "sdmx/registry", "sdmx/common", "sdmx
             };
             return this.makeRequest(opts).then(function (a) {
                 console.log("Got Data Response");
+                alert(a);
                 var dm = sdmx.SdmxIO.parseData(a);
                 var payload = new common.PayloadStructureType();
                 payload.setStructure(dataflow.getStructure());

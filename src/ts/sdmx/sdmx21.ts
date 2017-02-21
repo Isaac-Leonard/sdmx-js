@@ -320,7 +320,19 @@ export class Sdmx21GenericDataReaderTools {
             var obsArray: Array<any> = this.searchNodeName("Obs", ds);
             for (var i: number = 0; i < obsArray.length; i++) {
                 this.dw.newObservation();
-                var atts = obsArray[i].attributes;
+                var obsDimensionNode = this.findNodeName("ObsDimension", obsArray[i].childNodes);
+                this.dw.writeObservationComponent(this.dimensionAtObservation, obsDimensionNode.getAttribute("value"));
+                var obsValueNode = this.findNodeName("ObsValue", obsArray[i].childNodes);
+                // "OBS_VALUE is hard coded into SDMX 2.1
+                this.dw.writeObservationComponent("OBS_VALUE", obsValueNode.getAttribute("value"));
+                var attNode = this.findNodeName("Attributes", obsArray[i].childNodes);
+                if (attNode != null) {
+                    var attNodes = this.searchNodeName("Value", attNode.childNodes);
+                    for (var av: number = 0; av < attNodes.length; av++) {
+                        this.dw.writeObservationComponent(attNodes[av].getAttribute("id"), attNodes[av].getAttribute("value"));
+                    }
+                }
+                this.dw.finishObservation();
             }
         } else {
             for (var i: number = 0; i < series.length; i++) {
@@ -815,8 +827,8 @@ export class Sdmx21StructureReaderTools {
         dimensionList.setDimensions(dimensions);
         var time = this.findNodeName("TimeDimension", dimListNode.childNodes);
         dimensionList.setTimeDimension(this.toTimeDimension(time));
-        var meas = this.findNodeName("MeasureDimension",dimListNode.childNodes);
-        if( meas != null ) {
+        var meas = this.findNodeName("MeasureDimension", dimListNode.childNodes);
+        if (meas != null) {
             dimensionList.setMeasureDimension(this.toMeasureDimension(meas));
         }
         return dimensionList;

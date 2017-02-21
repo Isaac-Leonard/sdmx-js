@@ -27,8 +27,8 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             this.local.clear();
         };
         ESTAT.prototype.query = function (q) {
-            var startPeriod = q.getStartDate().getFullYear() + "-" + q.getStartDate().getMonth();
-            var endPeriod = q.getEndDate().getFullYear() + "-" + q.getEndDate().getMonth();
+            var startPeriod = q.getStartDate().getFullYear() + "-" + (q.getStartDate().getMonth() < 10 ? ("0" + q.getStartDate().getMonth()) : q.getStartDate().getMonth()) + "-" + (q.getStartDate().getDate() < 10 ? ("0" + q.getStartDate().getDate()) : q.getStartDate().getDate());
+            var endPeriod = q.getEndDate().getFullYear() + "-" + (q.getEndDate().getMonth() < 10 ? ("0" + q.getEndDate().getMonth()) : q.getEndDate().getMonth()) + "-" + (q.getEndDate().getDate() < 10 ? ("0" + q.getEndDate().getDate()) : q.getEndDate().getDate());
             var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "?startPeriod=" + startPeriod + "&endPeriod=" + endPeriod + "";
             return this.retrieveData(q.getDataflow(), url);
         };

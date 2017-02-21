@@ -43,8 +43,9 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
         this.local.clear();
     }
     query(q: data.Query): Promise<message.DataMessage> {
-        var startPeriod = q.getStartDate().getFullYear() + "-" + q.getStartDate().getMonth();
-        var endPeriod = q.getEndDate().getFullYear() + "-" + q.getEndDate().getMonth();
+        
+        var startPeriod = q.getStartDate().getFullYear() + "-" + (q.getStartDate().getMonth()<10?("0"+q.getStartDate().getMonth()):q.getStartDate().getMonth()) + "-" + (q.getStartDate().getDate()<10?("0"+q.getStartDate().getDate()):q.getStartDate().getDate());
+        var endPeriod = q.getEndDate().getFullYear() + "-" + (q.getEndDate().getMonth()<10?("0"+q.getEndDate().getMonth()):q.getEndDate().getMonth()) + "-" + (q.getEndDate().getDate()<10?("0"+q.getEndDate().getDate()):q.getEndDate().getDate());
         var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "?startPeriod=" + startPeriod + "&endPeriod=" + endPeriod + "";
         return this.retrieveData(q.getDataflow(), url);
     }
@@ -61,67 +62,67 @@ export class ESTAT implements interfaces.Queryable, interfaces.RemoteRegistry {
         opts.method = "GET";
         opts.headers = {
             "Origin": document.location
-            ,"Accept": "application/vnd.sdmx.structurespecificdata+xml"
-            };
+            , "Accept": "application/vnd.sdmx.structurespecificdata+xml"
+        };
         return this.makeRequest(opts).then(function(a) {
-                console.log("Got Data Response");
-                var dm = sdmx.SdmxIO.parseData(a);
-                var payload = new common.PayloadStructureType();
-                payload.setStructure(dataflow.getStructure());
-                dm.getHeader().setStructures([payload]);
-                return dm;
-            });
-        }
-        constructor(agency: string, service: string, options: string) {
-            if (service != null) { this.serviceURL = service; }
-            if (agency != null) { this.agency = agency; }
-            if (options != null) { this.options = options; }
-        }
+            console.log("Got Data Response");
+            var dm = sdmx.SdmxIO.parseData(a);
+            var payload = new common.PayloadStructureType();
+            payload.setStructure(dataflow.getStructure());
+            dm.getHeader().setStructures([payload]);
+            return dm;
+        });
+    }
+    constructor(agency: string, service: string, options: string) {
+        if (service != null) { this.serviceURL = service; }
+        if (agency != null) { this.agency = agency; }
+        if (options != null) { this.options = options; }
+    }
 
-        load(struct: message.StructureType) {
-            console.log("abs load");
-            this.local.load(struct);
-        }
+    load(struct: message.StructureType) {
+        console.log("abs load");
+        this.local.load(struct);
+    }
 
-        unload(struct: message.StructureType) {
-            this.local.unload(struct);
-        }
-        makeRequest(opts): Promise < string > {
-            return new Promise<string>(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open(opts.method, opts.url);
-                xhr.onload = function() {
-                    if (this.status >= 200 && this.status < 300) {
-                        resolve(xhr.response);
-                    } else {
-                        reject({
-                            status: this.status,
-                            statusText: xhr.statusText
-                        });
-                    }
-                };
-                xhr.onerror = function() {
+    unload(struct: message.StructureType) {
+        this.local.unload(struct);
+    }
+    makeRequest(opts): Promise<string> {
+        return new Promise<string>(function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(opts.method, opts.url);
+            xhr.onload = function() {
+                if (this.status >= 200 && this.status < 300) {
+                    resolve(xhr.response);
+                } else {
                     reject({
                         status: this.status,
                         statusText: xhr.statusText
                     });
-                };
-                if (opts.headers) {
-                    Object.keys(opts.headers).forEach(function(key) {
-                        xhr.setRequestHeader(key, opts.headers[key]);
-                    });
                 }
-                var params = opts.params;
-                // We'll need to stringify if we've been given an object
-                // If we have a string, this is skipped.
-                if (params && typeof params === 'object') {
-                    params = Object.keys(params).map(function(key) {
-                        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-                    }).join('&');
-                }
-                xhr.send(params);
-            });
-        }
+            };
+            xhr.onerror = function() {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            };
+            if (opts.headers) {
+                Object.keys(opts.headers).forEach(function(key) {
+                    xhr.setRequestHeader(key, opts.headers[key]);
+                });
+            }
+            var params = opts.params;
+            // We'll need to stringify if we've been given an object
+            // If we have a string, this is skipped.
+            if (params && typeof params === 'object') {
+                params = Object.keys(params).map(function(key) {
+                    return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+                }).join('&');
+            }
+            xhr.send(params);
+        });
+    }
     public retrieve(urlString: string): Promise<message.StructureType> {
         console.log("nomis retrieve:" + urlString);
         var s: string = this.options;
