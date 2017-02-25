@@ -24,6 +24,7 @@ import structure = require("sdmx/structure");
 import message = require("sdmx/message");
 import moment = require("moment");
 import sdmx = require("sdmx");
+import timepack = require("sdmx/time");
 export class Query {
     private flow: structure.Dataflow = null;
     private structRef: commonreferences.Reference = null;
@@ -128,7 +129,7 @@ export class Query {
     }
 }
 export class QueryKey {
-    private all:boolean = false;
+    private all: boolean = false;
     private structRef: commonreferences.Reference = null;
     private registry: interfaces.LocalRegistry = null;
     private name: string = null;
@@ -174,8 +175,8 @@ export class QueryKey {
     public isAll(): boolean {
         return this.all;
     }
-    public setAll(b:boolean) {
-        this.all=b;
+    public setAll(b: boolean) {
+        this.all = b;
     }
     public possibleValues(): Array<string> {
         var result = [];
@@ -289,11 +290,7 @@ export class PartialKey extends AbstractKey {
 }
 export class FullKey extends AbstractKey {
 }
-export class Cube {
-    putObservation(order: Array<string>, mapper: interfaces.ColumnMapper, o: FlatObs) {
 
-    }
-}
 
 export class Group {
     private groupName: string = null;
@@ -834,6 +831,40 @@ export class StructuredDataSet {
         }
         return result;
     }
+    getPivotUIData(): Array<Array<string>> {
+        var data = [];
+        var cols = [];
+        for (var i = 0; i < this.getColumnCount(); i++) {
+            if (!this.structure.isAttribute(this.dataSet.getColumnName(i))) {
+                cols.push(this.getColumnName(i));
+            }
+        }
+        data.push(cols);
+        for (var i = 0; i < this.size(); i++) {
+            var row = [];
+            for (var j = 0; j < this.getColumnCount(); j++) {
+                var sv: StructuredValue = this.getStructuredValue(i, j);
+                var dimension = false;
+                for (var k = 0; k < this.structure.getDataStructureComponents().getDimensionList().getDimensions().length; k++) {
+                    if (this.structure.getDataStructureComponents().getDimensionList().getDimensions()[k].getId().toString() == sv.getConcept().getId().toString()) {
+                        if (sv.getCodelist() != null) {
+                            row.push(structure.NameableType.toString(sv.getCode()))
+                        }
+                    }
+                }
+                if (this.structure.isTimeDimension(this.dataSet.getColumnName(j))) {
+                    row.push(sv.getCode().getId().toString());
+
+                }
+                if (this.structure.getDataStructureComponents().getMeasureList().getPrimaryMeasure().getId().toString() == sv.getConcept().getId().toString()) {
+                    row.push(parseFloat(sv.getValue()));
+                }
+            }
+            data.push(row);
+            row = [];
+        }
+        return data;
+    }
 }
 export class StructuredValue {
     public getRepresentation(reg: interfaces.LocalRegistry, c: structure.Component): structure.RepresentationType {
@@ -1036,5 +1067,518 @@ export class ValueTypeResolver {
         }
         return null;
     }
-
 }
+
+export class Cube {
+
+    private size: number = 0;
+    private order: Array<string> = [];
+    private struct: structure.DataStructure = null;
+    private reg: interfaces.LocalRegistry = null;
+    private mapper: FlatColumnMapper = new FlatColumnMapper();
+
+    private validCodes: collections.Dictionary<string, Array<string>> = new collections.Dictionary<string, Array<string>>();
+
+    constructor(struct: structure.DataStructure, reg: interfaces.LocalRegistry) {
+        this.struct = struct;
+        this.reg = reg;
+    }
+
+    public getStructure(): structure.DataStructure {
+        return this.struct;
+    }
+
+    public getStructureReference(): commonreferences.Reference {
+        return this.struct.asReference();
+    }
+
+    private root: RootCubeDimension = new RootCubeDimension();
+
+    public getRootCubeDimension(): RootCubeDimension {
+        return this.root;
+    }
+
+    public putObservation(order: Array<string>, mapper: interfaces.ColumnMapper, obs: FlatObs) {
+        var dim: CubeDimension = this.getRootCubeDimension();
+        this.order = order;
+        var time: TimeCubeDimension = null;
+        var cubeobs: CubeObservation = null;
+        for (var i: number = 0; i < this.struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+            //if( struct.getDataStructureComponents().getDimensionList().getDimension(i).)
+            // This line goes through the components in their datastructure order
+            //IDType dimId = struct.getDataStructureComponents().getDimensionList().getDimension(i).getId();
+            // This line goes through the components in their specified order
+            var dimId: commonreferences.ID = null;
+            if (order != null) {
+                dimId = new commonreferences.ID(order[i]);
+            } else {
+                dimId = this.struct.getDataStructureComponents().getDimensionList().getDimensions()[i].getId();
+            }
+            if (this.validCodes[dimId.toString()] == null) {
+                this.validCodes[dimId.toString()] = [];
+                this.mapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+            }
+            /*
+                If the data you are trying to make a cube from does not have a complete key
+                with values for all dimensions, mapper.getColumnIndex(dimId.toString()) returns -1
+                here (because there is no dimension of that name in the FlatObservation)
+                this filters down into FlatObservation.getValue(-1) which causes an array index
+                out of bounds exception!
+             */
+            var myDim: CubeDimension = dim.getSubCubeDimension(obs.getValue(mapper.getColumnIndex(dimId.toString())));
+            if (myDim == null) {
+                myDim = new ListCubeDimension(dimId.toString(), obs.getValue(mapper.getColumnIndex(dimId.toString())));
+                dim.putSubDimension(myDim);
+                if (!collections.arrays.contains(this.validCodes[dimId.toString()], myDim.getValue())) {
+                    this.validCodes[dimId.toString()].push(myDim.getValue());
+                }
+            }
+            dim = myDim;
+        }
+        var myDim: CubeDimension = null;
+        var dimId: commonreferences.ID = this.struct.getDataStructureComponents().getDimensionList().getTimeDimension().getId();
+        if (this.validCodes[dimId.toString()] == null) {
+            this.validCodes[dimId.toString()] = [];
+        }
+        var i: number = this.mapper.getColumnIndex(dimId.toString());
+        var s: string = obs.getValue(i);
+        myDim = dim.getSubCubeDimension(obs.getValue(mapper.getColumnIndex(dimId.toString())));
+        if (myDim == null) {
+            myDim = new TimeCubeDimension(dimId.toString(), obs.getValue(mapper.getColumnIndex(dimId.toString())));
+            dim.putSubDimension(myDim);
+            if (!collections.arrays.contains(this.validCodes[dimId.toString()], myDim.getValue())) {
+                this.validCodes[dimId.toString()].push(myDim.getValue());
+            }
+        }
+        time = <TimeCubeDimension>myDim;
+        var cross: string = null;
+        var dimId2: commonreferences.ID = null;
+        if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+            dimId2 = this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId();
+            if (this.validCodes[dimId2.toString()] == null) {
+                this.validCodes[dimId2.toString()] = [];
+            }
+            cross = obs.getValue(mapper.getColumnIndex(dimId2.toString()));
+            if (!collections.arrays.contains(this.validCodes[dimId2.toString()], cross)) {
+                this.validCodes[dimId2.toString()].push(cross);
+            }
+
+        }
+        var dimId3: commonreferences.ID = this.struct.getDataStructureComponents().getMeasureList().getPrimaryMeasure().getId();
+        if (dimId2 != null) {
+            cubeobs = new CubeObservation(dimId2.toString(), cross, dimId3.toString(), obs.getValue(mapper.getColumnIndex(dimId3.toString())));
+        } else {
+            cubeobs = new CubeObservation(null, null, dimId3.toString(), obs.getValue(mapper.getColumnIndex(dimId3.toString())));
+        }
+
+        time.putObservation(cubeobs);
+
+        for (var k: number = 0; k < this.struct.getDataStructureComponents().getAttributeList().getAttributes().length; k++) {
+            var name: string = this.struct.getDataStructureComponents().getAttributeList().getAttributes()[i].getId().toString();
+            var value: string = null;
+            if (mapper.getColumnIndex(name) != -1) {
+                value = obs.getValue(mapper.getColumnIndex(name));
+                cubeobs.putAttribute(new CubeAttribute(name, value));
+            }
+        }
+        // Increment Size counter
+        this.size++;
+    }
+    public getColumnMapper(): interfaces.ColumnMapper {
+        return this.mapper;
+    }
+    public find(key: FullKey): CubeObs {
+        return this.findLatest(key, false);
+    }
+
+    public findLatest(key: FullKey, latest: boolean): CubeObs {
+        var dim: CubeDimension = this.getRootCubeDimension();
+        var oldDim: CubeDimension = dim;
+        for (var i: number = 0; i < this.struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+            dim = dim.getSubCubeDimension(key.getComponent(dim.getSubDimension()));
+            if (dim == null) {
+                //System.out.println("Can't find dim:"+key.getComponent(order.get(i))+":"+oldDim.getSubDimension());
+                return null;
+            }
+            oldDim = dim;
+        }
+        var time: structure.TimeDimension = this.struct.getDataStructureComponents().getDimensionList().getTimeDimension();
+        if (time == null) {
+            throw new Error("Time Dimension Is Null");
+        } else if (latest) {
+            var timesList: Array<string> = dim.listDimensionValues();
+            for (var i: number = 0; i < timesList.length; i++) {
+                for (var j: number = 0; j < timesList.length - i; j++) {
+                    var t1 = timepack.TimeUtil.parseTime(timesList[i], null);
+                    var t2 = timepack.TimeUtil.parseTime(timesList[j], null);
+                    if (t1.getStart() > t2.getStart()) {
+                        collections.arrays.swap(timesList, i, j);
+                    }
+                }
+            }
+            var timeValue: string = timesList[timesList.length - 1];
+            var tcd: TimeCubeDimension = <TimeCubeDimension>dim.getSubCubeDimension(timeValue);
+            if (tcd == null) {
+                //System.out.println("TCD null:"+key.getComponent(time.getId().toString()+":"+timeValue));
+                //dim.dump();
+                return null;
+            }
+            if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+                var measure: string = key.getComponent(this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId().toString());
+                //tcd.dump();
+                //System.out.println("Measure="+measure);
+                return tcd.getObservation(measure).toCubeObs(key, this.mapper);
+            } else {
+                var co: CubeObservation = tcd.getObservation(null);
+                return co.toCubeObs(key, this.mapper);;
+            }
+        } else {
+            var timeValue: string = key.getComponent(time.getId().toString());
+            var tcd: TimeCubeDimension = <TimeCubeDimension>dim.getSubCubeDimension(timeValue);
+            if (tcd == null) {
+                //System.out.println("TCD null:"+key.getComponent(time.getId().toString()+":"+timeValue));
+                //dim.dump();
+                return null;
+            }
+            if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+                var measure: string = key.getComponent(this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId().toString());
+                //tcd.dump();
+                //System.out.println("Measure="+measure);
+                return tcd.getObservation(measure).toCubeObs(key, this.mapper);
+            } else {
+                var co: CubeObservation = tcd.getObservation(null);
+                return co.toCubeObs(key, this.mapper);
+            }
+        }
+    }
+
+    public getValues(col: string): Array<string> {
+        var list = this.validCodes[col];
+        if (list == null) {
+            return [];
+        }
+        return list;
+    }
+
+    /**
+     * @return the size
+     */
+    public getSize(): number {
+        return this.size;
+    }
+
+    public getObservationCount(): number {
+        return this.size;
+    }
+
+    public getAllItems(col: string): Array<structure.ItemType> {
+        var com: structure.Component = this.getStructure().findComponentString(col);
+        return this.reg.findItemType(com.getLocalRepresentation().getEnumeration()).getItems();
+    }
+
+    public getAllValues(col: string): Array<string> {
+        var items = this.getAllItems(col);
+        var result = [];
+        for (var i: number = 0; i < items.length; i++) {
+            result.push(items[i].getId().toString());
+        }
+        return result;
+    }
+    public getSparsity(): number {
+        return (this.getObservationCount() / this.getCellCount()) * 100;
+    }
+    public getItems(col: string): Array<structure.ItemType> {
+        var com: structure.Component = this.getStructure().findComponentString(col);
+        var result = [];
+        var items = this.reg.findItemType(com.getLocalRepresentation().getEnumeration()).getItems();
+        var codes = this.getValues(col);
+        for (var i: number = 0; i < items.length; i++) {
+            for (var j: number = 0; j < codes.length; j++) {
+                if (codes[j] == items[i].getId().getString()) {
+                    result.push(items[i]);
+                }
+            }
+        }
+        return result;
+    }
+    public getCellCount(): number {
+        var c: number = this.getValues(this.mapper.getColumnName(0)).length;
+        for (var i: number = 1; i < this.mapper.size(); i++) {
+            c *= this.getValues(this.mapper.getColumnName(i)).length;
+        }
+        return c;
+    }
+}
+
+export class CubeDimension {
+
+    private concept: string = null;
+    private value: string = null;
+
+    private subDimension: string = null;
+
+    constructor(concept: string, value: string) {
+        this.concept = concept;
+        this.value = value;
+    }
+    
+    /**
+     * @return the concept
+     */
+    public getConcept(): string {
+        return this.concept;
+    }
+
+    /**
+     * @param concept the concept to set
+     */
+    public setConcept(concept: string) {
+        this.concept = concept;
+    }
+
+    public getSubCubeDimension(id: string): CubeDimension { return null; }
+
+    public putSubDimension(sub: CubeDimension) { }
+
+    public listSubDimensions(): Array<CubeDimension> { return []; }
+    public listDimensionValues(): Array<string> { return []; }
+
+    /**
+     * @return the value
+     */
+    public getValue(): string {
+        return this.value;
+    }
+
+    /**
+     * @param value the value to set
+     */
+    public setValue(value: string) {
+        this.value = value;
+    }
+    public dump() {
+    }
+
+    /**
+     * @return the subDimension
+     */
+    public getSubDimension(): string {
+        return this.subDimension;
+    }
+
+    /**
+     * @param subDimension the subDimension to set
+     */
+    public setSubDimension(subDimension: string) {
+        this.subDimension = subDimension;
+    }
+}
+
+export class RootCubeDimension extends CubeDimension {
+    constructor() {
+        super(null, null);
+    }
+}
+
+export class ListCubeDimension extends CubeDimension {
+    private list: Array<CubeDimension> = [];
+    constructor(concept: string, value: string) {
+        super(concept, value);
+        if (concept == null) {
+            console.log("concept is null:ListCubeDimension");
+        }
+    }
+
+    public getSubCubeDimension(id: string): CubeDimension {
+        for (var i: number = 0; i < this.list.length; i++) {
+            var cd: CubeDimension = this.list[i];
+            if (cd.getValue() == id) { return cd; }
+        }
+        return null;
+    }
+
+    public putSubCubeDimension(sub: CubeDimension) {
+        var old: CubeDimension = this.getSubCubeDimension(sub.getValue());
+        if (old != null) {
+            this.list.splice(this.list.indexOf(old), 1);
+        }
+        this.list.push(sub);
+        this.setSubDimension(sub.getConcept());
+    }
+
+    public listSubDimensions(): Array<CubeDimension> {
+        return this.list;
+    }
+
+    public listDimensionValues(): Array<string> {
+        var set: Array<string> = [];
+        for (var i: number = 0; i < this.list.length; i++) {
+            set.push(this.list[i].getValue());
+        }
+        return set;
+    }
+}
+
+export class TimeCubeDimension extends CubeDimension {
+
+    private obs: Array<CubeObservation> = [];
+
+    constructor(concept: string, value: string) {
+        super(concept, value);
+    }
+
+    public listObservations(): Array<CubeObservation> {
+        return this.obs;
+    }
+
+    public putObservation(sub: CubeObservation) {
+        this.obs.push(sub);
+    }
+
+    public getObservation(id: string): CubeObservation {
+        for (var i: number = 0; i < this.obs.length; i++) {
+            var c: CubeObservation = this.obs[i];
+            if (c.getCrossSection() == null) { return c; }
+            if (c.getCrossSection() == id) { return c; }
+        }
+        return null;
+    }
+
+    public listObservationValues(): Array<string> {
+        // TO DO
+        return [];
+    }
+
+    public listSubDimensions(): Array<CubeDimension> {
+        return [];
+    }
+
+    public listDimensionValues(): Array<string> {
+        return [];
+    }
+}
+
+export class CubeObservation {
+    private map: collections.Dictionary<string, CubeAttribute> = new collections.Dictionary<string, CubeAttribute>();
+
+    private concept: string = null;
+    private cross: string = null;
+    private observationConcept: string = null;
+    private value: string = null;
+
+    constructor(crossSectionalMeasureConcept: string, crossSection: string, primaryMeasureConcept: string, value: string) {
+        this.concept = crossSectionalMeasureConcept;
+        this.cross = crossSection;
+        this.observationConcept = primaryMeasureConcept
+        this.value = value;
+    }
+
+    public getAttribute(id: string): CubeAttribute {
+        return this.map.getValue(id);
+    }
+
+    public putAttribute(sub: CubeAttribute) {
+        this.map.setValue(sub.getConcept(), sub);
+    }
+
+    public listAttributes(): Array<CubeAttribute> {
+        return this.map.values();
+    }
+
+    public listAttributeNames(): Array<string> {
+        return this.map.keys();
+    }
+
+    /**
+     * @return the concept
+     */
+    public getCrossSection(): string {
+        return this.cross;
+    }
+
+    /**
+     * @param concept the concept to set
+     */
+    public setCrossSection(concept: string) {
+        this.cross = concept;
+    }
+
+    /**
+     * @return the value
+     */
+    public getValue(): string {
+        return this.value;
+    }
+
+    /**
+     * @param value the value to set
+     */
+    public setValue(value: string) {
+        this.value = value;
+    }
+
+    /**
+     * @return the concept
+     */
+    public getConcept(): string {
+        return this.concept;
+    }
+
+    /**
+     * @param concept the concept to set
+     */
+    public setConcept(concept: string) {
+        this.concept = concept;
+    }
+
+    /**
+     * @return the observationConcept
+     */
+    public getObservationConcept(): string {
+        return this.observationConcept;
+    }
+
+    /**
+     * @param observationConcept the observationConcept to set
+     */
+    public setObservationConcept(observationConcept: string) {
+        this.observationConcept = observationConcept;
+    }
+
+    public toCubeObs(key: FullKey, mapper: interfaces.ColumnMapper): CubeObs {
+        var f: CubeObs = new CubeObs();
+        for (var i: number = 0; i < mapper.size(); i++) {
+            var s: string = mapper.getColumnName(i);
+            var v: string = key.getComponent(s);
+            f.addValue(s, v);
+        }
+        // Cross Sectional Data
+        if (this.concept != null) { f.addValue(this.concept, this.cross); }
+        f.addValue(this.observationConcept, this.value);
+        for (var i: number = 0; i < this.map.keys().length; i++) {
+            var s: string = this.map.keys()[i];
+            var v2: CubeAttribute = this.map.getValue(s);
+            f.addValue(s, v2.getValue());
+        }
+        return f;
+    }
+}
+
+export class CubeAttribute {
+    constructor(concept: string, value: string) {
+
+    }
+    public getConcept(): string {
+        return "";
+    }
+    public getValue(): string {
+        return "";
+    }
+}
+
+export class CubeObs {
+    public addValue(c: string, v: string) {
+
+    }
+}
+

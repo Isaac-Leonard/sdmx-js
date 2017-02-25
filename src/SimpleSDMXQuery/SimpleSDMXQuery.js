@@ -19,8 +19,34 @@ define("SimpleSDMXQuery/SimpleSDMXQuery", ["require", "react", "sdmx", "SimpleSD
             if (dataMessage == null) {
                 this.refs.data.load(null);
             } else {
-                var sdm = new data.StructuredDataMessage(dataMessage, this.queryable.getRemoteRegistry().getLocalRegistry());
-                this.refs.data.load(sdm);
+                var structuredDataMessage = new data.StructuredDataMessage(dataMessage, this.queryable.getRemoteRegistry().getLocalRegistry());
+                var derivers = $.pivotUtilities.derivers;
+
+                var renderers = $.extend(
+                        $.pivotUtilities.renderers,
+                        $.pivotUtilities.c3_renderers,
+                        $.pivotUtilities.d3_renderers,
+                        $.pivotUtilities.export_renderers
+                        );
+                var pivotData = structuredDataMessage.getStructuredDataSet(0).getPivotUIData();
+                var all_cols = pivotData[0];
+                var rows = [];
+                var cols = [];
+                for (var i = 0; i < all_cols.length; i++) {
+                    if (i < (all_cols.length / 2)&&"Observation Value"!=all_cols[i] ) {
+                        rows.push(all_cols[i]);
+                    } else if( "Observation Value"!=all_cols[i] ){
+                        cols.push(all_cols[i]);
+                    }
+                }
+                var first = $.pivotUtilities.aggregatorTemplates.intsum;
+                var numberFormat = $.pivotUtilities.numberFormat;
+                var intFormat = numberFormat({digitsAfterDecimal: 0});
+                $("#output").pivotUI(pivotData, {
+                    rows: rows, cols: cols, "aggregatorName": "Integer Sum", vals: ["Observation Value"]
+                });
+                //var sdm = new data.StructuredDataMessage(dataMessage, this.queryable.getRemoteRegistry().getLocalRegistry());
+                //this.refs.data.load(sdm);
             }
         },
         repeatItem2: function (item, itemIndex) {

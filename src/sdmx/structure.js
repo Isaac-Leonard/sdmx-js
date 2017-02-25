@@ -518,6 +518,14 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         function Dataflow() {
             _super.call(this);
         }
+        Dataflow.prototype.asReference = function () {
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(this.getAgencyId());
+            ref.setId(this.getId());
+            ref.setVersion(this.getVersion());
+            var reference = new commonreferences.Reference(ref, null);
+            return reference;
+        };
         return Dataflow;
     }(StructureUsageType));
     exports.Dataflow = Dataflow;
@@ -575,6 +583,26 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         return Component;
     }(IdentifiableType));
     exports.Component = Component;
+    var ComponentUtil = (function () {
+        function ComponentUtil() {
+        }
+        ComponentUtil.getRepresentation = function (reg, c) {
+            var rep = c.getLocalRepresentation();
+            if (rep == null) {
+                var concept = reg.findConcept(c.getConceptIdentity());
+                //return concept.getCoreRepresentation();
+                return null;
+            }
+            return c.getLocalRepresentation();
+        };
+        ComponentUtil.getLocalRepresentation = function (c) {
+            if (c == null)
+                return null;
+            return c.getLocalRepresentation();
+        };
+        return ComponentUtil;
+    }());
+    exports.ComponentUtil = ComponentUtil;
     var Dimension = (function (_super) {
         __extends(Dimension, _super);
         function Dimension() {

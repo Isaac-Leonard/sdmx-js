@@ -1,6 +1,7 @@
 define("SimpleSDMXQuery/data", ["require", "react", "sdmx/structure", "sdmx/data", "lodash"], function (require, React, structure, data, _) {
     return React.createClass({
         getInitialState: function () {
+
             return {
                 structuredDataMessage: null
             };
@@ -12,6 +13,8 @@ define("SimpleSDMXQuery/data", ["require", "react", "sdmx/structure", "sdmx/data
             if (this.state.structuredDataMessage == null) {
                 return React.createElement("p", {}, "No Data");
             }
+            else {return React.createElement("p", {}, "Pivot Table");}
+            /*
             var headerComponents = this.generateHeaders(),
                     rowComponents = this.generateRows();
             return React.createElement(
@@ -32,6 +35,7 @@ define("SimpleSDMXQuery/data", ["require", "react", "sdmx/structure", "sdmx/data
                             ' '
                             )
                     );
+                    */
         },
         generateHeaders: function generateHeaders() {
             var result = [];

@@ -550,6 +550,14 @@ export class Dataflow extends StructureUsageType {
     constructor() {
         super();
     }
+    public asReference() {
+        var ref:commonreferences.Ref = new commonreferences.Ref();
+        ref.setAgencyId(this.getAgencyId());
+        ref.setId(this.getId());
+        ref.setVersion(this.getVersion());
+        var reference:commonreferences.Reference = new commonreferences.Reference(ref,null);
+        return reference;
+    }
 }
 export class DataflowList {
     private dataflowList: Array<Dataflow> = [];
@@ -598,6 +606,21 @@ export class Component extends IdentifiableType {
     }
     public setLocalRepresentation(lr: RepresentationType) {
         this.localRepresentation = lr;
+    }
+}
+export class ComponentUtil {
+    public static getRepresentation(reg: interfaces.LocalRegistry,c:Component):RepresentationType{
+        var rep:RepresentationType = c.getLocalRepresentation();
+        if( rep==null ) {
+            var concept: ConceptType = reg.findConcept(c.getConceptIdentity());
+            //return concept.getCoreRepresentation();
+            return null;
+        }
+        return c.getLocalRepresentation();
+    }
+    public static getLocalRepresentation(c:Component):RepresentationType {
+        if( c == null ) return null;
+        return c.getLocalRepresentation();
     }
 }
 export class Dimension extends Component {
@@ -767,7 +790,6 @@ export class DataStructure extends MaintainableType {
 
         return null;
     }
-
     public asReference(): commonreferences.Reference {
         var ref: commonreferences.Ref = new commonreferences.Ref()
         ref.setAgencyId(this.getAgencyId());
@@ -806,7 +828,7 @@ export class DataStructure extends MaintainableType {
         }
         return false;
     }
-    public isAttribute(s: String): boolean {
+    public isAttribute(s: string): boolean {
         for (var i: number = 0; i < this.getDataStructureComponents().getAttributeList().getAttributes().length; i++) {
             if (s == this.getDataStructureComponents().getAttributeList().getAttributes()[i].getId().toString()) {
                 return true;
