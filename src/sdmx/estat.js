@@ -1,5 +1,4 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
-    "use strict";
     var ESTAT = (function () {
         function ESTAT(agency, service, options) {
             this.agency = "ESTAT";
@@ -182,7 +181,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         ESTAT.prototype.save = function () { };
         return ESTAT;
-    }());
+    })();
     exports.ESTAT = ESTAT;
 });
 

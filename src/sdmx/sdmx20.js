@@ -1,5 +1,4 @@
 define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data", "sdmx"], function (require, exports, commonreferences, structure, message, registry, xml, common, data, sdmx) {
-    "use strict";
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -75,7 +74,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx20StructureParser;
-    }());
+    })();
     exports.Sdmx20StructureParser = Sdmx20StructureParser;
     var Sdmx20DataReaderTools = (function () {
         function Sdmx20DataReaderTools(s) {
@@ -272,7 +271,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx20DataReaderTools;
-    }());
+    })();
     exports.Sdmx20DataReaderTools = Sdmx20DataReaderTools;
     var Sdmx20GenericDataReaderTools = (function () {
         function Sdmx20GenericDataReaderTools(s) {
@@ -479,7 +478,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx20GenericDataReaderTools;
-    }());
+    })();
     exports.Sdmx20GenericDataReaderTools = Sdmx20GenericDataReaderTools;
     var Sdmx20StructureReaderTools = (function () {
         function Sdmx20StructureReaderTools(s, reg) {
@@ -1287,7 +1286,7 @@ define("sdmx/sdmx20", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx20StructureReaderTools;
-    }());
+    })();
     exports.Sdmx20StructureReaderTools = Sdmx20StructureReaderTools;
 });
 

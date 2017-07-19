@@ -167,8 +167,7 @@ export class Sdmx21StructureSpecificDataReaderTools {
         return header;
     }
     toSender(senderNode: any): message.Sender {
-        var sender: string = senderNode.childNodes[0].nodeValue;
-
+        //var sender: string = senderNode.childNodes[0].nodeValue;
         var senderType: message.Sender = new message.Sender();
         var senderId: string = senderNode.getAttribute("id");
         var senderID: commonreferences.ID = new commonreferences.ID(senderId);
@@ -395,7 +394,7 @@ export class Sdmx21GenericDataReaderTools {
         return payload;
     }
     toSender(senderNode: any): message.Sender {
-        var sender: string = senderNode.childNodes[0].nodeValue;
+        //var sender: string = senderNode.childNodes[0].nodeValue;
 
         var senderType: message.Sender = new message.Sender();
         var senderId: string = senderNode.getAttribute("id");
@@ -802,9 +801,15 @@ export class Sdmx21StructureReaderTools {
         var dimListNode = this.findNodeName("DimensionList", dsc.childNodes);
         var attListNode = this.findNodeName("AttributeList", dsc.childNodes);
         var measListNode = this.findNodeName("MeasureList", dsc.childNodes);
-        components.setDimensionList(this.toDimensionList(dimListNode));
-        components.setAttributeList(this.toAttributeList(this.searchNodeName("Attribute", attListNode.childNodes)));
-        components.setMeasureList(this.toMeasureList(measListNode));
+        if (dimListNode != null) {
+            components.setDimensionList(this.toDimensionList(dimListNode));
+        }
+        if (attListNode != null) {
+            components.setAttributeList(this.toAttributeList(this.searchNodeName("Attribute", attListNode.childNodes)));
+        }
+        if (measListNode != null) {
+            components.setMeasureList(this.toMeasureList(measListNode));
+        }
         return components;
     }
     toMeasureList(measListNode: any): structure.MeasureList {

@@ -4,7 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/message", ["require", "exports", "sdmx/structure"], function (require, exports, structure) {
-    "use strict";
     var DataMessage = (function () {
         function DataMessage() {
             this.header = null;
@@ -25,13 +24,13 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
             return this.dataSets.length;
         };
         return DataMessage;
-    }());
+    })();
     exports.DataMessage = DataMessage;
     var DataQuery = (function () {
         function DataQuery() {
         }
         return DataQuery;
-    }());
+    })();
     exports.DataQuery = DataQuery;
     var StructureType = (function () {
         function StructureType() {
@@ -98,7 +97,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
         StructureType.prototype.save = function () {
         };
         return StructureType;
-    }());
+    })();
     exports.StructureType = StructureType;
     var HeaderTimeType = (function () {
         function HeaderTimeType(d) {
@@ -110,7 +109,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
             this.date = d;
         };
         return HeaderTimeType;
-    }());
+    })();
     exports.HeaderTimeType = HeaderTimeType;
     var Contact = (function () {
         function Contact() {
@@ -124,7 +123,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
             this.emails = [];
         }
         return Contact;
-    }());
+    })();
     exports.Contact = Contact;
     var PartyType = (function (_super) {
         __extends(PartyType, _super);
@@ -133,7 +132,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
             this.contacts = [];
         }
         return PartyType;
-    }(structure.NameableType));
+    })(structure.NameableType);
     exports.PartyType = PartyType;
     var Sender = (function (_super) {
         __extends(Sender, _super);
@@ -141,7 +140,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
             _super.call(this);
         }
         return Sender;
-    }(PartyType));
+    })(PartyType);
     exports.Sender = Sender;
     var Header = (function () {
         function Header() {
@@ -242,7 +241,7 @@ define("sdmx/message", ["require", "exports", "sdmx/structure"], function (requi
             this.source = s;
         };
         return Header;
-    }());
+    })();
     exports.Header = Header;
 });
 

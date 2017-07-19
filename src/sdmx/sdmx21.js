@@ -1,5 +1,4 @@
 define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/structure", "sdmx/message", "sdmx/registry", "sdmx/xml", "sdmx/common", "sdmx/data", "sdmx"], function (require, exports, commonreferences, structure, message, registry, xml, common, data, sdmx) {
-    "use strict";
     function parseXml(s) {
         var parseXml;
         parseXml = new DOMParser();
@@ -74,7 +73,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx21StructureParser;
-    }());
+    })();
     exports.Sdmx21StructureParser = Sdmx21StructureParser;
     var Sdmx21StructureSpecificDataReaderTools = (function () {
         function Sdmx21StructureSpecificDataReaderTools(s) {
@@ -149,7 +148,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return header;
         };
         Sdmx21StructureSpecificDataReaderTools.prototype.toSender = function (senderNode) {
-            var sender = senderNode.childNodes[0].nodeValue;
+            //var sender: string = senderNode.childNodes[0].nodeValue;
             var senderType = new message.Sender();
             var senderId = senderNode.getAttribute("id");
             var senderID = new commonreferences.ID(senderId);
@@ -264,7 +263,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx21StructureSpecificDataReaderTools;
-    }());
+    })();
     exports.Sdmx21StructureSpecificDataReaderTools = Sdmx21StructureSpecificDataReaderTools;
     var Sdmx21GenericDataReaderTools = (function () {
         function Sdmx21GenericDataReaderTools(s) {
@@ -375,7 +374,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return payload;
         };
         Sdmx21GenericDataReaderTools.prototype.toSender = function (senderNode) {
-            var sender = senderNode.childNodes[0].nodeValue;
+            //var sender: string = senderNode.childNodes[0].nodeValue;
             var senderType = new message.Sender();
             var senderId = senderNode.getAttribute("id");
             var senderID = new commonreferences.ID(senderId);
@@ -518,7 +517,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             return new commonreferences.Version(node.getAttribute("version"));
         };
         return Sdmx21GenericDataReaderTools;
-    }());
+    })();
     exports.Sdmx21GenericDataReaderTools = Sdmx21GenericDataReaderTools;
     var Sdmx21StructureReaderTools = (function () {
         function Sdmx21StructureReaderTools(s, reg) {
@@ -801,9 +800,15 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             var dimListNode = this.findNodeName("DimensionList", dsc.childNodes);
             var attListNode = this.findNodeName("AttributeList", dsc.childNodes);
             var measListNode = this.findNodeName("MeasureList", dsc.childNodes);
-            components.setDimensionList(this.toDimensionList(dimListNode));
-            components.setAttributeList(this.toAttributeList(this.searchNodeName("Attribute", attListNode.childNodes)));
-            components.setMeasureList(this.toMeasureList(measListNode));
+            if (dimListNode != null) {
+                components.setDimensionList(this.toDimensionList(dimListNode));
+            }
+            if (attListNode != null) {
+                components.setAttributeList(this.toAttributeList(this.searchNodeName("Attribute", attListNode.childNodes)));
+            }
+            if (measListNode != null) {
+                components.setMeasureList(this.toMeasureList(measListNode));
+            }
             return components;
         };
         Sdmx21StructureReaderTools.prototype.toMeasureList = function (measListNode) {
@@ -1036,7 +1041,7 @@ define("sdmx/sdmx21", ["require", "exports", "sdmx/commonreferences", "sdmx/stru
             }
         };
         return Sdmx21StructureReaderTools;
-    }());
+    })();
     exports.Sdmx21StructureReaderTools = Sdmx21StructureReaderTools;
 });
 

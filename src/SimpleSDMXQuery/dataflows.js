@@ -16,7 +16,7 @@ define("SimpleSDMXQuery/dataflows", ["require", "react", "sdmx/structure"], func
             });
             this.forceUpdate();
             this.props.onSelectDataflow(object);
-            return "test";
+            
         },
         change: function (s) {
             var object = null;

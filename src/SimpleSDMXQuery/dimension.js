@@ -99,10 +99,6 @@ define("SimpleSDMXQuery/dimension", ["require", "react", "sdmx/structure", "loda
                         }, React.createElement('option', {'value': 'all'}, 'All'), React.createElement('option', {'value': 'one'}, 'One'), React.createElement('option', {'value': 'many'}, 'Many')
                                 ), _.map(this.state.codelist.getItems(), this.repeatButton));
             } else if (this.state.number == "one") {
-                if( dim.getConceptIdentity()==null ) {
-                    //alert("Dimension:"+this.state.conceptRef+" does not have a concept Identity!");
-                    //alert(JSON.stringify(this.state.conceptRef));
-                }
                 return React.createElement('div', {}, React.createElement(
                         "p",
                         null,
@@ -133,14 +129,9 @@ define("SimpleSDMXQuery/dimension", ["require", "react", "sdmx/structure", "loda
             if( this.state.number == "one" ) {
                 q.getQueryKey(this.state.conceptRef).addValue(this.state.oneObject.getId().toString());
             }
-            if( this.state.number == "many") {
+            if( this.state.number == "many"||this.state.number=="all") {
                 for(var i=0;i<this.state.manyArrayObject.length;i++) {
                     q.getQueryKey(this.state.conceptRef).addValue(this.state.manyArrayObject[i].getId().toString());
-                }
-            }
-            if( this.state.number=="all") {
-                for(var i=0;i<this.state.manyArrayObject.length;i++) {
-                    q.getQueryKey(this.state.conceptRef).setAll(true);
                 }
             }
         }

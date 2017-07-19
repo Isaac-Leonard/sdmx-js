@@ -4,7 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (require, exports, xml) {
-    "use strict";
     var Version = (function (_super) {
         __extends(Version, _super);
         function Version(s) {
@@ -29,7 +28,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         Version.PATTERN = "[0-9]+(\\.[0-9]+)*";
         Version.ONE = new Version("1.0");
         return Version;
-    }(xml.RegexXMLString));
+    })(xml.RegexXMLString);
     exports.Version = Version;
     var NestedID = (function (_super) {
         __extends(NestedID, _super);
@@ -55,7 +54,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         };
         NestedID.PATTERN = "[A-z0-9_@$\\-]+(\\.[A-z0-9_@$\\-]+)*";
         return NestedID;
-    }(xml.RegexXMLString));
+    })(xml.RegexXMLString);
     exports.NestedID = NestedID;
     var ID = (function (_super) {
         __extends(ID, _super);
@@ -88,7 +87,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         };
         ID.PATTERN = "[A-z0-9_@$\\-]+";
         return ID;
-    }(NestedID));
+    })(NestedID);
     exports.ID = ID;
     var NCNameID = (function (_super) {
         __extends(NCNameID, _super);
@@ -103,7 +102,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         };
         NCNameID.PATTERN = "[A-z][A-z0-9_\\-]*";
         return NCNameID;
-    }(ID));
+    })(ID);
     exports.NCNameID = NCNameID;
     var NestedNCNameID = (function (_super) {
         __extends(NestedNCNameID, _super);
@@ -118,7 +117,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         };
         NestedNCNameID.PATTERN = "[A-z][A-z0-9_\\-]*(\\.[A-z][A-z0-9_\\-]*)*";
         return NestedNCNameID;
-    }(NestedID));
+    })(NestedID);
     exports.NestedNCNameID = NestedNCNameID;
     var Ref = (function () {
         /*
@@ -190,7 +189,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
             return reference;
         };
         return Ref;
-    }());
+    })();
     exports.Ref = Ref;
     var Reference = (function () {
         function Reference(ref, urn) {
@@ -333,7 +332,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
             return ref2;
         };
         return Reference;
-    }());
+    })();
     exports.Reference = Reference;
     var ObjectTypeCodelistType = (function () {
         function ObjectTypeCodelistType(s) {
@@ -586,7 +585,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         ObjectTypeCodelistType.INT_TIMEDIMENSION = 66;
         ObjectTypeCodelistType.INT_TRANSITION = 67;
         return ObjectTypeCodelistType;
-    }());
+    })();
     exports.ObjectTypeCodelistType = ObjectTypeCodelistType;
     var PackageTypeCodelistType = (function () {
         function PackageTypeCodelistType(s) {
@@ -648,7 +647,7 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         PackageTypeCodelistType.CATEGORYSCHEME = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CATEGORYSCHEME);
         PackageTypeCodelistType.CONCEPTSCHEME = PackageTypeCodelistType.add(PackageTypeCodelistType.TARGET_CONCEPTSCHEME);
         return PackageTypeCodelistType;
-    }());
+    })();
     exports.PackageTypeCodelistType = PackageTypeCodelistType;
     var ObsDimensionsCodeType = (function () {
         function ObsDimensionsCodeType(s) {
@@ -701,25 +700,25 @@ define("sdmx/commonreferences", ["require", "exports", "sdmx/xml"], function (re
         ObsDimensionsCodeType.ALL_DIMENSIONS = new ObsDimensionsCodeType(ObsDimensionsCodeType.ALL_DIMENSIONS_TEXT);
         ObsDimensionsCodeType.TIME_PERIOD = new ObsDimensionsCodeType(ObsDimensionsCodeType.TIME_PERIOD_TEXT);
         return ObsDimensionsCodeType;
-    }());
+    })();
     exports.ObsDimensionsCodeType = ObsDimensionsCodeType;
     var ProvisionAgreementReference = (function () {
         function ProvisionAgreementReference() {
         }
         return ProvisionAgreementReference;
-    }());
+    })();
     exports.ProvisionAgreementReference = ProvisionAgreementReference;
     var StructureReferenceBase = (function () {
         function StructureReferenceBase() {
         }
         return StructureReferenceBase;
-    }());
+    })();
     exports.StructureReferenceBase = StructureReferenceBase;
     var StructureUsageReferenceBase = (function () {
         function StructureUsageReferenceBase() {
         }
         return StructureUsageReferenceBase;
-    }());
+    })();
     exports.StructureUsageReferenceBase = StructureUsageReferenceBase;
 });
 

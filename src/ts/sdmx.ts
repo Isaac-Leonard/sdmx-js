@@ -16,6 +16,7 @@
     Copyright (C) 2016 James Gardner
 */
 /// <amd-module name='sdmx'/>
+import commonreferences = require("sdmx/commonreferences");
 import message = require("sdmx/message");
 import interfaces = require("sdmx/interfaces");
 import sdmx20 = require("sdmx/sdmx20");
@@ -80,7 +81,7 @@ export class SdmxIO {
         return s;
     }
     private static languages = [];
-    private static language = window.navigator.userLanguage || window.navigator.language||"en";
+    private static language = window.navigator.userLanguage || window.navigator.language || "en";
     public static registerLanguage(s: string) {
         for (var i: number = 0; i < this.languages.length; i++) {
             if (this.languages[i] == s) return;
@@ -90,11 +91,21 @@ export class SdmxIO {
     public static listLanguages(): Array<string> {
         return this.languages;
     }
-    public static setLanguage(s:string) {
-        this.language=s;
+    public static setLanguage(s: string) {
+        this.language = s;
     }
-    public static getLanguage():string{
+    public static getLanguage(): string {
         return this.language;
+    }
+    public static reference(agency: string, id: string, vers: string): commonreferences.Reference {
+        var ref = new commonreferences.Ref();
+        ref.setAgencyId(new commonreferences.NestedNCNameID(agency));
+        ref.setMaintainableParentId(new commonreferences.ID(id));
+        if (vers != null) {
+            ref.setVersion(new commonreferences.Version(vers));
+        }
+        var reference: commonreferences.Reference = new commonreferences.Reference(ref, null);
+        return reference;
     }
 }
 SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());

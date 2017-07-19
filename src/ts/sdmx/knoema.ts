@@ -47,7 +47,23 @@ export class Knoema implements interfaces.Queryable, interfaces.RemoteRegistry, 
         this.local.clear();
     }
     query(q:data.Query):Promise<message.DataMessage> {
-        var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+        var qs = "";
+        for (var i: number = 0; i < q.size(); i++) {
+            var k = q.getKeyNames()[i];
+            var qk = q.getQueryKey(k);
+            qs+=k+"=";
+            for (var j: number = 0; j < qk.getValues().length;j++) {
+                var v = qk.getValues()[j];
+                qs+=v;
+                if (j < qk.getValues().length-1 ) {
+                    qs+="%2C";
+                }
+            }
+            if (i < q.size() - 1) {
+                qs += "&";
+            }
+        }
+        var url = this.serviceURL + "/2.1/get?id=" + q.getDataflow().getId().toString() +"&"+ qs + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
         return this.retrieveData(q.getDataflow(),url);
     }
     public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
@@ -162,7 +178,7 @@ export class Knoema implements interfaces.Queryable, interfaces.RemoteRegistry, 
             }.bind(this));
             return promise;
         } else {
-            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function(structure: message.StructureType){
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/2.1/" + ref.getMaintainableParentId()).then(function(structure: message.StructureType){
                 this.local.load(structure);
                 return structure.getStructures().findDataStructure(ref);
             }.bind(this));

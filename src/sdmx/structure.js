@@ -4,7 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonreferences", "sdmx"], function (require, exports, common, commonreferences, sdmx) {
-    "use strict";
     var IdentifiableType = (function (_super) {
         __extends(IdentifiableType, _super);
         function IdentifiableType() {
@@ -43,7 +42,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
                 return false;
         };
         return IdentifiableType;
-    }(common.AnnotableType));
+    })(common.AnnotableType);
     exports.IdentifiableType = IdentifiableType;
     var NameableType = (function (_super) {
         __extends(NameableType, _super);
@@ -183,7 +182,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return s;
         };
         return NameableType;
-    }(IdentifiableType));
+    })(IdentifiableType);
     exports.NameableType = NameableType;
     var ItemType = (function (_super) {
         __extends(ItemType, _super);
@@ -246,7 +245,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return null;
         };
         return ItemType;
-    }(NameableType));
+    })(NameableType);
     exports.ItemType = ItemType;
     var VersionableType = (function (_super) {
         __extends(VersionableType, _super);
@@ -279,7 +278,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.validTo = validTo;
         };
         return VersionableType;
-    }(NameableType));
+    })(NameableType);
     exports.VersionableType = VersionableType;
     var MaintainableType = (function (_super) {
         __extends(MaintainableType, _super);
@@ -370,7 +369,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return reference;
         };
         return MaintainableType;
-    }(VersionableType));
+    })(VersionableType);
     exports.MaintainableType = MaintainableType;
     var ItemSchemeType = (function (_super) {
         __extends(ItemSchemeType, _super);
@@ -464,7 +463,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             }
         };
         return ItemSchemeType;
-    }(MaintainableType));
+    })(MaintainableType);
     exports.ItemSchemeType = ItemSchemeType;
     var CodeType = (function (_super) {
         __extends(CodeType, _super);
@@ -472,7 +471,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return CodeType;
-    }(ItemType));
+    })(ItemType);
     exports.CodeType = CodeType;
     var Codelist = (function (_super) {
         __extends(Codelist, _super);
@@ -480,7 +479,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.call(this);
         }
         return Codelist;
-    }(ItemSchemeType));
+    })(ItemSchemeType);
     exports.Codelist = Codelist;
     var ConceptSchemeType = (function (_super) {
         __extends(ConceptSchemeType, _super);
@@ -488,7 +487,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return ConceptSchemeType;
-    }(ItemSchemeType));
+    })(ItemSchemeType);
     exports.ConceptSchemeType = ConceptSchemeType;
     var ConceptType = (function (_super) {
         __extends(ConceptType, _super);
@@ -496,7 +495,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return ConceptType;
-    }(ItemType));
+    })(ItemType);
     exports.ConceptType = ConceptType;
     var StructureUsageType = (function (_super) {
         __extends(StructureUsageType, _super);
@@ -511,7 +510,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.structure = struct;
         };
         return StructureUsageType;
-    }(MaintainableType));
+    })(MaintainableType);
     exports.StructureUsageType = StructureUsageType;
     var Dataflow = (function (_super) {
         __extends(Dataflow, _super);
@@ -527,7 +526,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return reference;
         };
         return Dataflow;
-    }(StructureUsageType));
+    })(StructureUsageType);
     exports.Dataflow = Dataflow;
     var DataflowList = (function () {
         function DataflowList() {
@@ -548,7 +547,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return null;
         };
         return DataflowList;
-    }());
+    })();
     exports.DataflowList = DataflowList;
     var Component = (function (_super) {
         __extends(Component, _super);
@@ -581,7 +580,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.localRepresentation = lr;
         };
         return Component;
-    }(IdentifiableType));
+    })(IdentifiableType);
     exports.Component = Component;
     var ComponentUtil = (function () {
         function ComponentUtil() {
@@ -601,7 +600,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             return c.getLocalRepresentation();
         };
         return ComponentUtil;
-    }());
+    })();
     exports.ComponentUtil = ComponentUtil;
     var Dimension = (function (_super) {
         __extends(Dimension, _super);
@@ -616,7 +615,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.position = i;
         };
         return Dimension;
-    }(Component));
+    })(Component);
     exports.Dimension = Dimension;
     var TimeDimension = (function (_super) {
         __extends(TimeDimension, _super);
@@ -624,7 +623,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return TimeDimension;
-    }(Component));
+    })(Component);
     exports.TimeDimension = TimeDimension;
     var MeasureDimension = (function (_super) {
         __extends(MeasureDimension, _super);
@@ -632,7 +631,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return MeasureDimension;
-    }(Component));
+    })(Component);
     exports.MeasureDimension = MeasureDimension;
     var Attribute = (function (_super) {
         __extends(Attribute, _super);
@@ -640,7 +639,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return Attribute;
-    }(Component));
+    })(Component);
     exports.Attribute = Attribute;
     var PrimaryMeasure = (function (_super) {
         __extends(PrimaryMeasure, _super);
@@ -648,7 +647,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return PrimaryMeasure;
-    }(Component));
+    })(Component);
     exports.PrimaryMeasure = PrimaryMeasure;
     var DimensionList = (function () {
         function DimensionList() {
@@ -671,7 +670,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.timeDimension = td;
         };
         return DimensionList;
-    }());
+    })();
     exports.DimensionList = DimensionList;
     var AttributeList = (function () {
         function AttributeList() {
@@ -682,7 +681,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.attributes = at;
         };
         return AttributeList;
-    }());
+    })();
     exports.AttributeList = AttributeList;
     var MeasureList = (function () {
         function MeasureList() {
@@ -691,7 +690,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         MeasureList.prototype.getPrimaryMeasure = function () { return this.primaryMeasure; };
         MeasureList.prototype.setPrimaryMeasure = function (pm) { this.primaryMeasure = pm; };
         return MeasureList;
-    }());
+    })();
     exports.MeasureList = MeasureList;
     var DataStructureComponents = (function () {
         function DataStructureComponents() {
@@ -718,7 +717,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.attributeList = al;
         };
         return DataStructureComponents;
-    }());
+    })();
     exports.DataStructureComponents = DataStructureComponents;
     var DataStructure = (function (_super) {
         __extends(DataStructure, _super);
@@ -873,7 +872,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             throw new Error("Dimension " + s + " not found in DataStructure:" + this.getId().toString());
         };
         return DataStructure;
-    }(MaintainableType));
+    })(MaintainableType);
     exports.DataStructure = DataStructure;
     var CodeLists = (function () {
         function CodeLists() {
@@ -954,7 +953,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             }
         };
         return CodeLists;
-    }());
+    })();
     exports.CodeLists = CodeLists;
     var Concepts = (function () {
         function Concepts() {
@@ -1045,7 +1044,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             }
         };
         return Concepts;
-    }());
+    })();
     exports.Concepts = Concepts;
     var DataStructures = (function () {
         function DataStructures() {
@@ -1097,7 +1096,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             }
         };
         return DataStructures;
-    }());
+    })();
     exports.DataStructures = DataStructures;
     var Structures = (function () {
         function Structures() {
@@ -1203,7 +1202,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
         Structures.prototype.save = function () {
         };
         return Structures;
-    }());
+    })();
     exports.Structures = Structures;
     var TextFormatType = (function () {
         function TextFormatType() {
@@ -1302,7 +1301,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.isMultiLingual = b;
         };
         return TextFormatType;
-    }());
+    })();
     exports.TextFormatType = TextFormatType;
     var BasicComponentTextFormatType = (function (_super) {
         __extends(BasicComponentTextFormatType, _super);
@@ -1310,7 +1309,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return BasicComponentTextFormatType;
-    }(TextFormatType));
+    })(TextFormatType);
     exports.BasicComponentTextFormatType = BasicComponentTextFormatType;
     var SimpleComponentTextFormatType = (function (_super) {
         __extends(SimpleComponentTextFormatType, _super);
@@ -1318,7 +1317,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return SimpleComponentTextFormatType;
-    }(BasicComponentTextFormatType));
+    })(BasicComponentTextFormatType);
     exports.SimpleComponentTextFormatType = SimpleComponentTextFormatType;
     var CodededTextFormatType = (function (_super) {
         __extends(CodededTextFormatType, _super);
@@ -1326,7 +1325,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             _super.apply(this, arguments);
         }
         return CodededTextFormatType;
-    }(SimpleComponentTextFormatType));
+    })(SimpleComponentTextFormatType);
     exports.CodededTextFormatType = CodededTextFormatType;
     var RepresentationType = (function () {
         function RepresentationType() {
@@ -1371,7 +1370,7 @@ define("sdmx/structure", ["require", "exports", "sdmx/common", "sdmx/commonrefer
             this.enumerationFormat = enumerationForma;
         };
         return RepresentationType;
-    }());
+    })();
     exports.RepresentationType = RepresentationType;
 });
 

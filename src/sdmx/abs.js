@@ -1,5 +1,4 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
-    "use strict";
     var ABS = (function () {
         function ABS(agency, service, options) {
             this.agency = "ABS";
@@ -29,7 +28,14 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             this.local.clear();
         };
         ABS.prototype.query = function (q) {
-            var url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear() + "&format=compact_v2";
+            var url = '';
+            if (this.getLocalRegistry().findDataStructure(q.getDataflow().getStructure()).getDataStructureComponents().getDimensionList().getTimeDimension() != null) {
+                url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear() + "&format=compact_v2";
+            }
+            else {
+                // No Time Dimension
+                url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?&format=compact_v2";
+            }
             return this.retrieveData(q.getDataflow(), url);
         };
         ABS.prototype.retrieveData = function (dataflow, urlString) {
@@ -184,7 +190,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         ABS.prototype.save = function () { };
         return ABS;
-    }());
+    })();
     exports.ABS = ABS;
 });
 

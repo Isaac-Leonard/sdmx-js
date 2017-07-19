@@ -790,6 +790,7 @@ export class DataStructure extends MaintainableType {
 
         return null;
     }
+
     public asReference(): commonreferences.Reference {
         var ref: commonreferences.Ref = new commonreferences.Ref()
         ref.setAgencyId(this.getAgencyId());
@@ -828,7 +829,7 @@ export class DataStructure extends MaintainableType {
         }
         return false;
     }
-    public isAttribute(s: string): boolean {
+    public isAttribute(s: String): boolean {
         for (var i: number = 0; i < this.getDataStructureComponents().getAttributeList().getAttributes().length; i++) {
             if (s == this.getDataStructureComponents().getAttributeList().getAttributes()[i].getId().toString()) {
                 return true;

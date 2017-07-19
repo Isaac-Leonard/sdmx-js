@@ -1,7 +1,7 @@
 define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonreferences", "sdmx/common", "sdmx"], function (require, exports, registry, structure, commonreferences, common, sdmx) {
     var ILO = (function () {
         function ILO(agency, service, options) {
-            this.agency = "ILO";
+            this.agency = "INSEE";
             //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
             this.serviceURL = "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest";
             //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
@@ -267,4 +267,4 @@ define(["require", "exports", "sdmx/registry", "sdmx/structure", "sdmx/commonref
     exports.ILO = ILO;
 });
 
-//# sourceMappingURL=ilo.js.map
+//# sourceMappingURL=insee.js.map

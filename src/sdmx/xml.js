@@ -4,7 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/xml", ["require", "exports", "moment"], function (require, exports, moment) {
-    "use strict";
     var XMLString = (function () {
         function XMLString(s) {
             this.value = null;
@@ -18,7 +17,7 @@ define("sdmx/xml", ["require", "exports", "moment"], function (require, exports,
             return this.value == s;
         };
         return XMLString;
-    }());
+    })();
     exports.XMLString = XMLString;
     var RegexXMLString = (function (_super) {
         __extends(RegexXMLString, _super);
@@ -30,7 +29,7 @@ define("sdmx/xml", ["require", "exports", "moment"], function (require, exports,
             return [];
         };
         return RegexXMLString;
-    }(XMLString));
+    })(XMLString);
     exports.RegexXMLString = RegexXMLString;
     var anyURI = (function () {
         function anyURI(s) {
@@ -40,7 +39,7 @@ define("sdmx/xml", ["require", "exports", "moment"], function (require, exports,
         anyURI.prototype.getString = function () { return this.s; };
         anyURI.prototype.toString = function () { return this.s; };
         return anyURI;
-    }());
+    })();
     exports.anyURI = anyURI;
     var DateTime = (function () {
         function DateTime(d) {
@@ -77,13 +76,13 @@ define("sdmx/xml", ["require", "exports", "moment"], function (require, exports,
         DateTime.DF = "yyyy-MM-dd'T'HH:mm:ssXXX";
         DateTime.DF2 = "yyyy-MM-dd'T'HH:mm:ss";
         return DateTime;
-    }());
+    })();
     exports.DateTime = DateTime;
     var duration = (function () {
         function duration() {
         }
         return duration;
-    }());
+    })();
     exports.duration = duration;
 });
 

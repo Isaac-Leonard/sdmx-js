@@ -1,5 +1,4 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
-    "use strict";
     var Knoema = (function () {
         function Knoema(agency, service, options) {
             this.agency = "Knoema";
@@ -29,7 +28,23 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
             this.local.clear();
         };
         Knoema.prototype.query = function (q) {
-            var url = this.serviceURL + "/getdata?dataflow=" + q.getDataflow().getId().toString() + "&key=" + q.getQueryString() + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
+            var qs = "";
+            for (var i = 0; i < q.size(); i++) {
+                var k = q.getKeyNames()[i];
+                var qk = q.getQueryKey(k);
+                qs += k + "=";
+                for (var j = 0; j < qk.getValues().length; j++) {
+                    var v = qk.getValues()[j];
+                    qs += v;
+                    if (j < qk.getValues().length - 1) {
+                        qs += "%2C";
+                    }
+                }
+                if (i < q.size() - 1) {
+                    qs += "&";
+                }
+            }
+            var url = this.serviceURL + "/2.1/get?id=" + q.getDataflow().getId().toString() + "&" + qs + "&startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear();
             return this.retrieveData(q.getDataflow(), url);
         };
         Knoema.prototype.retrieveData = function (dataflow, urlString) {
@@ -141,7 +156,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
                 return promise;
             }
             else {
-                return this.retrieve(this.getServiceURL() + "/" + ref.getMaintainableParentId()).then(function (structure) {
+                return this.retrieve(this.getServiceURL() + "/2.1/" + ref.getMaintainableParentId()).then(function (structure) {
                     this.local.load(structure);
                     return structure.getStructures().findDataStructure(ref);
                 }.bind(this));
@@ -184,7 +199,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         Knoema.prototype.save = function () { };
         return Knoema;
-    }());
+    })();
     exports.Knoema = Knoema;
 });
 

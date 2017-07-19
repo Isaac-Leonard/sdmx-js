@@ -24,39 +24,36 @@ import commonreferences = require("sdmx/commonreferences");
 import common = require("sdmx/common");
 import data = require("sdmx/data");
 import sdmx = require("sdmx");
-export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
-    private agency: string = "ABS";
+export class ILO implements interfaces.Queryable, interfaces.RemoteRegistry, interfaces.Repository {
+    private agency: string = "INSEE";
     //http://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL/OECD
-    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://stat.data.abs.gov.au/restsdmx/sdmx.ashx/";
+    private serviceURL: string = "http://cors-anywhere.herokuapp.com/http://www.ilo.org/ilostat/sdmx/ws/rest";
     //private serviceURL: string = "http://stat.abs.gov.au/restsdmx/sdmx.ashx/";
     private options: string = "";
     private local: interfaces.LocalRegistry = new registry.LocalRegistry();
 
     private dataflowList: Array<structure.Dataflow> = null;
+    private classifications: structure.Codelist = null;
+    private indicatorsArrayCodelist: Array<structure.Codelist> = [];
 
     getRemoteRegistry(): interfaces.RemoteRegistry {
         return this;
     }
 
     getRepository(): interfaces.Repository {
-        return this;
+        return this;//this;
+        
     }
 
     clear() {
         this.local.clear();
     }
-    query(q:data.Query):Promise<message.DataMessage> {
-        var url = '';
-        if (this.getLocalRegistry().findDataStructure(q.getDataflow().getStructure()).getDataStructureComponents().getDimensionList().getTimeDimension()!=null){
-           url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startTime=" + q.getStartDate().getFullYear() + "&endTime=" + q.getEndDate().getFullYear()+"&format=compact_v2";
-        }else{
-        // No Time Dimension
-           url = this.serviceURL + "GetData/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?&format=compact_v2";
-        }
-        return this.retrieveData(q.getDataflow(),url);
+    query(q: data.Query): Promise<message.DataMessage> {
+        var url = this.serviceURL + "/data/" + q.getDataflow().getId().toString() + "/" + q.getQueryString() + "/all?startPeriod=" + q.getStartDate().getFullYear() + "&endPeriod=" + q.getEndDate().getFullYear();
+        return this.retrieveData(q.getDataflow(), url);
     }
-    public retrieveData(dataflow: structure.Dataflow,urlString: string): Promise<message.DataMessage> {
-        console.log("abs retrieveData:" + urlString);
+    public retrieveData(dataflow: structure.Dataflow, urlString: string): Promise<message.DataMessage> {
+        console.log("ilo retrieveData:" + urlString);
         var s: string = this.options;
         if (urlString.indexOf("?") == -1) {
             s = "?" + s + "&random=" + new Date().getTime();
@@ -66,7 +63,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             console.log("Got Data Response");
             var dm = sdmx.SdmxIO.parseData(a);
@@ -137,7 +134,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = {};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             return sdmx.SdmxIO.parseStructure(a);
         });
@@ -153,7 +150,7 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
         var opts: any = {};
         opts.url = urlString;
         opts.method = "GET";
-        opts.headers = { "Origin": document.location};
+        opts.headers = { "Origin": document.location };
         return this.makeRequest(opts).then(function(a) {
             return a;
         });
@@ -162,12 +159,12 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
     public findDataStructure(ref: commonreferences.Reference): Promise<structure.DataStructure> {
         var dst: structure.DataStructure = this.local.findDataStructure(ref);
         if (dst != null) {
-            var promise = new Promise < structure.DataStructure>(function(resolve, reject) {
+            var promise = new Promise<structure.DataStructure>(function(resolve, reject) {
                 resolve(dst);
             }.bind(this));
             return promise;
         } else {
-            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "GetDataStructure/" + ref.getMaintainableParentId().toString() + "/" + ref.getAgencyId().toString()).then(function(structure: message.StructureType){
+            return <Promise<structure.DataStructure>>this.retrieve(this.getServiceURL() + "/datastructure/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId().toString() + "?references=children").then(function(structure: message.StructureType) {
                 this.local.load(structure);
                 return structure.getStructures().findDataStructure(ref);
             }.bind(this));
@@ -175,32 +172,109 @@ export class ABS implements interfaces.Queryable, interfaces.RemoteRegistry {
     }
 
 
-    public listDataflows(): Promise<Array<structure.Dataflow>> {
+
+
+    public listDataflows(): Promise<any> {
         if (this.dataflowList != null) {
             var promise = new Promise<Array<structure.Dataflow>>(function(resolve, reject) {
                 resolve(this.dataflowList);
             }.bind(this));
             return promise;
         } else {
-            return <Promise<Array<structure.Dataflow>>>this.retrieve(this.serviceURL + "GetDataStructure/ALL/" + this.agency).then(function(st: message.StructureType) {
-                var array: Array<structure.DataStructure> = st.getStructures().getDataStructures().getDataStructures();
-                var dfs: Array<structure.Dataflow> = [];
-                for (var i = 0; i < array.length; i++) {
-                    dfs.push(array[i].asDataflow());
+            var r: commonreferences.Ref = new commonreferences.Ref();
+            r.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
+            r.setMaintainableParentId(new commonreferences.ID("CL_COLLECTION"));
+            r.setVersion(null);
+            var ref: commonreferences.Reference = new commonreferences.Reference(r, null);
+            var prom: Promise<any> = this.findCodelist(ref);
+            var dataflowList: Array<structure.Dataflow> = [];
+            var indicatorsCodelist = [];
+            return prom.then(function(classifications: any) {
+                this.classifications = classifications;
+                var indicatorsArray = [];
+                for (var i: number = 0; i < classifications.size(); i++) {
+                    var code: structure.CodeType = <structure.CodeType>classifications.getItem(i);
+                    var cod: string = code.getId().toString();
+                    var r2: commonreferences.Ref = new commonreferences.Ref();
+                    r2.setAgencyId(new commonreferences.NestedNCNameID(this.agency));
+                    r2.setMaintainableParentId(new commonreferences.ID("CL_INDICATOR_" + cod));
+                    r2.setVersion(null);
+                    var ref: commonreferences.Reference = new commonreferences.Reference(r2, null);
+                    indicatorsArray.push(ref);
                 }
-                this.dataflowList = dfs;
-                return dfs;
-            }.bind(this)
-            );
+                return indicatorsArray;
+            }.bind(this)).map(function(item, idex, length) {
+                return this.findCodelist(item);
+            }.bind(this)).then(function(indicatorArray: any) {
+                this.indicatorsArrayCodelist = indicatorArray;
+                console.log(JSON.stringify(indicatorArray));
+                var indic: structure.Codelist = null;
+                var dataflowList: Array<structure.Dataflow> = [];
+                for (var i: number = 0; i < this.classifications.size(); i++) {
+                    var col1 = this.classifications.getItem(i);
+                    var con = col1.getId().toString();
+                    indic = this.indicatorsArrayCodelist[i];
+                    for (var k = 0; k < indic.size(); k++) {
+                        var dataflow = new structure.Dataflow();
+                        dataflow.setAgencyId(this.classifications.getAgencyId());
+                        var indicid: string = indic.getItem(k).getId().toString();
+                        dataflow.setId(new commonreferences.ID("DF_" + con + "_ALL_" + indicid));
+                        dataflow.setVersion(null);
+                        var r3: commonreferences.Ref = new commonreferences.Ref();
+                        r3.setAgencyId(this.classifications.getAgencyId());
+                        r3.setMaintainableParentId(new commonreferences.ID(con + "_ALL_" + indicid));
+                        r3.setVersion(null);
+                        var names: Array<common.Name> = [];
+                        var langs = ["en", "fr", "es"];
+                        for (var lang: number = 0; lang < langs.length; lang++) {
+                            var name: common.Name = new common.Name(langs[lang], col1.findName(langs[lang]).getText() + " - " + indic.getItem(k).findName(langs[lang]).getText());
+                            names.push(name);
+                        }
+                        dataflow.setNames(names);
+                        var reference: commonreferences.Reference = new commonreferences.Reference(r3, null);
+                        dataflow.setStructure(reference);
+                        dataflowList.push(dataflow);
+                    }
+                }
+                this.dataflowList = dataflowList;
+                return this.dataflowList;
+            }.bind(this));
         }
     }
-    public getServiceURL(): string { return this.serviceURL;    }
+    public getServiceURL(): string { return this.serviceURL; }
     findDataflow(ref: commonreferences.Reference): Promise<structure.Dataflow> { return null; }
     findCode(ref: commonreferences.Reference): Promise<structure.CodeType> { return null; }
-    findCodelist(ref: commonreferences.Reference): Promise<structure.Codelist> { return null; }
+    findCodelist(ref: commonreferences.Reference): Promise<structure.Codelist> {
+        var dst: structure.Codelist = this.local.findCodelist(ref);
+        if (dst != null) {
+            var promise = new Promise<structure.Codelist>(function(resolve, reject) {
+                resolve(dst);
+            }.bind(this));
+            return promise;
+        } else {
+            return <Promise<structure.Codelist>>this.retrieve(this.getServiceURL() + "/codelist/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId() + (ref.getVersion() == null ? "/latest" : ref.getVersion().toString())).then(function(structure: message.StructureType) {
+                this.local.load(structure);
+                var cl: structure.Codelist = structure.getStructures().findCodelist(ref);
+                return cl;
+            }.bind(this));
+        }
+    }
     findItemType(item: commonreferences.Reference): Promise<structure.ItemType> { return null; }
     findConcept(ref: commonreferences.Reference): Promise<structure.ConceptType> { return null; }
-    findConceptScheme(ref: commonreferences.Reference): Promise<structure.ConceptSchemeType> { return null; }
+    findConceptScheme(ref: commonreferences.Reference): Promise<structure.ConceptSchemeType> {
+        var dst: structure.ConceptSchemeType = this.local.findConceptScheme(ref);
+        if (dst != null) {
+            var promise = new Promise<structure.ConceptSchemeType>(function(resolve, reject) {
+                resolve(dst);
+            }.bind(this));
+            return promise;
+        } else {
+            return <Promise<structure.ConceptSchemeType>>this.retrieve(this.getServiceURL() + "/conceptscheme/" + ref.getAgencyId().toString() + "/" + ref.getMaintainableParentId() + (ref.getVersion() == null ? "/latest" : ref.getVersion().toString())).then(function(structure: message.StructureType) {
+                this.local.load(structure);
+                return structure.getStructures().findConceptScheme(ref);
+            }.bind(this));
+        }
+    }
     searchDataStructure(ref: commonreferences.Reference): Promise<Array<structure.DataStructure>> { return null; }
     searchDataflow(ref: commonreferences.Reference): Promise<Array<structure.Dataflow>> { return null; }
     searchCodelist(ref: commonreferences.Reference): Promise<Array<structure.Codelist>> { return null; }

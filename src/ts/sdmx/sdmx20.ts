@@ -768,7 +768,6 @@ export class Sdmx20StructureReaderTools {
         this.currentKeyFamilyAgency = keyFamilyNode.getAttribute("agencyID");
         dst.setAgencyId(this.toNestedNCNameID(keyFamilyNode));
         dst.setVersion(this.toVersion(keyFamilyNode));
-
         dst.setDataStructureComponents(this.toDataStructureComponents(this.findNodeName("Components", keyFamilyNode.childNodes)));
         //this.recurseDomChildren(keyFamilyNode, true);
         return dst;

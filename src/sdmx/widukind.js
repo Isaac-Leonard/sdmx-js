@@ -1,5 +1,4 @@
 define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function (require, exports, registry, common, sdmx) {
-    "use strict";
     var Widukind = (function () {
         function Widukind(agency, service, options) {
             this.agency = "WIDUKIND";
@@ -184,7 +183,7 @@ define(["require", "exports", "sdmx/registry", "sdmx/common", "sdmx"], function 
         };
         Widukind.prototype.save = function () { };
         return Widukind;
-    }());
+    })();
     exports.Widukind = Widukind;
 });
 

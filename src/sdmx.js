@@ -1,5 +1,4 @@
-define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/knoema", "sdmx/nomis", "sdmx/ilo", "sdmx/estat"], function (require, exports, sdmx20, sdmx21, abs, oecd, knoema, nomis, ilo, estat) {
-    "use strict";
+define("sdmx", ["require", "exports", "sdmx/commonreferences", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", "sdmx/oecd", "sdmx/knoema", "sdmx/nomis", "sdmx/ilo", "sdmx/estat"], function (require, exports, commonreferences, sdmx20, sdmx21, abs, oecd, knoema, nomis, ilo, estat) {
     var SdmxIO = (function () {
         function SdmxIO() {
         }
@@ -74,13 +73,23 @@ define("sdmx", ["require", "exports", "sdmx/sdmx20", "sdmx/sdmx21", "sdmx/abs", 
         SdmxIO.getLanguage = function () {
             return this.language;
         };
+        SdmxIO.reference = function (agency, id, vers) {
+            var ref = new commonreferences.Ref();
+            ref.setAgencyId(new commonreferences.NestedNCNameID(agency));
+            ref.setMaintainableParentId(new commonreferences.ID(id));
+            if (vers != null) {
+                ref.setVersion(new commonreferences.Version(vers));
+            }
+            var reference = new commonreferences.Reference(ref, null);
+            return reference;
+        };
         SdmxIO.SANITISE_NAMES = false;
         SdmxIO.PARSER = [];
         SdmxIO.TRUNCATE_NAMES = 100;
         SdmxIO.languages = [];
         SdmxIO.language = window.navigator.userLanguage || window.navigator.language || "en";
         return SdmxIO;
-    }());
+    })();
     exports.SdmxIO = SdmxIO;
     SdmxIO.registerParserProvider(new sdmx20.Sdmx20StructureParser());
     SdmxIO.registerParserProvider(new sdmx21.Sdmx21StructureParser());

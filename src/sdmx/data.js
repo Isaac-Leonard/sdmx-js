@@ -4,7 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences", "sdmx/structure", "sdmx", "sdmx/time"], function (require, exports, common, commonreferences, structure, sdmx, timepack) {
-    "use strict";
     var Query = (function () {
         function Query(flow, registry) {
             this.flow = null;
@@ -107,8 +106,11 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         Query.prototype.getProviderRef = function () {
             return this.providerRef;
         };
+        Query.prototype.size = function () {
+            return this.query.length;
+        };
         return Query;
-    }());
+    })();
     exports.Query = Query;
     var QueryKey = (function () {
         function QueryKey(structRef, registry, s) {
@@ -188,7 +190,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             }
         };
         return QueryKey;
-    }());
+    })();
     exports.QueryKey = QueryKey;
     var FlatObs = (function () {
         function FlatObs(vals) {
@@ -225,7 +227,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.values.length;
         };
         return FlatObs;
-    }());
+    })();
     exports.FlatObs = FlatObs;
     var AttachmentLevel = (function () {
         function AttachmentLevel(s, id) {
@@ -265,7 +267,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         AttachmentLevel.OBSERVATION = new AttachmentLevel(AttachmentLevel.ATTACHMENT_OBSERVATION_STRING, AttachmentLevel.ATTACHMENT_OBSERVATION);
         AttachmentLevel.GROUP = new AttachmentLevel(AttachmentLevel.ATTACHMENT_GROUP_STRING, AttachmentLevel.ATTACHMENT_GROUP);
         return AttachmentLevel;
-    }());
+    })();
     exports.AttachmentLevel = AttachmentLevel;
     var AbstractKey = (function () {
         function AbstractKey() {
@@ -274,7 +276,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return "";
         };
         return AbstractKey;
-    }());
+    })();
     exports.AbstractKey = AbstractKey;
     var PartialKey = (function (_super) {
         __extends(PartialKey, _super);
@@ -282,7 +284,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             _super.apply(this, arguments);
         }
         return PartialKey;
-    }(AbstractKey));
+    })(AbstractKey);
     exports.PartialKey = PartialKey;
     var FullKey = (function (_super) {
         __extends(FullKey, _super);
@@ -290,7 +292,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             _super.apply(this, arguments);
         }
         return FullKey;
-    }(AbstractKey));
+    })(AbstractKey);
     exports.FullKey = FullKey;
     var Group = (function () {
         function Group() {
@@ -357,7 +359,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.groupAttributes.setValue(columnName, val);
         };
         return Group;
-    }());
+    })();
     exports.Group = Group;
     var FlatColumnMapper = (function () {
         function FlatColumnMapper() {
@@ -449,7 +451,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             }
         };
         return FlatColumnMapper;
-    }());
+    })();
     exports.FlatColumnMapper = FlatColumnMapper;
     var FlatDataSet = (function () {
         function FlatDataSet() {
@@ -567,7 +569,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.dimensionAtObservation;
         };
         return FlatDataSet;
-    }());
+    })();
     exports.FlatDataSet = FlatDataSet;
     var FlatDataSetWriter = (function () {
         function FlatDataSetWriter() {
@@ -643,7 +645,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.groups.push(group);
         };
         return FlatDataSetWriter;
-    }());
+    })();
     exports.FlatDataSetWriter = FlatDataSetWriter;
     var StructuredDataMessage = (function () {
         function StructuredDataMessage(dm, reg) {
@@ -701,7 +703,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.dataflow = dataflow;
         };
         return StructuredDataMessage;
-    }());
+    })();
     exports.StructuredDataMessage = StructuredDataMessage;
     var StructuredDataSet = (function () {
         function StructuredDataSet(ds, reg, struct) {
@@ -763,41 +765,8 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             }
             return result;
         };
-        StructuredDataSet.prototype.getPivotUIData = function () {
-            var data = [];
-            var cols = [];
-            for (var i = 0; i < this.getColumnCount(); i++) {
-                if (!this.structure.isAttribute(this.dataSet.getColumnName(i))) {
-                    cols.push(this.getColumnName(i));
-                }
-            }
-            data.push(cols);
-            for (var i = 0; i < this.size(); i++) {
-                var row = [];
-                for (var j = 0; j < this.getColumnCount(); j++) {
-                    var sv = this.getStructuredValue(i, j);
-                    var dimension = false;
-                    for (var k = 0; k < this.structure.getDataStructureComponents().getDimensionList().getDimensions().length; k++) {
-                        if (this.structure.getDataStructureComponents().getDimensionList().getDimensions()[k].getId().toString() == sv.getConcept().getId().toString()) {
-                            if (sv.getCodelist() != null) {
-                                row.push(structure.NameableType.toString(sv.getCode()));
-                            }
-                        }
-                    }
-                    if (this.structure.isTimeDimension(this.dataSet.getColumnName(j))) {
-                        row.push(sv.getCode().getId().toString());
-                    }
-                    if (this.structure.getDataStructureComponents().getMeasureList().getPrimaryMeasure().getId().toString() == sv.getConcept().getId().toString()) {
-                        row.push(parseFloat(sv.getValue()));
-                    }
-                }
-                data.push(row);
-                row = [];
-            }
-            return data;
-        };
         return StructuredDataSet;
-    }());
+    })();
     exports.StructuredDataSet = StructuredDataSet;
     var StructuredValue = (function () {
         function StructuredValue(concept, value, registry, struct) {
@@ -872,7 +841,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return this.value;
         };
         return StructuredValue;
-    }());
+    })();
     exports.StructuredValue = StructuredValue;
     var ValueTypeResolver = (function () {
         function ValueTypeResolver() {
@@ -1000,7 +969,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return null;
         };
         return ValueTypeResolver;
-    }());
+    })();
     exports.ValueTypeResolver = ValueTypeResolver;
     var Cube = (function () {
         function Cube(struct, reg) {
@@ -1009,6 +978,8 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.struct = null;
             this.reg = null;
             this.mapper = new FlatColumnMapper();
+            this.cubeObsMapper = new FlatColumnMapper();
+            this.flatObsMapper = new FlatColumnMapper();
             this.validCodes = new collections.Dictionary();
             this.root = new RootCubeDimension();
             this.struct = struct;
@@ -1042,7 +1013,11 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                 }
                 if (this.validCodes[dimId.toString()] == null) {
                     this.validCodes[dimId.toString()] = [];
-                    this.mapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                    if (this.mapper.getColumnIndex(dimId.toString()) == -1) {
+                        this.mapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                        this.cubeObsMapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                        this.flatObsMapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                    }
                 }
                 /*
                     If the data you are trying to make a cube from does not have a complete key
@@ -1051,10 +1026,15 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                     this filters down into FlatObservation.getValue(-1) which causes an array index
                     out of bounds exception!
                  */
+                if (mapper.getColumnIndex(dimId.toString()) == -1) {
+                    this.mapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                    this.cubeObsMapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                    this.flatObsMapper.registerColumn(dimId.toString(), AttachmentLevel.OBSERVATION);
+                }
                 var myDim = dim.getSubCubeDimension(obs.getValue(mapper.getColumnIndex(dimId.toString())));
                 if (myDim == null) {
                     myDim = new ListCubeDimension(dimId.toString(), obs.getValue(mapper.getColumnIndex(dimId.toString())));
-                    dim.putSubDimension(myDim);
+                    dim.putSubCubeDimension(myDim);
                     if (!collections.arrays.contains(this.validCodes[dimId.toString()], myDim.getValue())) {
                         this.validCodes[dimId.toString()].push(myDim.getValue());
                     }
@@ -1071,7 +1051,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             myDim = dim.getSubCubeDimension(obs.getValue(mapper.getColumnIndex(dimId.toString())));
             if (myDim == null) {
                 myDim = new TimeCubeDimension(dimId.toString(), obs.getValue(mapper.getColumnIndex(dimId.toString())));
-                dim.putSubDimension(myDim);
+                dim.putSubCubeDimension(myDim);
                 if (!collections.arrays.contains(this.validCodes[dimId.toString()], myDim.getValue())) {
                     this.validCodes[dimId.toString()].push(myDim.getValue());
                 }
@@ -1083,6 +1063,11 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                 dimId2 = this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId();
                 if (this.validCodes[dimId2.toString()] == null) {
                     this.validCodes[dimId2.toString()] = [];
+                    if (this.mapper.getColumnIndex(dimId2.toString()) == -1) {
+                        this.mapper.registerColumn(dimId2.toString(), AttachmentLevel.OBSERVATION);
+                        this.cubeObsMapper.registerColumn(dimId2.toString(), AttachmentLevel.OBSERVATION);
+                        this.flatObsMapper.registerColumn(dimId2.toString(), AttachmentLevel.OBSERVATION);
+                    }
                 }
                 cross = obs.getValue(mapper.getColumnIndex(dimId2.toString()));
                 if (!collections.arrays.contains(this.validCodes[dimId2.toString()], cross)) {
@@ -1092,13 +1077,21 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             var dimId3 = this.struct.getDataStructureComponents().getMeasureList().getPrimaryMeasure().getId();
             if (dimId2 != null) {
                 cubeobs = new CubeObservation(dimId2.toString(), cross, dimId3.toString(), obs.getValue(mapper.getColumnIndex(dimId3.toString())));
+                if (this.mapper.getColumnIndex(dimId2.toString()) == -1) {
+                    this.mapper.registerColumn(dimId2.toString(), AttachmentLevel.OBSERVATION);
+                    this.cubeObsMapper.registerColumn(dimId2.toString(), AttachmentLevel.OBSERVATION);
+                }
             }
             else {
                 cubeobs = new CubeObservation(null, null, dimId3.toString(), obs.getValue(mapper.getColumnIndex(dimId3.toString())));
+                if (this.mapper.getColumnIndex(dimId3.toString()) == -1) {
+                    this.mapper.registerColumn(dimId3.toString(), AttachmentLevel.OBSERVATION);
+                    this.flatObsMapper.registerColumn(dimId3.toString(), AttachmentLevel.OBSERVATION);
+                }
             }
             time.putObservation(cubeobs);
             for (var k = 0; k < this.struct.getDataStructureComponents().getAttributeList().getAttributes().length; k++) {
-                var name = this.struct.getDataStructureComponents().getAttributeList().getAttributes()[i].getId().toString();
+                var name = this.struct.getDataStructureComponents().getAttributeList().getAttributes()[k].getId().toString();
                 var value = null;
                 if (mapper.getColumnIndex(name) != -1) {
                     value = obs.getValue(mapper.getColumnIndex(name));
@@ -1111,7 +1104,16 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         Cube.prototype.getColumnMapper = function () {
             return this.mapper;
         };
+        Cube.prototype.getFlatColumnMapper = function () {
+            return this.flatObsMapper;
+        };
+        Cube.prototype.getCubeObsColumnMapper = function () {
+            return this.cubeObsMapper;
+        };
         Cube.prototype.find = function (key) {
+            return this.findLatest(key, false);
+        };
+        Cube.prototype.findFlatObs = function (key) {
             return this.findLatest(key, false);
         };
         Cube.prototype.findLatest = function (key, latest) {
@@ -1171,11 +1173,76 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
                     var measure = key.getComponent(this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId().toString());
                     //tcd.dump();
                     //System.out.println("Measure="+measure);
-                    return tcd.getObservation(measure).toCubeObs(key, this.mapper);
+                    return tcd.getObservation(measure).toCubeObs(key, this.cubeObsMapper);
                 }
                 else {
                     var co = tcd.getObservation(null);
-                    return co.toCubeObs(key, this.mapper);
+                    return co.toCubeObs(key, this.cubeObsMapper);
+                }
+            }
+        };
+        Cube.prototype.findLatestFlatObs = function (key, latest) {
+            var dim = this.getRootCubeDimension();
+            var oldDim = dim;
+            for (var i = 0; i < this.struct.getDataStructureComponents().getDimensionList().getDimensions().length; i++) {
+                dim = dim.getSubCubeDimension(key.getComponent(dim.getSubDimension()));
+                if (dim == null) {
+                    //System.out.println("Can't find dim:"+key.getComponent(order.get(i))+":"+oldDim.getSubDimension());
+                    return null;
+                }
+                oldDim = dim;
+            }
+            var time = this.struct.getDataStructureComponents().getDimensionList().getTimeDimension();
+            if (time == null) {
+                throw new Error("Time Dimension Is Null");
+            }
+            else if (latest) {
+                var timesList = dim.listDimensionValues();
+                for (var i = 0; i < timesList.length; i++) {
+                    for (var j = 0; j < timesList.length - i; j++) {
+                        var t1 = timepack.TimeUtil.parseTime(timesList[i], null);
+                        var t2 = timepack.TimeUtil.parseTime(timesList[j], null);
+                        if (t1.getStart() > t2.getStart()) {
+                            collections.arrays.swap(timesList, i, j);
+                        }
+                    }
+                }
+                var timeValue = timesList[timesList.length - 1];
+                var tcd = dim.getSubCubeDimension(timeValue);
+                if (tcd == null) {
+                    //System.out.println("TCD null:"+key.getComponent(time.getId().toString()+":"+timeValue));
+                    //dim.dump();
+                    return null;
+                }
+                if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+                    var measure = key.getComponent(this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId().toString());
+                    //tcd.dump();
+                    //System.out.println("Measure="+measure);
+                    return tcd.getObservation(measure).toFlatObs(key, this.flatObsMapper);
+                }
+                else {
+                    var co = tcd.getObservation(null);
+                    return co.toFlatObs(key, this.flatObsMapper);
+                    ;
+                }
+            }
+            else {
+                var timeValue = key.getComponent(time.getId().toString());
+                var tcd = dim.getSubCubeDimension(timeValue);
+                if (tcd == null) {
+                    //System.out.println("TCD null:"+key.getComponent(time.getId().toString()+":"+timeValue));
+                    //dim.dump();
+                    return null;
+                }
+                if (this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension() != null) {
+                    var measure = key.getComponent(this.struct.getDataStructureComponents().getDimensionList().getMeasureDimension().getId().toString());
+                    //tcd.dump();
+                    //System.out.println("Measure="+measure);
+                    return tcd.getObservation(measure).toFlatObs(key, this.flatObsMapper);
+                }
+                else {
+                    var co = tcd.getObservation(null);
+                    return co.toFlatObs(key, this.flatObsMapper);
                 }
             }
         };
@@ -1231,14 +1298,24 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             }
             return c;
         };
+        Cube.prototype.dump = function () {
+            this.recurse(this.root, 0);
+        };
+        Cube.prototype.recurse = function (dim, n) {
+            for (var i = 0; i < dim.listSubDimensions().length; i++) {
+                this.recurse(dim.listSubDimensions()[i], n + 1);
+            }
+            console.log(n + ":" + dim.getConcept() + ":" + dim.getValue());
+        };
         return Cube;
-    }());
+    })();
     exports.Cube = Cube;
     var CubeDimension = (function () {
         function CubeDimension(concept, value) {
             this.concept = null;
             this.value = null;
             this.subDimension = null;
+            this.subDimensions = [];
             this.concept = concept;
             this.value = value;
         }
@@ -1254,10 +1331,30 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         CubeDimension.prototype.setConcept = function (concept) {
             this.concept = concept;
         };
-        CubeDimension.prototype.getSubCubeDimension = function (id) { return null; };
-        CubeDimension.prototype.putSubDimension = function (sub) { };
-        CubeDimension.prototype.listSubDimensions = function () { return []; };
-        CubeDimension.prototype.listDimensionValues = function () { return []; };
+        CubeDimension.prototype.getSubCubeDimension = function (id) {
+            for (var i = 0; i < this.subDimensions.length; i++) {
+                if (this.subDimensions[i].getValue() == id) {
+                    return this.subDimensions[i];
+                }
+            }
+            return null;
+        };
+        CubeDimension.prototype.putSubCubeDimension = function (sub) {
+            var sub2 = this.getSubCubeDimension(sub.getValue());
+            if (sub2 != null) {
+                // Remove Old Dimension
+                this.subDimensions = this.subDimensions.splice(this.subDimensions.indexOf(sub2), 1);
+            }
+            this.subDimensions.push(sub);
+        };
+        CubeDimension.prototype.listSubDimensions = function () { return this.subDimensions; };
+        CubeDimension.prototype.listDimensionValues = function () {
+            var result = [];
+            for (var i = 0; i < this.subDimensions.length; i++) {
+                result.push(this.subDimensions[i].getValue());
+            }
+            return result;
+        };
         /**
          * @return the value
          */
@@ -1285,16 +1382,8 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             this.subDimension = subDimension;
         };
         return CubeDimension;
-    }());
+    })();
     exports.CubeDimension = CubeDimension;
-    var RootCubeDimension = (function (_super) {
-        __extends(RootCubeDimension, _super);
-        function RootCubeDimension() {
-            _super.call(this, null, null);
-        }
-        return RootCubeDimension;
-    }(CubeDimension));
-    exports.RootCubeDimension = RootCubeDimension;
     var ListCubeDimension = (function (_super) {
         __extends(ListCubeDimension, _super);
         function ListCubeDimension(concept, value) {
@@ -1314,6 +1403,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return null;
         };
         ListCubeDimension.prototype.putSubCubeDimension = function (sub) {
+            //console.log("ListCubeDimension.putSubCubeDimension()");
             var old = this.getSubCubeDimension(sub.getValue());
             if (old != null) {
                 this.list.splice(this.list.indexOf(old), 1);
@@ -1332,8 +1422,16 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return set;
         };
         return ListCubeDimension;
-    }(CubeDimension));
+    })(CubeDimension);
     exports.ListCubeDimension = ListCubeDimension;
+    var RootCubeDimension = (function (_super) {
+        __extends(RootCubeDimension, _super);
+        function RootCubeDimension() {
+            _super.call(this, null, null);
+        }
+        return RootCubeDimension;
+    })(ListCubeDimension);
+    exports.RootCubeDimension = RootCubeDimension;
     var TimeCubeDimension = (function (_super) {
         __extends(TimeCubeDimension, _super);
         function TimeCubeDimension(concept, value) {
@@ -1369,7 +1467,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             return [];
         };
         return TimeCubeDimension;
-    }(CubeDimension));
+    })(CubeDimension);
     exports.TimeCubeDimension = TimeCubeDimension;
     var CubeObservation = (function () {
         function CubeObservation(crossSectionalMeasureConcept, crossSection, primaryMeasureConcept, value) {
@@ -1462,20 +1560,43 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
             }
             return f;
         };
+        CubeObservation.prototype.toFlatObs = function (key, mapper) {
+            var f = new FlatObs([]);
+            mapper.getObservationColumns().forEach(function (s) {
+                var v = key.getComponent(s);
+                f.setValue(mapper.getColumnIndex(s), v);
+            });
+            // Cross Sectional Data
+            if (this.concept != null) {
+                f.setValue(mapper.getColumnIndex(this.concept), this.cross);
+            }
+            // OBS_VALUE
+            f.setValue(mapper.getColumnIndex(this.observationConcept), this.value);
+            this.map.forEach(function (at) {
+                var ca = this.getAttribute(at);
+                // Attributes
+                f.setValue(mapper.getColumnIndex(ca.getConcept()), ca.getValue());
+            });
+            return f;
+        };
         return CubeObservation;
-    }());
+    })();
     exports.CubeObservation = CubeObservation;
     var CubeAttribute = (function () {
         function CubeAttribute(concept, value) {
+            this.concept = null;
+            this.value = null;
+            this.concept = concept;
+            this.value = value;
         }
         CubeAttribute.prototype.getConcept = function () {
-            return "";
+            return this.concept;
         };
         CubeAttribute.prototype.getValue = function () {
-            return "";
+            return this.value;
         };
         return CubeAttribute;
-    }());
+    })();
     exports.CubeAttribute = CubeAttribute;
     var CubeObs = (function () {
         function CubeObs() {
@@ -1483,7 +1604,7 @@ define("sdmx/data", ["require", "exports", "sdmx/common", "sdmx/commonreferences
         CubeObs.prototype.addValue = function (c, v) {
         };
         return CubeObs;
-    }());
+    })();
     exports.CubeObs = CubeObs;
 });
 
